@@ -27,7 +27,7 @@ This repository is intended for:
 
 ## Citation
 If you use the methods or scripts provided here, please cite this repository as follows:
-> Bédécarrats F. et al. (2024). "Conserving the History of Conservation: A Transparent Methodology for Producing a Dynamic Dataset of Madagascar's Protected Areas (2000-2024)." Open Repository.
+> Bédécarrats F., Ramanantsoa S. *et al.* (2024). "Conserving the History of Conservation: A Transparent Methodology for Producing a Dynamic Dataset of Madagascar's Protected Areas (2000-2024)." Open Repository.
 
 ## Contributing
 We welcome contributions to improve the methodology or documentation. Please see the [Contributing Guidelines](docs/contributing.md) for more information.

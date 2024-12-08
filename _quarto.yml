@@ -1,0 +1,28 @@
+project:
+  type: book
+  output-dir: docs
+
+book:
+  title: "Données des aires protégées à Madagascar"
+  author: "Florent Bédécarrats, Seheno Ramanantsoa"
+  date: "09/09/2024"
+  repo-url: https://github.com/BETSAKA/conservation-dynamic-madagascar
+  license: "CC-BY 4.0"
+  chapters:
+    - index.qmd
+    - 01_sapm_data.qmd
+    - 02_wdpa_data.qmd
+    - 03_legal_docs.qmd
+    - 04_combination_algo.qmd
+    - 05_visual_verif.qmd
+
+bibliography: references.bib
+
+format:
+  html:
+    theme: cosmo
+    code-fold: true
+
+execute:
+  warning: false
+  error: false

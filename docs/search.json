@@ -1,0 +1,37 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Données des aires protégées à Madagascar",
+    "section": "",
+    "text": "1 Données des aires protégées à Madagascar"
+  },
+  {
+    "objectID": "index.html#introduction",
+    "href": "index.html#introduction",
+    "title": "Données des aires protégées à Madagascar",
+    "section": "1.1 Introduction",
+    "text": "1.1 Introduction\nLes données spatiales des aires protégées, comprenant leur localisation et leurs caractéristiques, constituent une ressource essentielle pour les études sur la conservation. Cependant, les bases de données existantes se limitent souvent aux configurations actuelles, ignorant les états passés des aires protégées lorsque leurs limites ou attributs ont évolué. Cette lacune entraîne des biais dans les analyses de leur évolution et de leurs impacts.\nDans ce projet, nous proposons une méthode innovante pour produire un modèle de données dynamique documentant l’évolution des aires protégées à Madagascar entre 2000 et 2024. Ce modèle permet de retracer chaque état successif d’une aire protégée, avec ses périodes de validité, offrant ainsi une base plus fiable pour les analyses en conservation et développement."
+  },
+  {
+    "objectID": "index.html#démarche-méthodologique",
+    "href": "index.html#démarche-méthodologique",
+    "title": "Données des aires protégées à Madagascar",
+    "section": "1.2 Démarche méthodologique",
+    "text": "1.2 Démarche méthodologique\nNotre démarche repose sur cinq étapes principales :\n\nHarmonisation des données SAPM : Nous consolidons et harmonisons les millésimes successifs des données issues du Système des Aires Protégées de Madagascar (SAPM).\nHarmonisation des données WDPA : Nous appliquons la même méthode aux données de la World Database on Protected Areas (WDPA) pour garantir leur compatibilité.\nCréation d’une base réglementaire : En mobilisant la base juridique CNLEGIS, nous construisons une base de données réglementaire détaillée des textes encadrant les aires protégées.\nAnalyse et consolidation : Nous analysons, croisons et consolidons ces différentes sources pour produire un ensemble cohérent, robuste et prêt à être utilisé.\nOutil de vérification visuelle : Nous développons un outil permettant une vérification visuelle des données consolidées afin d’assurer leur fiabilité et leur traçabilité."
+  },
+  {
+    "objectID": "index.html#objectifs-et-perspectives",
+    "href": "index.html#objectifs-et-perspectives",
+    "title": "Données des aires protégées à Madagascar",
+    "section": "1.3 Objectifs et perspectives",
+    "text": "1.3 Objectifs et perspectives\nEn documentant chaque étape de cette méthode, nous visons à promouvoir une démarche scientifique transparente et reproductible. Ce travail contribue également à une meilleure compréhension des dynamiques de conservation à Madagascar, tout en offrant un cadre adaptable à d’autres contextes géographiques.\nCe projet s’inscrit dans les efforts du BETSAKA pour améliorer l’évaluation des impacts environnementaux et sociaux des aires protégées."
+  },
+  {
+    "objectID": "04_combination_algo.html#décrets-sans-ap",
+    "href": "04_combination_algo.html#décrets-sans-ap",
+    "title": "5  Aires protégées présentes en 2017 qui n’apparaîssent plus en 2024",
+    "section": "5.1 Décrets sans AP",
+    "text": "5.1 Décrets sans AP"
+  }
+]

@@ -20,7 +20,7 @@ library(tmap) # Pour faire de jolies cartes
 library(gt) # Pour faire de jolis tableaux
 
 # Specify the source repository 
-data_dir <- "C:/Users/fbede/Documents/IRD_Drive/BETSAKA_MADAGASCAR/Données/Aires protégées/"
+data_dir <- "sources/"
 # Specify CRS
 my_crs <- 29702
 
@@ -126,7 +126,15 @@ write_rds(sapm_evol_2001_2011, "data/sapm_evol_2001_2011.rds")
 
 ```{r}
 # Try encoding = "UTF-8" or "LATIN1" depending on the data
-sapm_2013 <- st_read("../SAPM 2013/limite_sapm.shp", options = "ENCODING=WINDOWS-1252") %>%
+sapm_2013 <- st_read(paste0(data_dir,"SAPM 2013/limite_sapm.shp"), options = "ENCODING=WINDOWS-1252") # %>%
+  # st_set_crs(4326) %>%  # Transform to WGS 84 (EPSG:4326)
+  # st_make_valid() %>%  # Fix invalid geometries
+  # st_transform(29702)
+
+
+
+# Try encoding = "UTF-8" or "LATIN1" depending on the data
+sapm_2013 <- st_read(paste0(data_dir,"SAPM 2013/limite_sapm.shp"), options = "ENCODING=WINDOWS-1252") %>%
   st_set_crs(4326) %>%  # Transform to WGS 84 (EPSG:4326)
   st_make_valid() %>%  # Fix invalid geometries
   st_transform(29702)

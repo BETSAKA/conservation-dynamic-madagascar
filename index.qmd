@@ -21,3 +21,52 @@ Notre démarche repose sur cinq étapes principales :
 En documentant chaque étape, notre méthode transparente et reproductible. Ce travail contribue également à une meilleure compréhension des dynamiques de conservation à Madagascar, tout en offrant un cadre adaptable à d'autres contextes géographiques. 
 
 Ce projet s’inscrit dans les efforts du BETSAKA pour améliorer l’évaluation des impacts environnementaux et sociaux des aires protégées.
+
+
+
+### Ajouts 
+
+
+
+
+# Enjeux
+
+Les données spatiales qui comprennent la localisation et les caractéristiques des aires protégées sont une source essentielle pour de nombreuses études sur la conservation. 
+
+## Besoin de publier les données
+
+Madagascar est le pays le plus pauvre du monde, au sens de l'ODD 1-1 : c'est le pays ayant la part la plus importante de sa population vivant sous la ligne internationale de pauvreté. Cette faiblesse des ressources a des impacts sur la capacité de son appareil administratif à gérer une politique sur le long terme. Difficulté à entretenir des données. Ce problème est commun à de nombreux pays, notamment ceux où la biodiversité est menacée. Le cas des données de biodiversité en est en exemple. Les données nationales sur les aires protégées ont été mises en lignes et administrées sur un portail "Redbioma" pendant des années, mais ce portail n'est plus fonctionnel et les données ont été perdues pour les acteurs de la conservation. Ce problème n'est pas propre à la conservation : le site internet de l'INSTAT malgache a été hors ligne pendant plus de 2 ans entre XXXX et YYYY, comme en atteste les clichés d'Internet Archive.
+
+La mise en open data est reconnue pour avoir plusieurs vertus : accessibilité, transparence, reproductibilité.
+
+Un argument moins connu en faveur de l'open data est la persistence des données. Dans le monde scientifique, la démarche de l'open data est aussi une manière de lutter contre le problème de la perte de données. Une étude de XXXX a montré  que les données sources avaient été perdues pour YY% des recherches publiées au cours des ZZ années précédentes. Le versement des données dans des entrepôts pérennes permet de garantir la durabilité de la donnée et la reproductibilité des analyses qui en dépendent.
+
+
+## Publier uniquement la dernière version n'est pas suffisant
+
+Les bases de données nationales ou internationales qui fournissent ces informations incluent généralement les limites actuelles des aires protégées, ainsi que leurs attributs tels que leur date de création, leur statut et leur gestionnaire. Cette structure de données entraîne une perte importante d'informations sur les états passés des aires protégées lorsque leurs limites ou leurs caractéristiques ont évolué au fil du temps. Cette pratique conduit à des résultats erronés lors de l'utilisation des données pour analyser l'évolution des aires protégées ou évaluer leur impact sur l'environnement et les conditions de vie. 
+
+Ce problème se retrouve aussi dans la question du degazetting.
+
+
+
+# Originalité de la solution
+
+Reconstruction des états successifs de chaque aire protégée et en précisant les dates de validité de ces informations. 
+Une grande diversité de données sources sont prises en compte : versions historiques des cartographies des AP par les autorités, données des gestionnaires d'AP, décrets et documents officiels, autres sources. Les données sources sont gardées en l'état et citées de manière claire et transparente.
+Les références textuelles sont citées.
+Le document est construit en retrospectif : on part de la période la plus récente et on reconstruit les états passés.
+La construction de la base de données est faite sous forme de code, c'est-à-dire qu'on déclare explicitement et de manière visible et auditable toutes les modifications qui sont faite.
+La solution est réalisée en contrôle de version, si bien qu'il est possible d'auditer, accueillir des contributions, gérer des tickets, créer des forks et de garder un historique de toutes les versions successives. 
+A partir des sources, le code permet de générer la donnée avec différents modèles, s'adaptant aux contraintes des utilisateurs. Pour un usage général, en particulier pour des utilisateurs ayant des ressources limités ou des besoins avant tout analytiques, un modèle simple mais avec duplication des informations continues est proposé au format GeoParquet. Pour des gestionnaires plus avancés, un format OGC moving features ou GML est aussi disponible. Ces formats sont entièrement convertibles entre eux.
+Une première version est publiée, mais la base de donénes peut continuer à vivre.
+
+
+# Contenu des données
+
+Nous publions ces informations pour Madagascar entre 2000 et 2024 sous la forme d'un jeu de données ouvert accessible aux chercheurs et professionnels de la conservation sur un portail pérenne. 
+
+
+# Discussion
+
+Nous examinons quelques études emblématiques dans ce pays en montrant comment cette nouvelle structure de données permet d'obtenir des conclusions différentes et plus fiables sur l'importance de la conservation à Madagascar. Enfin, nous discutons de l'intérêt qu'il y aurait à ce que cette structure enrichie de données soit largement adoptée par les spécialistes de la conservation.

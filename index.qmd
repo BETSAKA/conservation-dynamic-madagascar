@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Les données spatiales des aires protégées, comprenant leur localisation et leurs caractéristiques, constituent une ressource essentielle pour les études sur la conservation. Cependant, les bases de données existantes se limitent souvent aux configurations actuelles, ignorant les états passés des aires protégées lorsque leurs limites ou attributs ont évolué. Cette lacune entraîne des biais dans les analyses de leur évolution et de leurs impacts.
+Les données spatiales des aires protégées, comprenant leur localisation et leurs caractéristiques, constituent une ressource essentielle pour les études sur la conservation. Cependant, les bases de données existantes se limitent souvent aux frontières et caractéristiques actuelles, ignorant les états passés des aires protégées lorsque leurs limites ou attributs ont évolué. Cette lacune entraîne des biais dans les analyses de leur évolution et de leurs impacts.
 
 Dans ce projet, nous proposons une méthode innovante pour produire un modèle de données dynamique documentant l’évolution des aires protégées à Madagascar entre 2000 et 2024. Ce modèle permet de retracer chaque état successif d’une aire protégée, avec ses périodes de validité, offrant ainsi une base plus fiable pour les analyses en conservation et développement.
 
@@ -10,14 +10,14 @@ Dans ce projet, nous proposons une méthode innovante pour produire un modèle d
 
 Notre démarche repose sur cinq étapes principales :
 
-1. **Harmonisation des données SAPM** : Nous consolidons et harmonisons les millésimes successifs des données issues du Système des Aires Protégées de Madagascar (SAPM).
-2. **Harmonisation des données WDPA** : Nous appliquons la même méthode aux données de la World Database on Protected Areas (WDPA) pour garantir leur compatibilité.
+1. **Harmonisation des données SAPM** : Nous consolidons et harmonisons les versions successives des données issues du Système des Aires Protégées de Madagascar (SAPM).
+2. **Harmonisation des données WDPA** : Nous appliquons la même méthode aux données de la World Database on Protected Areas (WDPA).
 3. **Création d'une base réglementaire** : En mobilisant la base juridique CNLEGIS, nous construisons une base de données réglementaire détaillée des textes encadrant les aires protégées.
 4. **Analyse et consolidation** : Nous analysons, croisons et consolidons ces différentes sources pour produire un ensemble cohérent, robuste et prêt à être utilisé.
 5. **Outil de vérification visuelle** : Nous développons un outil permettant une vérification visuelle des données consolidées afin d’assurer leur fiabilité et leur traçabilité.
 
 ## Objectifs et perspectives
 
-En documentant chaque étape de cette méthode, nous visons à promouvoir une démarche scientifique transparente et reproductible. Ce travail contribue également à une meilleure compréhension des dynamiques de conservation à Madagascar, tout en offrant un cadre adaptable à d'autres contextes géographiques. 
+En documentant chaque étape, notre méthode transparente et reproductible. Ce travail contribue également à une meilleure compréhension des dynamiques de conservation à Madagascar, tout en offrant un cadre adaptable à d'autres contextes géographiques. 
 
 Ce projet s’inscrit dans les efforts du BETSAKA pour améliorer l’évaluation des impacts environnementaux et sociaux des aires protégées.

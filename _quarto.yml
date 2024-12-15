@@ -5,7 +5,7 @@ project:
 book:
   title: "Données des aires protégées à Madagascar"
   author: "Florent Bédécarrats, Seheno Ramanantsoa"
-  date: "09/09/2024"
+  date: "09/12/2024"
   repo-url: https://github.com/BETSAKA/conservation-dynamic-madagascar
   license: "CC-BY 4.0"
   chapters:

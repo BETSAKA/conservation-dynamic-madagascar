@@ -1,0 +1,334 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+# Harmonisation des données SAPM
+
+On a passe ici en revue un série de jeux de données issues de sources officielles qui ont à une époque eu la charge de consolider ces informations. A chaque fois on les ouvre dans leur format original, on corrige d'éventuelle erreurs topologiques, et on les enregistre dans un format homogène.
+
+## ANGAP 2002
+
+Avant la création du SAPM, l'ANGAP était la seule entité chargée de gérer les aires protégées, et donc leurs données. L'ANGAP avait dans ce cadre transmis à l'institut national de géographie malgache (FTM) pour la mise à jour de la base de donnée topographique (BD 500). 
+
+```{r}
+# On charge les librairies nécessaires
+library(tidyverse) # Aide à la manipulation de données
+library(sf) # Pour traiter des données spatiales (vectorielles)
+library(tmap) # Pour faire de jolies cartes
+library(gt) # Pour faire de jolis tableaux
+
+# Specify the source repository 
+data_dir <- "C:/Users/fbede/Documents/IRD_Drive/BETSAKA_MADAGASCAR/Données/Aires protégées/"
+# Specify CRS
+my_crs <- 29702
+
+# Load and preprocess the shapefile
+angap_2002 <- st_read(paste0(data_dir, "ap_angap BD 500/ap_angap.shp")) %>%
+  st_set_crs(my_crs) %>%  # Laborde Magasiaraka CRS
+  mutate(has_info = ifelse(is.na(CLASSEMENT), 
+                           "Attributs absents", 
+                           "Attributs présents"),
+         has_name = case_when(is.na(NOM) ~ "Pas de nom",
+                              NOM == "Hors AP" ~ "Hors AP",
+                              .default = "Nommé"))
+
+# Separate datasets: "Pas de nom", "Hors AP", and "Nommé"
+angap_pas_de_nom <- angap_2002 %>% filter(has_name == "Pas de nom")
+angap_hors_ap <- angap_2002 %>% filter(has_name == "Hors AP")
+angap_named <- angap_2002 %>% filter(has_name == "Nommé")
+
+# Set tmap to interactive mode
+tmap_mode("view")
+
+# Create the map with three layers
+tm_shape(angap_named) +
+  tm_fill(col = "has_info", 
+          id = "NOM",
+          popup.vars = names(st_drop_geometry(angap_named))) +
+  tm_borders(col = "black", lwd = 0.5) +  # Default borders for named features
+tm_shape(angap_pas_de_nom) +
+  tm_fill(col = "has_info", 
+          id = "NOM",
+          popup.vars = names(st_drop_geometry(angap_pas_de_nom)),
+          legend.show = FALSE) +
+  tm_borders(col = "red", lwd = 3) +  # Thick red borders for "Pas de nom"
+tm_shape(angap_hors_ap) +
+  tm_fill(col = "has_info", 
+          id = "NOM",
+          popup.vars = names(st_drop_geometry(angap_hors_ap)),
+          legend.show = FALSE) +
+  tm_borders(col = "blue", lwd = 3) + # Thick blue borders for "Hors AP"
+  tm_add_legend(type = "fill", 
+                labels = c("Pas de nom", "Hors AP"), 
+                col = c("red", "blue"), 
+                lwd = c(3, 3, 0.5), 
+                title = "Contour")
+```
+
+Le champ "classement" de ce jeu de données fait référence à des décrets parus jusqu'en 1998 Mais il fait aussi référence à 11 entités qui n'ont pas de métadonnées les caractérisant.
+
+Parmi celles-ci, 6 n'ont pas de nom :   
+
+- Le Parc National d'Ankarafantsika, né en 2002 de la fusion de la réserve naturelle intégrale n°15 d'Ankarafantsika et de la réserve - forestière d'Anktarafantsika.
+- Mantadia, dont les limites ont été étendues en 2002.
+- Tsingy de Namoroka, créé en 1927 et devenu parc national en 2002.
+
+Tout indique qu'il s'agit d'un jeu datant de 2002 (cohérent avec les indications qui m'ont été données quand le jeu m'a été remis).
+
+## Evolution du SAPM 2002-2011
+
+Ce jeu de données a été publié en ligne par un consultant du SAPM, avec la référence suivante : Evolution of the Madagascar Protected Area System (SAPM), Tom Allnut, https://hub.arcgis.com/content/4218737646234c7cab1c7a20e2c2489d/about
+
+It is provided as a .mpk, which is in fact a zip including shapefiles. We convert to Zip and open the shapefiles.
+
+
+```{r}
+# Specify the directory path
+dir_path <- paste0(data_dir, "sapm_evolution_2012/commondata/data1")
+dir.exists(dir_path)
+
+# List all .shp files in the directory
+shapefile_paths <- list.files(path = dir_path, 
+                              pattern = "\\.shp$", 
+                              full.names = TRUE, 
+                              recursive = TRUE)
+
+# Extract the filenames without the full path
+shapefile_names <- basename(shapefile_paths)
+
+# Filter shapefiles with a date in the filename (e.g., "2008", "2009", etc.)
+date_shapefiles <- shapefile_paths[str_detect(shapefile_names, "20[0-9]{2}")]
+
+# Load and bind the shapefiles
+sapm_evol_2001_2011 <- date_shapefiles %>%
+  map(st_read) %>%    # Read each shapefile
+  reduce(bind_rows) %>%
+  mutate(YEAR = str_extract(YEAR, "\\d{4}")) %>% # Extract the 4-digit year
+  st_transform(crs = 29702) # On passe les données en laborde malgache
+
+sapm_evol_2001_2011 %>%
+  filter(YEAR == 2002) %>%
+  tm_shape() +
+  tm_borders(col = "blue") + 
+  tm_shape(angap_2002) +
+  tm_fill(col = "red", alpha = 0.5) + 
+  tmap_options(check.and.fix = TRUE)
+
+# Save the data to a specified path
+write_rds(sapm_evol_2001_2011, "data/sapm_evol_2001_2011.rds")
+```
+
+## SAPM 2013
+
+> Où a été trouvé ce jeu de données : Vieilledent ?
+
+```{r}
+# Try encoding = "UTF-8" or "LATIN1" depending on the data
+sapm_2013 <- st_read("../SAPM 2013/limite_sapm.shp", options = "ENCODING=WINDOWS-1252") %>%
+  st_set_crs(4326) %>%  # Transform to WGS 84 (EPSG:4326)
+  st_make_valid() %>%  # Fix invalid geometries
+  st_transform(29702)
+
+# Step 2: Remove empty geometries
+sapm_2013 <- sapm_2013 %>% filter(!st_is_empty(geometry)) %>%
+  filter(!(DESCRIPTIO %in% c(
+    "Site Prioritaire AP", "Sites Importants Koloala", "Sites Potentiels AP",
+    "Sites Potentiels AP Marine", "Sites Potentiels Koloala")))
+
+write_rds(sapm_2013, "data/sapm_2013.rds")
+
+# Create and format the table
+sapm_2013 %>%
+  st_drop_geometry() %>%
+  group_by(DESCRIPTIO) %>%
+  summarise(n = n(),
+            total_area = sum(HECTARES, na.rm = TRUE)) %>%
+  rename(Catégorie = DESCRIPTIO) %>%  # Rename column for display
+  gt() %>%
+  tab_header(
+    title = "Données SAPM 2013"  # Add title to the table
+  ) %>%
+  fmt_number(
+    columns = c(total_area),  # Format the total_area column
+    decimals = 0,                # Round to 0 decimals
+    use_seps = TRUE              # Use thousand separators
+  ) %>%
+  cols_label(
+    n = "Nombre d'éléments",      # Label for the 'n' column
+    total_area = "Superficie totale (ha)")  # Label for the area column
+
+
+# Step 3: Plot the shapefile using tmap
+tm_shape(sapm_2013) + 
+  tm_fill(col = "darkgreen", alpha = 0.5) + 
+  tmap_options(check.and.fix = TRUE)
+
+
+```
+
+J'ai un doute sur la date de ce jeu de données, car il y a de nombreuses NAP.
+
+## SAPM 2017
+
+Ce jeu de données nous a été remis par la FAPBM. Il s'agit visiblement des données SAPM mises à jour en mars 2017.
+
+L'un des points du périmètre de l'aire protégée Andrafiamena Andavakoera (index 32, sommet numéro 841) est localisé de manière aberrante, formant un papillon et entraînant des erreurs topologiques. Nous retirons ce point aberrant.
+
+```{r}
+# Load and transform data, ensuring 2D geometry by dropping Z and M dimensions
+sapm_2017 <- st_read("../sapm_201703017_om_surface/sapm_201703017_om_surface.shp",
+                     options = "ENCODING=WINDOWS-1252") %>%
+  st_transform(29702) %>%
+  st_zm(drop = TRUE) %>%  # Drop Z and M dimensions
+  st_make_valid()
+
+# Check the Andrafiamena Andavakoera feature (index 32)
+andrafiamena <- sapm_2017[32, ]
+
+# Extract the coordinates
+coords <- st_coordinates(andrafiamena)
+
+# Remove the problematic vertex (vertex 841)
+coords_clean <- coords[-841, ]
+
+# Ensure the polygon is closed by checking if the first and last points are the same
+if (!all(coords_clean[1, ] == coords_clean[nrow(coords_clean), ])) {
+  # If not, make the polygon closed by repeating the first point at the end
+  coords_clean <- rbind(coords_clean, coords_clean[1, ])
+}
+
+# Rebuild the geometry without the erroneous point, ensuring it is 2D (XY)
+andrafiamena_clean <- st_polygon(list(coords_clean[, c("X", "Y")]))
+
+# Replace the old geometry with the cleaned version
+sapm_2017$geometry[32] <- st_sfc(andrafiamena_clean, crs = 29702)
+
+# Ensure the geometry is still valid after the operation
+sapm_2017 <- st_make_valid(sapm_2017)
+
+# Save the data
+write_rds(sapm_2017, "data/sapm_2017.rds")
+
+# Make statistics
+sapm_2017 %>%
+  st_drop_geometry() %>%
+  group_by(CATEG_IUCN) %>%
+  summarise(n = n(),
+            total_area = sum(SUP_DECR_H, na.rm = TRUE)) %>%
+  rename(Catégorie = CATEG_IUCN) %>%  # Rename column for display
+  gt() %>%
+  tab_header(
+    title = "Données SAPM 2017"  # Add title to the table
+  ) %>%
+  fmt_number(
+    columns = c(total_area),  # Format the total_area column
+    decimals = 0,                # Round to 0 decimals
+    use_seps = TRUE              # Use thousand separators
+  ) %>%
+  cols_label(
+    n = "Nombre d'éléments",      # Label for the 'n' column
+    total_area = "Superficie totale (ha)")  # Label for the area column
+```
+
+
+On a moins d'entités dans ce jeu de données que dans le précédent. On effectue une comparaison spatiale.
+
+
+```{r}
+tm_shape(sapm_2013) + 
+  tm_borders(col = "red") +
+  tm_shape(sapm_2017) +
+  tm_fill(col = "blue", alpha = 0.5)
+```
+
+
+## SAPM 2024
+
+```{r}
+# Load shapefile
+sapm_2024 <- st_read("../Shape AP mai2023/dernier version shape_ap_28042023.shp", 
+                   quiet = TRUE)
+
+# Check for invalid geometries
+invalid_geometries <- sapm_2024 %>%
+  rownames_to_column(var = "index") %>%
+  rowwise() %>%
+  mutate(is_valid = st_is_valid(geometry)) %>%
+  filter(!is_valid) %>%
+  select(Index = index, Nom = SHORT_NAME, Source = path)
+
+# Create a folder to save the images
+output_dir <- "invalid_geometry_plots"
+dir.create(output_dir, showWarnings = FALSE)
+
+# Loop through invalid geometries and save the plots
+for (i in seq_len(nrow(invalid_geometries))) {
+  geometry_index <- invalid_geometries$Index[i]
+  
+  # Generate a file name
+  plot_file <- file.path(output_dir, paste0("geometry_", geometry_index, ".png"))
+  
+  # Save the plot
+  png(plot_file)
+  plot(st_geometry(sapm_2024[geometry_index, ]))
+  dev.off()
+}
+
+# Add image file paths to the invalid geometries table
+invalid_geometries <- invalid_geometries %>%
+  mutate(
+    Geometrie = paste0(output_dir, "/geometry_", Index, ".png")
+  )
+
+# Display the table with gt
+if (nrow(invalid_geometries) == 0) {
+  message("All geometries are valid.")
+} else {
+  invalid_geometries %>%
+    st_drop_geometry() %>%
+    gt() %>%
+    text_transform(
+      locations = cells_body(columns = Geometrie),
+      fn = function(x) {
+        local_image(filename = x, height = 100)  # Embed local image with specified height
+      }
+    ) %>%
+    tab_header(
+      title = "Géométries invalides",
+      subtitle = "Liste des géométries invalides"
+    )
+}
+
+# Now try to make this valid
+
+sapm_2024_valid <- sapm_2024 %>%
+  st_make_valid()
+
+# Identify invalid geometries
+invalid_geometries <- sapm_2024_valid %>%
+  filter(!st_is_valid(geometry))
+
+#  Print the names (or identifiers) of the invalid geometries
+# Replace 'NOM' with the actual column containing the name or identifier
+if (nrow(invalid_geometries) > 0) {
+  cat("Invalid geometries found:\n")
+  print(invalid_geometries$SHORT_NAME)  # Adjust this to match your column name
+} else {
+  cat("All geometries are valid.\n")
+}
+
+# Step 5: Filter out invalid geometries for now to plot the valid ones
+sapm_2024_valid_clean <- sapm_2024_valid %>%
+  filter(st_is_valid(geometry))
+
+write_rds(sapm_2024_valid_clean, "data/sapm_2024.rds")
+
+# Step 6: Plot the valid geometries using tmap
+tm_shape(sapm_2024_valid_clean) +
+  tm_fill(col = "blue", alpha = 0.5) + 
+  tm_shape(sapm_2017) +
+  tm_fill(col = "red", alpha = 0.5)
+
+```

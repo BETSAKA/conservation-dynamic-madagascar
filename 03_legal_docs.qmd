@@ -9,12 +9,10 @@ Ces deux textes concernent une liste très étendu de sites potentiels, qui ne s
 library(rvest)
 library(tidyverse)
 
-library(rvest)
-library(dplyr)
-
+# Specify the source repository 
+data_dir <- "sources/"
 # Directory containing the HTML files
-input_dir <- "../Décrets/CNLEGIS"
-file_path <- html_files[1]
+input_dir <- paste0(data_dir, "Décrets/CNLEGIS")
 
 
 # Columns to select

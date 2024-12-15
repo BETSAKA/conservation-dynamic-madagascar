@@ -25,7 +25,8 @@ data_dir <- "sources/"
 my_crs <- 29702
 
 # Load and preprocess the shapefile
-angap_2002 <- st_read(paste0(data_dir, "ap_angap BD 500/ap_angap.shp")) %>%
+angap_2002 <- st_read(paste0(data_dir, "ap_angap BD 500/ap_angap.shp"), 
+quiet = TRUE) %>%
   st_set_crs(my_crs) %>%  # Laborde Magasiaraka CRS
   mutate(has_info = ifelse(is.na(CLASSEMENT), 
                            "Attributs absents", 
@@ -87,7 +88,6 @@ It is provided as a .mpk, which is in fact a zip including shapefiles. We conver
 ```{r}
 # Specify the directory path
 dir_path <- paste0(data_dir, "sapm_evolution_2012/commondata/data1")
-dir.exists(dir_path)
 
 # List all .shp files in the directory
 shapefile_paths <- list.files(path = dir_path, 
@@ -103,10 +103,10 @@ date_shapefiles <- shapefile_paths[str_detect(shapefile_names, "20[0-9]{2}")]
 
 # Load and bind the shapefiles
 sapm_evol_2001_2011 <- date_shapefiles %>%
-  map(st_read) %>%    # Read each shapefile
+  map(st_read, quiet = TRUE) %>%    # Read each shapefile
   reduce(bind_rows) %>%
   mutate(YEAR = str_extract(YEAR, "\\d{4}")) %>% # Extract the 4-digit year
-  st_transform(crs = 29702) # On passe les données en laborde malgache
+  st_transform(crs = my_crs) # On passe les données en laborde malgache
 
 sapm_evol_2001_2011 %>%
   filter(YEAR == 2002) %>%
@@ -126,23 +126,15 @@ write_rds(sapm_evol_2001_2011, "data/sapm_evol_2001_2011.rds")
 
 ```{r}
 # Try encoding = "UTF-8" or "LATIN1" depending on the data
-sapm_2013 <- st_read(paste0(data_dir,"SAPM 2013/limite_sapm.shp"), options = "ENCODING=WINDOWS-1252") # %>%
-  # st_set_crs(4326) %>%  # Transform to WGS 84 (EPSG:4326)
-  # st_make_valid() %>%  # Fix invalid geometries
-  # st_transform(29702)
-
-
-
-# Try encoding = "UTF-8" or "LATIN1" depending on the data
-sapm_2013 <- st_read(paste0(data_dir,"SAPM 2013/limite_sapm.shp"), options = "ENCODING=WINDOWS-1252") %>%
+sapm_2013 <- st_read(paste0(data_dir,"SAPM 2013/limite_sapm.shp"), 
+  quiet = TRUE, options = "ENCODING=WINDOWS-1252") %>%
   st_set_crs(4326) %>%  # Transform to WGS 84 (EPSG:4326)
   st_make_valid() %>%  # Fix invalid geometries
-  st_transform(29702)
+  st_transform(my_crs)
 
-# Step 2: Remove empty geometries
+# Step 2: Remove potential sites
 sapm_2013 <- sapm_2013 %>% filter(!st_is_empty(geometry)) %>%
-  filter(!(DESCRIPTIO %in% c(
-    "Site Prioritaire AP", "Sites Importants Koloala", "Sites Potentiels AP",
+  filter(!(DESCRIPTIO %in% c("Site Prioritaire AP", "Sites Importants Koloala", "Sites Potentiels AP",
     "Sites Potentiels AP Marine", "Sites Potentiels Koloala")))
 
 write_rds(sapm_2013, "data/sapm_2013.rds")
@@ -170,85 +162,31 @@ sapm_2013 %>%
 
 # Step 3: Plot the shapefile using tmap
 tm_shape(sapm_2013) + 
-  tm_fill(col = "darkgreen", alpha = 0.5) + 
+  tm_fill(col = "DESCRIPTIO") + 
   tmap_options(check.and.fix = TRUE)
-
 
 ```
 
-J'ai un doute sur la date de ce jeu de données, car il y a de nombreuses NAP.
+J'ai un doute sur l'origine de ce jeu de données.
 
 ## SAPM 2017
 
 Ce jeu de données nous a été remis par la FAPBM. Il s'agit visiblement des données SAPM mises à jour en mars 2017.
 
-L'un des points du périmètre de l'aire protégée Andrafiamena Andavakoera (index 32, sommet numéro 841) est localisé de manière aberrante, formant un papillon et entraînant des erreurs topologiques. Nous retirons ce point aberrant.
+L'un des points du périmètre de l'aire protégée Andrafiamena Andavakoera (index 32, sommet numéro 841) est localisé de manière aberrante, formant un papillon et entraînant des erreurs topologiques. La fonction `st_make_valid` retire ce point aberrant.
 
 ```{r}
-# Load and transform data, ensuring 2D geometry by dropping Z and M dimensions
-sapm_2017 <- st_read("../sapm_201703017_om_surface/sapm_201703017_om_surface.shp",
+# Load and transform data
+sapm_2017 <- st_read(paste0(data_dir, "sapm_201703017_om_surface/sapm_201703017_om_surface.shp"),
                      options = "ENCODING=WINDOWS-1252") %>%
-  st_transform(29702) %>%
-  st_zm(drop = TRUE) %>%  # Drop Z and M dimensions
+  st_transform(my_crs) %>%
   st_make_valid()
-
-# Check the Andrafiamena Andavakoera feature (index 32)
-andrafiamena <- sapm_2017[32, ]
-
-# Extract the coordinates
-coords <- st_coordinates(andrafiamena)
-
-# Remove the problematic vertex (vertex 841)
-coords_clean <- coords[-841, ]
-
-# Ensure the polygon is closed by checking if the first and last points are the same
-if (!all(coords_clean[1, ] == coords_clean[nrow(coords_clean), ])) {
-  # If not, make the polygon closed by repeating the first point at the end
-  coords_clean <- rbind(coords_clean, coords_clean[1, ])
-}
-
-# Rebuild the geometry without the erroneous point, ensuring it is 2D (XY)
-andrafiamena_clean <- st_polygon(list(coords_clean[, c("X", "Y")]))
-
-# Replace the old geometry with the cleaned version
-sapm_2017$geometry[32] <- st_sfc(andrafiamena_clean, crs = 29702)
-
-# Ensure the geometry is still valid after the operation
-sapm_2017 <- st_make_valid(sapm_2017)
 
 # Save the data
 write_rds(sapm_2017, "data/sapm_2017.rds")
 
-# Make statistics
-sapm_2017 %>%
-  st_drop_geometry() %>%
-  group_by(CATEG_IUCN) %>%
-  summarise(n = n(),
-            total_area = sum(SUP_DECR_H, na.rm = TRUE)) %>%
-  rename(Catégorie = CATEG_IUCN) %>%  # Rename column for display
-  gt() %>%
-  tab_header(
-    title = "Données SAPM 2017"  # Add title to the table
-  ) %>%
-  fmt_number(
-    columns = c(total_area),  # Format the total_area column
-    decimals = 0,                # Round to 0 decimals
-    use_seps = TRUE              # Use thousand separators
-  ) %>%
-  cols_label(
-    n = "Nombre d'éléments",      # Label for the 'n' column
-    total_area = "Superficie totale (ha)")  # Label for the area column
-```
-
-
-On a moins d'entités dans ce jeu de données que dans le précédent. On effectue une comparaison spatiale.
-
-
-```{r}
-tm_shape(sapm_2013) + 
-  tm_borders(col = "red") +
-  tm_shape(sapm_2017) +
-  tm_fill(col = "blue", alpha = 0.5)
+tm_shape(sapm_2017) +
+  tm_polygons(col = "CATEG_IUCN")
 ```
 
 
@@ -256,7 +194,7 @@ tm_shape(sapm_2013) +
 
 ```{r}
 # Load shapefile
-sapm_2024 <- st_read("../Shape AP mai2023/dernier version shape_ap_28042023.shp", 
+sapm_2024 <- st_read(paste0(data_dir, "Shape AP mai2023/dernier version shape_ap_28042023.shp"), 
                    quiet = TRUE)
 
 # Check for invalid geometries

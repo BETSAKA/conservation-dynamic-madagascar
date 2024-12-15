@@ -1,13 +1,18 @@
+# Création d'une base réglementaire à partir de CNLEGIS
 
-Un cas important est l'[Arrêté Interministériel n° 18633/2008/MEFT/MEM du 17 octobre 2008 portant mise en protection temporaire globale des sites visés par l’Arrêté interministériel n° 17914 du 18 octobre 2006 et levant la suspension de l’octroi des permis miniers et forestiers pour certains sites.](https://faolex.fao.org/docs/pdf/Mad173201.pdf) Cette décision s'applique à 97 nouvelles aires protégées en cours de création et 29 sites prioritaires pour la biodiversité et la gestion forestière.
+## Objet
 
-Ce dernier a été amendé par l'[Arrêté interministériel n° 52005/2010 du 20 décembre 2010 modifiant l'arrêté interministériel Mine-Forêts n°18633 du 17 octobre 2008 portant mise en protection temporaire globale des sites visés par l’arrêté n°17914 du 18 octobre 2006 et levant la suspension de l’octroi des permis miniers et forestiers pour certains sites.](https://faolex.fao.org/docs/pdf/mad142467.pdf) Cette décision s'applique à 95 aires protégées (24 ayant déjà un statut de protection temporaire).
+Le processus de création, modification ou disparition des aires protégées passe par des lois, décrets et arrêtés officels. Ces éléments réglementaires sont dispersés dans divers textes juridiques, que nous allons ici collecter et consolider à partir de la base du Centre National d'Informatoin et de Documentation Legislative et Juridique (CNLEGIS). Cette instance centralise les textes réglementaires à Madagascar et propose un moteur de recherche permettant de trouver les documents pertinents en fonction de recherches full-text. 
 
-Ces deux textes concernent une liste très étendu de sites potentiels, qui ne sont pas nommément listés dans le texte. On a juste une carte (peu précise) et une somme de zones concernées (en nombre et en surface).
+## Extraction des textes pertinents
+
+La base CNLEGIS ne propose pas d'API, donc l'extraction a dû être réalisée manuellement. Nous avons simplement entré la requête "aire protégée", ce qui a retourné 131 résultats. Nous avons extrait les 14 pages web correspondantes. Le code ci-dessous extrait l'information pertinente, la nettoie et la restitue sous forme de tableaux.
+
 
 ```{r}
 library(rvest)
 library(tidyverse)
+library(sf)
 
 # Specify the source repository 
 data_dir <- "sources/"
@@ -68,9 +73,14 @@ html_files <- list.files(input_dir, pattern = "\\.html$", full.names = TRUE)
 # Apply the extraction function to all files
 all_results <- map_dfr(html_files, extract_table)
 
+all_results |>
+  select(-html_fr, -html_mg, -objet_mg, -textes, -num, -doc_pdf_fr, -doc_pdf_mg) |> 
+   DT::datatable(height = 10)
 ```
 
-Classification du type
+## Classification par type d'aire protégée
+
+Pour mieux organiser les données extraites, les textes sont classifiés selon le type de transformation qu'elles opèrent (création, modification, prorogation, etc.) à l’aide de règles de typologie.
 
 ```{r}
 # Add typology columns
@@ -102,7 +112,16 @@ mutate(
   filter(!(str_detect(textes, "organisation du Comité")))
 ```
 
-On extrait le nom des aires protégées.
+Deux exceptions méritent d'être relevées :
+
+- Un cas important est l'[Arrêté Interministériel n° 18633/2008/MEFT/MEM du 17 octobre 2008 portant mise en protection temporaire globale des sites visés par l’Arrêté interministériel n° 17914 du 18 octobre 2006 et levant la suspension de l’octroi des permis miniers et forestiers pour certains sites.](https://faolex.fao.org/docs/pdf/Mad173201.pdf) Cette décision s'applique à 97 nouvelles aires protégées en cours de création et 29 sites prioritaires pour la biodiversité et la gestion forestière.   
+- Ce dernier a été amendé par l'[Arrêté interministériel n° 52005/2010 du 20 décembre 2010 modifiant l'arrêté interministériel Mine-Forêts n°18633 du 17 octobre 2008 portant mise en protection temporaire globale des sites visés par l’arrêté n°17914 du 18 octobre 2006 et levant la suspension de l’octroi des permis miniers et forestiers pour certains sites.](https://faolex.fao.org/docs/pdf/mad142467.pdf) Cette décision s'applique à 95 aires protégées (24 ayant déjà un statut de protection temporaire).
+
+Ces deux textes concernent une liste très étendue de sites potentiels, qui ne sont pas nommément listés dans le texte. On a juste une carte (peu précise) et une somme de zones concernées (en nombre et en surface).
+
+## Appariement des noms d'aires protégées entre CNLEGIS et SAPM
+
+On va avoir besoin de rapprocher ces textes juridiques des données spatiales SAPM et WDPA. On doit le faire à partir des noms des aires protégées, mais ceux-ci ne sont pas normalisés. Une première étape essentielle consiste  à extraire ces noms et à les nettoyer avant de procéder à la recherche de correspondances avec les bases spatiales.
 
 ```{r}
    
@@ -139,11 +158,14 @@ class_results <- class_results %>%
   )
 ```
 
-On matche le nom des aires protégés avec les noms SAPM
+
+Une fois les noms des aires protégées concernées extraites de chaque texte, on les compare aux noms de la base SAPM. On le fait tout d'abord automatiquement avec un algorithme d'appariement approximatif ("fuzzy matching"), qui tient compte des variations d'orthographe ou des dénominations multiple.
 
 ```{r}
 library(stringdist)
 library(fuzzyjoin)
+
+
 sapm_2017 <- read_rds("data/sapm_2017.rds")
 
 
@@ -207,17 +229,4 @@ writexl::write_xlsx(conversion_table, "conversion_table.xlsx")
 
 ```
 
-```{r}
-library(geodata)
-communes <- gadm("Madagascar", level = 4, path = "data") %>%
-  st_as_sf()
-
-ma_com <- communes %>%
-  filter(NAME_4 == "Ambalabe" & NAME_2 == "Atsinanana")
-
-tm_shape(sapm_2017)  +
-  tm_fill() +
-  tm_shape(ma_com) + 
-  tm_borders(col = "red")
-
-```
+Cette base est envoyée vers excel et on effectue une vérification manuelle pour avoir une liste complète des rapprochements.

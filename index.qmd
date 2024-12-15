@@ -1,72 +1,40 @@
-# Données des aires protégées à Madagascar
+# Conserver l'histoire des aires protégées à Madagascar : un modèle de données dynamique (2000-2024)
 
-## Introduction
+## Résumé
 
-Les données spatiales des aires protégées, comprenant leur localisation et leurs caractéristiques, constituent une ressource essentielle pour les études sur la conservation. Cependant, les bases de données existantes se limitent souvent aux frontières et caractéristiques actuelles, ignorant les états passés des aires protégées lorsque leurs limites ou attributs ont évolué. Cette lacune entraîne des biais dans les analyses de leur évolution et de leurs impacts.
+Les données spatiales sur les aires protégées sont essentielles pour les études de conservation. Cependant, les bases existantes se limitent souvent aux frontières actuelles, ignorant les évolutions historiques. Cette lacune engendre des biais dans l'analyse de leur impact environnemental et social. Dans ce projet, nous proposons un modèle de données dynamique documentant l'évolution des aires protégées à Madagascar de 2000 à 2024. Ce modèle inclut chaque état successif avec ses périodes de validité, garantissant une base analytique robuste et traçable. Les données seront publiées en accès libre pour favoriser leur utilisation par la communauté scientifique et les praticiens.
 
-Dans ce projet, nous proposons une méthode innovante pour produire un modèle de données dynamique documentant l’évolution des aires protégées à Madagascar entre 2000 et 2024. Ce modèle permet de retracer chaque état successif d’une aire protégée, avec ses périodes de validité, offrant ainsi une base plus fiable pour les analyses en conservation et développement.
+## Contexte et enjeux
 
-## Démarche méthodologique
+### Importance des données ouvertes
 
-Notre démarche repose sur cinq étapes principales :
+Madagascar, confronté à une extrême pauvreté, dispose de ressources limitées pour gérer ses données administratives, notamment dans le domaine de la conservation. L'exemple du portail "Redbioma", aujourd'hui hors ligne, illustre les pertes fréquentes de données essentielles. La mise à disposition de données en open data renforce leur accessibilité, transparence, reproductibilité, et surtout leur persistance.
 
-1. **Harmonisation des données SAPM** : Nous consolidons et harmonisons les versions successives des données issues du Système des Aires Protégées de Madagascar (SAPM).
-2. **Harmonisation des données WDPA** : Nous appliquons la même méthode aux données de la World Database on Protected Areas (WDPA).
-3. **Création d'une base réglementaire** : En mobilisant la base juridique CNLEGIS, nous construisons une base de données réglementaire détaillée des textes encadrant les aires protégées.
-4. **Analyse et consolidation** : Nous analysons, croisons et consolidons ces différentes sources pour produire un ensemble cohérent, robuste et prêt à être utilisé.
-5. **Outil de vérification visuelle** : Nous développons un outil permettant une vérification visuelle des données consolidées afin d’assurer leur fiabilité et leur traçabilité.
+### Limites des approches actuelles
 
-## Objectifs et perspectives
+Les bases de données nationales et internationales incluent généralement les caractéristiques actuelles des aires protégées sans tenir compte des modifications passées. Cette approche statique entraîne des pertes d'informations et des biais dans l'évaluation des impacts ou l'étude des dynamiques historiques, notamment dans le contexte des changements de limites ("degazetting").
 
-En documentant chaque étape, notre méthode transparente et reproductible. Ce travail contribue également à une meilleure compréhension des dynamiques de conservation à Madagascar, tout en offrant un cadre adaptable à d'autres contextes géographiques. 
+## Originalité de la solution
 
-Ce projet s’inscrit dans les efforts du BETSAKA pour améliorer l’évaluation des impacts environnementaux et sociaux des aires protégées.
+Notre méthodologie repose sur :
 
+- **Une documentation exhaustive** : Compilation de données issues de cartographies historiques, décrets, gestionnaires d'aires protégées, et autres sources.
+- **Traçabilité et contrôle de version** : Chaque modification est documentée dans un système de gestion de version pour garantir une transparence totale.
+- **Formats adaptés** : Les données sont proposées au format GeoParquet pour les analyses standard et en GML ou OGC Moving Features pour des besoins avancés.
+- **Construction rétrospective** : La base est reconstruite à partir des états récents vers les états passés.
 
+## Méthodologie
 
-### Ajouts 
+1. **Harmonisation des données SAPM** : Consolidation des versions successives, notamment entre 2002 et 2011.
+2. **Harmonisation des données WDPA** : Intégration des données internationales selon la même approche.
+3. **Création d'une base réglementaire** : Extraction et structuration des textes juridiques via la base CNLEGIS.
+4. **Analyse et consolidation** : Croisement des sources pour produire un ensemble cohérent.
+5. **Outil de vérification visuelle** : Développement d'un outil interactif pour valider la qualité et la traçabilité des données consolidées.
 
+## Résultats attendus
 
+Nous publions un jeu de données couvrant Madagascar entre 2000 et 2024, accessible via un portail pérenne. Ce modèle permettra de corriger des biais observés dans des études emblématiques, offrant des conclusions plus fiables sur l'impact de la conservation.
 
+## Perspectives
 
-# Enjeux
-
-Les données spatiales qui comprennent la localisation et les caractéristiques des aires protégées sont une source essentielle pour de nombreuses études sur la conservation. 
-
-## Besoin de publier les données
-
-Madagascar est le pays le plus pauvre du monde, au sens de l'ODD 1-1 : c'est le pays ayant la part la plus importante de sa population vivant sous la ligne internationale de pauvreté. Cette faiblesse des ressources a des impacts sur la capacité de son appareil administratif à gérer une politique sur le long terme. Difficulté à entretenir des données. Ce problème est commun à de nombreux pays, notamment ceux où la biodiversité est menacée. Le cas des données de biodiversité en est en exemple. Les données nationales sur les aires protégées ont été mises en lignes et administrées sur un portail "Redbioma" pendant des années, mais ce portail n'est plus fonctionnel et les données ont été perdues pour les acteurs de la conservation. Ce problème n'est pas propre à la conservation : le site internet de l'INSTAT malgache a été hors ligne pendant plus de 2 ans entre XXXX et YYYY, comme en atteste les clichés d'Internet Archive.
-
-La mise en open data est reconnue pour avoir plusieurs vertus : accessibilité, transparence, reproductibilité.
-
-Un argument moins connu en faveur de l'open data est la persistence des données. Dans le monde scientifique, la démarche de l'open data est aussi une manière de lutter contre le problème de la perte de données. Une étude de XXXX a montré  que les données sources avaient été perdues pour YY% des recherches publiées au cours des ZZ années précédentes. Le versement des données dans des entrepôts pérennes permet de garantir la durabilité de la donnée et la reproductibilité des analyses qui en dépendent.
-
-
-## Publier uniquement la dernière version n'est pas suffisant
-
-Les bases de données nationales ou internationales qui fournissent ces informations incluent généralement les limites actuelles des aires protégées, ainsi que leurs attributs tels que leur date de création, leur statut et leur gestionnaire. Cette structure de données entraîne une perte importante d'informations sur les états passés des aires protégées lorsque leurs limites ou leurs caractéristiques ont évolué au fil du temps. Cette pratique conduit à des résultats erronés lors de l'utilisation des données pour analyser l'évolution des aires protégées ou évaluer leur impact sur l'environnement et les conditions de vie. 
-
-Ce problème se retrouve aussi dans la question du degazetting.
-
-
-
-# Originalité de la solution
-
-Reconstruction des états successifs de chaque aire protégée et en précisant les dates de validité de ces informations. 
-Une grande diversité de données sources sont prises en compte : versions historiques des cartographies des AP par les autorités, données des gestionnaires d'AP, décrets et documents officiels, autres sources. Les données sources sont gardées en l'état et citées de manière claire et transparente.
-Les références textuelles sont citées.
-Le document est construit en retrospectif : on part de la période la plus récente et on reconstruit les états passés.
-La construction de la base de données est faite sous forme de code, c'est-à-dire qu'on déclare explicitement et de manière visible et auditable toutes les modifications qui sont faite.
-La solution est réalisée en contrôle de version, si bien qu'il est possible d'auditer, accueillir des contributions, gérer des tickets, créer des forks et de garder un historique de toutes les versions successives. 
-A partir des sources, le code permet de générer la donnée avec différents modèles, s'adaptant aux contraintes des utilisateurs. Pour un usage général, en particulier pour des utilisateurs ayant des ressources limités ou des besoins avant tout analytiques, un modèle simple mais avec duplication des informations continues est proposé au format GeoParquet. Pour des gestionnaires plus avancés, un format OGC moving features ou GML est aussi disponible. Ces formats sont entièrement convertibles entre eux.
-Une première version est publiée, mais la base de donénes peut continuer à vivre.
-
-
-# Contenu des données
-
-Nous publions ces informations pour Madagascar entre 2000 et 2024 sous la forme d'un jeu de données ouvert accessible aux chercheurs et professionnels de la conservation sur un portail pérenne. 
-
-
-# Discussion
-
-Nous examinons quelques études emblématiques dans ce pays en montrant comment cette nouvelle structure de données permet d'obtenir des conclusions différentes et plus fiables sur l'importance de la conservation à Madagascar. Enfin, nous discutons de l'intérêt qu'il y aurait à ce que cette structure enrichie de données soit largement adoptée par les spécialistes de la conservation.
+Ce projet contribue à une meilleure compréhension des dynamiques de conservation et propose un cadre méthodologique réplicable dans d'autres contextes. En intégrant des pratiques ouvertes et transparentes, il répond aux défis de la gestion des données dans les pays en développement tout en offrant des outils adaptés aux besoins des chercheurs et gestionnaires.

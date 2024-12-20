@@ -1,3 +1,8 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
 # Création d'une base réglementaire à partir de CNLEGIS
 
 ## Objet
@@ -71,14 +76,17 @@ extract_table <- function(file_path) {
 html_files <- list.files(input_dir, pattern = "\\.html$", full.names = TRUE)
 
 # Apply the extraction function to all files
-all_results <- map_dfr(html_files, extract_table)
+all_results <- map_dfr(html_files, extract_table) %>%
+  mutate(date_txt = dmy(date_textes), # Convertit les dates
+         date_jo = dmy(date_jo)) %>%
+  relocate(date_txt, date_jo, .before = everything()) # place les dates au début
 
 all_results |>
   select(-html_fr, -html_mg, -objet_mg, -textes, -num, -doc_pdf_fr, -doc_pdf_mg) |> 
    DT::datatable(height = 10)
 ```
 
-## Classification par type d'aire protégée
+## Classification par type de réglement
 
 Pour mieux organiser les données extraites, les textes sont classifiés selon le type de transformation qu'elles opèrent (création, modification, prorogation, etc.) à l’aide de règles de typologie.
 
@@ -110,6 +118,12 @@ mutate(
   filter(!(str_detect(textes, "fonctionnement du Comité de Pilotage"))) %>%
   filter(!(str_detect(textes, "fonctionnement de la Commission"))) %>%
   filter(!(str_detect(textes, "organisation du Comité")))
+
+arr_creation_pre2008 <- class_results %>%
+  filter(year(date_jo) < 2008 & (date_jo) > 2008 &
+           (mise_protection_temporaire | creation_definitive)) %>%
+  arrange(date_jo)
+
 ```
 
 Deux exceptions méritent d'être relevées :

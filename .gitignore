@@ -4,5 +4,6 @@
 .Ruserdata
 *.rds
 sources/*
+data/*
 
 /.quarto/

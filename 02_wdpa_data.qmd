@@ -1,0 +1,70 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+# Exploration of WDPA historical data
+
+## Creation WDPA global historical database 2010-2024
+
+Nous avons développé un jeu de données spatio-temporel consolidant les données mondiales publiées par la World Database on Protected Areas (WDPA) depuis 2010. Nous avons compilé un jeu de données par an, en prenant pour référence le mois d'octobre ou, lorsque les données d'octobre n'étaient pas disponibles, le mois le plus proche.
+
+Les sources ont été obtenues grâce à une recherche approfondie dans les archives pour récupérer les enregistrements historiques publiés par la WDPA, puisque seules les données les plus récentes sont disponibles publiquement sur protectedplanet.net. Google Earth Engine archive les données depuis 2017, et nous avons trouvé les données pour les années 2010 à 2016 dans le dépôt public AWS de l'UNEP-WCMC.
+
+Les schémas des données ont évolué au fil du temps, et nous avons entrepris des efforts d'harmonisation pour aligner les attributs entre les différentes versions du jeu de données.
+
+Le résultat est un jeu de données comprenant 2 721 134 enregistrements annuels d'aires protégées pour le monde entier. Les géométries des aires protégées sont complexes et représentent plus de 95 % du volume des données. La déduplication de ce nombre d'observations est une opération computationnellement intensive. Nous utilisons l'algorithme Blake3, une fonction de hachage cryptographique déterministe qui produit systématiquement la même valeur de hachage pour des données identiques, ce qui le rend extrêmement efficace pour la déduplication des données. Cet algorithme, l'un des plus performants disponibles, est implémenté en C dans notre code. Les hachages produits par Blake3 servent de clés pour séparer les données attributaires des données spatiales.
+
+Ainsi, nous avons obtenu deux fichiers parquet contenant toutes les données WDPA des 15 dernières années pour 365 592 aires protégées : un fichier contenant 2 721 134 enregistrements annuels d'attributs des aires protégées (190 Mo) et un autre contenant 1 425 023 géométries spatiales uniques (13,9 Go).
+
+## Creation d'une base WDPA pour Madagascar pour 2010-2024
+
+```{r}
+library(tidyverse)
+library(arrow)
+library(geoarrow)
+library(sf)
+
+# Load parquet and convert to sf
+wdpa_mdg <- read_parquet("data/ISO3_ref=MDG/part-0.parquet")  %>%
+  mutate(geometry = st_as_sfc(geometry))
+
+str(wdpa_mdg)
+```
+
+```{r}
+# Calculer le nombre d'aires protégées par année
+ap_per_year <- wdpa_mdg %>%
+  st_drop_geometry() %>%
+  group_by(data_year) %>%
+  summarise(Number_of_APs = n())
+
+# Calculer la surface totale par année
+area_per_year <- wdpa_mdg %>%
+  st_drop_geometry() %>%
+  group_by(data_year) %>%
+  summarise(Total_Area = sum(GIS_AREA, na.rm = TRUE))
+
+# Graphique : Nombre d'aires protégées par année
+ggplot(ap_per_year, aes(x = data_year, y = Number_of_APs)) +
+  geom_bar(stat = "identity", fill = "blue") +
+  labs(
+    title = "Nombre d'aires protégées par année",
+    x = "Année",
+    y = "Nombre d'AP"
+  ) +
+  theme_minimal()
+
+# Graphique : Surface totale des aires protégées par année
+ggplot(area_per_year, aes(x = data_year, y = Total_Area)) +
+  geom_bar(stat = "identity", fill = "green") +
+  labs(
+    title = "Surface totale des aires protégées par année",
+    x = "Année",
+    y = "Surface totale (ha)"
+  ) +
+  theme_minimal()
+```
+
+

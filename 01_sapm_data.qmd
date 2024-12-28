@@ -35,6 +35,8 @@ quiet = TRUE) %>%
                               NOM == "Hors AP" ~ "Hors AP",
                               .default = "Nommé"))
 
+write_rds(angap_2002, "data/angap_2002.rds")
+
 # Separate datasets: "Pas de nom", "Hors AP", and "Nommé"
 angap_pas_de_nom <- angap_2002 %>% filter(has_name == "Pas de nom")
 angap_hors_ap <- angap_2002 %>% filter(has_name == "Hors AP")

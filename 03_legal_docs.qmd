@@ -240,7 +240,6 @@ conversion_table <- split_class_clean %>%
 
 writexl::write_xlsx(conversion_table, "conversion_table.xlsx")
 
-
 ```
 
 Cette base est envoyée vers excel et on effectue une vérification manuelle pour avoir une liste complète des rapprochements.

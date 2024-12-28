@@ -3,3 +3,77 @@
 ## Aires protégées présentes en 2017 qui n'apparaîssent plus en 2024
 
 ## Décrets sans AP
+
+## Recherche des données du décret 2008
+
+Voyons si 2010 contient le contenu du décret de 2010.
+
+```{r}
+library(tidyverse)
+library(arrow)
+library(geoarrow)
+library(sf)
+
+wdpa_mdg_2014 <- read_parquet("data/MDG_WDPA_Consolidated.parquet") |> 
+  filter(data_year == 2014)
+
+wdpa_mdg_2014 |> 
+  st_drop_geometry() |> 
+  group_by(STATUS_YR) |> 
+  summarise(n = n()) |> 
+  print(n=27)
+```
+
+
+
+```{r}
+
+hist_sapm <- read_rds("data/sapm_evol_2001_2011.rds")
+
+hist_sapm |> 
+  st_drop_geometry() |> 
+  group_by(YEAR) |> 
+  summarise(n = n())
+
+hist_sapm |> 
+  st_drop_geometry() |> 
+  mutate(phase = case_when(YEAR <= 2003 ~ "pre_Durban",
+                           YEAR > 2003 & YEAR <= 2008 ~ "Decret 2008",
+                           .default = "Autre")) |> 
+  group_by(phase) |> 
+  summarise(n = n())
+```
+
+
+```{r}
+hist_sapm_2008 <- hist_sapm |> 
+  filter(YEAR <= 2008)
+
+hist_sapm_2008 |> 
+  st_write("data/hist_sapm_2008.geojson")
+
+hist_sapm |> 
+  st_write("data/hist_sapm.geojson")
+```
+
+
+## Tentative
+Recherche sur les historiques de pages Wikipedia
+
+
+
+```{r}
+sapm_2010 <- read_rds("data/sapm_2010.rds")
+
+sapm_2010 |> 
+  group_by(YEAR_IMPLE) |> 
+  summarise(n = n())
+
+sapm_2010 |> 
+  filter(YEAR_IMPLE == "in 2008") |> 
+  pluck("NOM")
+
+split_class_clean |> 
+  filter(year(date_txt) == 2008) |> 
+  pluck("pa")
+```

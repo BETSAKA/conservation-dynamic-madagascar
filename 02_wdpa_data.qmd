@@ -26,9 +26,9 @@ library(arrow)
 library(geoarrow)
 library(sf)
 
-# Load parquet and convert to sf
-wdpa_mdg <- read_parquet("data/ISO3_ref=MDG/part-0.parquet")  %>%
-  mutate(geometry = st_as_sfc(geometry))
+# Load parquet
+wdpa_mdg <- read_parquet("data/MDG_WDPA_Consolidated.parquet")
+
 
 str(wdpa_mdg)
 ```

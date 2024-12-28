@@ -78,6 +78,17 @@ Parmi celles-ci, 6 n'ont pas de nom :
 
 Tout indique qu'il s'agit d'un jeu datant de 2002 (cohérent avec les indications qui m'ont été données quand le jeu m'a été remis).
 
+## SAPM 2010
+
+Le site REBIOMA qui mettait en ligne les données du SAPM ne fonctionne plus depuis 2019 d'après les sauvegardes régulières effectuées par Internet Archive. Fort heureusement, une copie des données datées du 10/12/2010 a été sauvegardée par Ghislain Vieilledent et publié en accompagnement d'une publication [@vieilledent2020s].
+
+```{r}
+sapm_2010 <- st_read(paste0(data_dir,"Vieilledent_sapm_20101220/AP-NAP_38s.shp"), 
+                     quiet = TRUE, options = "ENCODING=WINDOWS-1252") |> 
+    st_transform(my_crs) |> 
+    write_rds("data/sapm_2010.rds")
+```
+
 ## Evolution du SAPM 2002-2011
 
 Ce jeu de données a été publié en ligne par un consultant du SAPM, avec la référence suivante : Evolution of the Madagascar Protected Area System (SAPM), Tom Allnut, https://hub.arcgis.com/content/4218737646234c7cab1c7a20e2c2489d/about

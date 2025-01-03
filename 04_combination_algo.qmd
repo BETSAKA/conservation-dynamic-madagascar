@@ -1,79 +1,523 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
 
+## Consolidation des noms 
 
-## Aires protégées présentes en 2017 qui n'apparaîssent plus en 2024
-
-## Décrets sans AP
-
-## Recherche des données du décret 2008
-
-Voyons si 2010 contient le contenu du décret de 2010.
+Charge toutes les données
 
 ```{r}
 library(tidyverse)
+library(sf)
 library(arrow)
 library(geoarrow)
-library(sf)
+library(stringdist)
 
-wdpa_mdg_2014 <- read_parquet("data/MDG_WDPA_Consolidated.parquet") |> 
-  filter(data_year == 2014)
+# 1) CHARGER LES DONNÉES -----------------------------------------------
 
-wdpa_mdg_2014 |> 
-  st_drop_geometry() |> 
-  group_by(STATUS_YR) |> 
-  summarise(n = n()) |> 
-  print(n=27)
+# Lecture de tes .rds en utilisant readr::read_rds (plutôt que readRDS)
+angap_2002 <- read_rds("data/angap_2002.rds")
+sapm_2010  <- read_rds("data/sapm_2010.rds")
+sapm_2013  <- read_rds("data/sapm_2013.rds")
+sapm_2017  <- read_rds("data/sapm_2017.rds")
+sapm_2024  <- read_rds("data/sapm_2024.rds") 
+sapm_evol_2001_2011 <- read_rds("data/sapm_evol_2001_2011.rds")
+vahatra <- read_rds("data/vahatra.rds")
+
+
+# Lecture du Parquet WDPA
+# on convertit geometry en sf si on veut le manipuler de façon spatiale
+wdpa_mdg_all <- read_parquet("data/MDG_WDPA_Consolidated.parquet")  %>%
+  mutate(geometry = st_as_sfc(geometry)) %>%
+  st_as_sf() 
+```
+
+
+On agrège tous les jeux de données. Ils n'ont pas tous les mêmes attributs, alors outre le nom et la géométrie, tous les attributs sont imbiqués dans une colonne spécifique.
+
+
+
+```{r}
+# Function to convert an sf/data.frame row into: 
+#  - original_name, dataset, local_id as separate cols
+#  - geometry as a separate col
+#  - everything else inside 'attributes' as a single-row tibble
+create_nested_structure <- function(df, name_col, dataset_id) {
+  
+  # Retain the original CRS and process the dataset
+  df %>%
+    # Convert sf -> tibble, keep geometry as is
+    as_tibble() %>%
+    # Add standard columns
+    mutate(
+      original_name = .data[[name_col]],
+      dataset       = dataset_id,
+      local_id      = row_number()
+    ) %>%
+    # Switch to rowwise so each row is processed individually
+    rowwise() %>%
+    # Create a list-col "attributes" that is a 1-row tibble 
+    # with all columns except geometry/original_name/dataset/local_id
+    mutate(
+      attributes = list(
+        as_tibble(
+          pick(-geometry, -original_name, -dataset, -local_id)
+        )
+      )
+    ) %>%
+    ungroup() %>%
+    # Keep exactly these five columns
+    select(original_name, dataset, local_id, attributes, geometry) %>%
+    # Reassign CRS explicitly to ensure consistency
+    st_as_sf(crs = st_crs(df))
+}
+
+
+# EXAMPLE USAGE ------------------------------------------------------
+
+# 1) Create each "conso" dataset
+angap_conso <- create_nested_structure(
+  df         = angap_2002,
+  name_col   = "NOM",
+  dataset_id = "ANGAP_2002"
+)
+
+sapm2010_conso <- create_nested_structure(
+  df         = sapm_2010,
+  name_col   = "NOM",
+  dataset_id = "SAPM_2010"
+)
+
+sapm2013_conso <- create_nested_structure(
+  df         = sapm_2013,
+  name_col   = "NOM",
+  dataset_id = "SAPM_2013"
+)
+
+sapm2017_conso <- create_nested_structure(
+  df         = sapm_2017,
+  name_col   = "SHORT_NAME",
+  dataset_id = "SAPM_2017"
+)
+
+sapm2024_conso <- create_nested_structure(
+  df         = sapm_2024,
+  name_col   = "SHORT_NAME",
+  dataset_id = "SAPM_2024"
+)
+
+sapm_evol_conso <- create_nested_structure(
+  df         = sapm_evol_2001_2011,
+  name_col   = "NOM",
+  dataset_id = "SAPM_evol_2001_2011"
+)
+
+vahatra_conso <- create_nested_structure(
+  df         = vahatra,
+  name_col   = "nom",
+  dataset_id = "Vahatra_2017"
+)
+
+wdpa_conso <- create_nested_structure(
+  df         = wdpa_mdg_all,
+  name_col   = "NAME",
+  dataset_id = "WDPA_2010_2024"
+)
+
+# 2) Combine them
+all_AP_records <- bind_rows(
+  angap_conso,
+  sapm2010_conso,
+  sapm2013_conso,
+  sapm2017_conso,
+  sapm2024_conso,
+  sapm_evol_conso,
+  vahatra_conso,
+  wdpa_conso
+)
+
+```
+
+
+On crée maintenant une table des noms :
+
+
+```{r}
+# On commence par SAPM 2017
+pa_names <- sapm_2017 %>%
+  st_drop_geometry() %>%
+  select(short_name_sapm_2017 = SHORT_NAME, full_name_sapm_2017 = FULL_NAME) %>%
+  mutate(short_name_sapm_2017 = str_remove(short_name_sapm_2017, "\n"))
+
+# Handling duplicates
+## There are 2 PAs under the name "Analalava". Need to rename the 2nd
+pa_names <- pa_names %>%
+  mutate(short_name_sapm_2017 = ifelse(
+    full_name_sapm_2017 == "Réserve de Ressources Naturelles d\'Analalava", 
+    "RRN Analalava", short_name_sapm_2017))
+wdpa_mdg_all <- wdpa_mdg_all %>%
+  mutate(NAME = ifelse(WDPAID == 555697889, "RRN Analalava", NAME))
+
+# On rapproche Vahatra
+vahatra_names <- vahatra %>%
+  st_drop_geometry() %>%
+  select(nom_vahatra = nom, full_name_vahatra = full_name,
+         nom_wdpa_vahatra = nom_wdpa) %>%
+  mutate(full_name_vahatra = str_replace(full_name_vahatra,
+                                         "Nouvelle Aire", "Aire"))
+
+pa_names <- pa_names %>%
+  left_join(vahatra_names, by = c("full_name_sapm_2017" = "full_name_vahatra"))
+
+
+# On joint WDPA 2024
+wdpa_2024_names <- wdpa_mdg_all %>%
+  st_drop_geometry() %>%
+  filter(data_year == 2024) %>%
+  select(name_wdpa = NAME, orig_name_wdpa = ORIG_NAME, WDPAID)
+
+pa_names <- pa_names %>%
+  mutate(name_wdpa = ifelse(is.na(nom_wdpa_vahatra), short_name_sapm_2017,
+                            nom_wdpa_vahatra),
+         name_wdpa = case_when(
+           name_wdpa == "Behara Tranomaro" ~ "Behara-Tranomaro",
+           name_wdpa == "Ranobe bay" ~ "Ranobe Bay",
+           name_wdpa == "Tampoketsa d'Analamaitso" ~ "Tampoketsa Analamaitso",
+           name_wdpa == "Allée des Baobabs" ~ "Allées des Baobabs",
+           name_wdpa == "Analabe Betanatanana" ~ "Analabe-Betanatanana",
+           name_wdpa == "Ampotaka-Ankorabe" ~ "Ampotaka Ankorabe",
+           .default = name_wdpa)
+  )
+
+pa_names <- pa_names %>%
+  left_join(wdpa_2024_names, by = c("name_wdpa"), 
+             # Duplicate in WDPA with a wrong/incomplete Antrema
+            multiple = "first")
+```
+
+On va maintenant rapprocher les autres
+
+## SAPM 2010
+
+```{r}
+match_protected_areas <- function(x, y,
+                                  pa_name_x = "original_name",
+                                  pa_name_y = "original_name") {
+  # Step 0: Prepare data
+  x <- x %>%
+    select(all_of(pa_name_x)) %>%
+    mutate(index_x = row_number(), 
+           centroid_x = st_centroid(geometry))
+  
+  y <- y %>%
+    select(all_of(pa_name_y)) %>%
+    mutate(index_y = row_number(), 
+           centroid_y = st_centroid(geometry))
+  
+  # Step 1: Find 3 closest centroids
+  x_with_closest <- x %>%
+    rowwise() %>%
+    mutate(
+      closest_y = list(
+        y %>%
+          st_drop_geometry() %>%
+          mutate(dist = as.numeric(st_distance(centroid_x, centroid_y))) %>%
+          arrange(dist) %>%
+          slice_head(n = 3) %>%
+          select(index_y, dist)
+      )
+    ) %>%
+    unnest(closest_y)  # Safely unnest the closest_y column
+  
+   # Step 2: Calculate percentage overlap
+  x_with_overlap <- x_with_closest %>%
+    rowwise() %>%
+    mutate(
+      intersection = list(
+        tryCatch(
+          st_intersection(geometry, y$geometry[index_y]),
+          error = function(e) NULL
+        )
+      ),
+      overlap = if (!is.null(intersection) && length(intersection) > 0) {
+        as.numeric(st_area(intersection[[1]]) / st_area(geometry))
+      } else {
+        0
+      }
+    ) %>%
+    select(-intersection)  # Drop intermediate intersection column
+  
+  # Consolidate
+  x_together <- x_with_overlap %>%
+    st_drop_geometry() %>%
+    mutate(name_x  = x[[pa_name_x]][index_x],
+           name = y[[pa_name_y]][index_y],
+           stringdist = stringdist(name_x, name, method = "jw", p = 0)) %>%
+    group_by(index_x) %>%
+    mutate(rank = row_number()) %>%
+    ungroup()
+
+  # Réorganiser les colonnes dans le format souhaité
+  output <- x_together %>%
+    select(name_x, rank, name, dist, overlap, stringdist) %>%
+    pivot_wider(
+      names_from = rank,
+      values_from = c(name, dist, overlap, stringdist),
+      names_prefix = "y"
+    ) %>%
+    select(
+      name_x, 
+      name_y1, dist_y1, overlap_y1, stringdist_y1,
+      name_y2, dist_y2, overlap_y2, stringdist_y2,
+      name_y3, dist_y3, overlap_y3, stringdist_y3
+    )
+  
+  return(output)
+}
+
+# Assuming `x` and `y` are your sf objects
+sapm_2010_names <- match_protected_areas(sapm2010_conso, sapm2017_conso)
+
+sapm_2010_test <- sapm_2010_names %>%
+  mutate(name_y = name_y1, .after = name_x)
+
+         name_y = case_when(
+           name_y1 == "Vohimena" ~ "Zombitse-Vohibasia",
+           name_y1 == "" ~ "",
+           name_y1 == "" ~ "",
+           name_y1 == "" ~ "",
+           name_y1 == "" ~ "",
+           name_y1 == "" ~ "",
+           name_y1 == "" ~ "",
+           .default = name_y
+         ))
+
 ```
 
 
 
 ```{r}
 
-hist_sapm <- read_rds("data/sapm_evol_2001_2011.rds")
+sapm_2010_names <- sapm_2010 %>%
+  st_drop_geometry() %>%
+    mutate(nom = NOM, 
+           nom = case_when(
+             nom == "Alle des Baobabs" ~ "Allée des Baobabs",
+             nom == "Zombitse - Vohibasia" ~ "Zombitse-Vohibasia",
+             nom == "Anjozorobe Angavo" ~ "Anjozorobe Angavo",
+             nom == "Mananara - Nord" ~ "Mananara Nord",
+             nom == "Pointe  Larre" ~ "Pointe à Larrée",
+             nom == "Tsingy Namoroka" ~ "Namoroka",
+             nom == "Nord-Ifotaky" ~ "Nord-Ifotaka",
+             nom == "Montagne des francais" ~ "Montagne des Français",
+             nom == "Maningoza" ~ "Maningozy",
+             nom == "Bez Mahafaly" ~ "Bezà-Mahafaly",
+             nom == "Oronjia (Orangea)" ~ "Oronjia",
+             nom == "Beasina/Ampananganandehibe" ~ "Ampananganandehibe-Behasina",
+             nom == "Site Ambondrobe" ~ "Ambondrobe",
+             nom == "Site Ramsar Torotorofotsy" ~ "Torotorofotsy",
+             nom == "Kirindy Mitea" ~ "Kirindy Mité",
+             nom == "Nosivolo Marolambo" ~ "Marolambo",
+             nom == "" ~ "",
+             nom == "" ~ "",
+             nom == "" ~ "",
+             nom == "" ~ "",
+             nom == "" ~ "",
+             nom == "" ~ "",
+             nom == "" ~ "",
+             nom == "" ~ "",
+             nom == "" ~ "",
+             nom == "" ~ "",
+             nom == "" ~ "",
+             nom == "" ~ "",
+             nom == "" ~ "",
+             .default = nom)) %>%
+  select(nom_sapm_2010 = nom)
 
-hist_sapm |> 
-  st_drop_geometry() |> 
-  group_by(YEAR) |> 
-  summarise(n = n())
 
-hist_sapm |> 
-  st_drop_geometry() |> 
-  mutate(phase = case_when(YEAR <= 2003 ~ "pre_Durban",
-                           YEAR > 2003 & YEAR <= 2008 ~ "Decret 2008",
-                           .default = "Autre")) |> 
-  group_by(phase) |> 
-  summarise(n = n())
+
+test <- sapm_2010_names %>%
+  anti_join(pa_names, by = c("nom_sapm_2010" = "short_name_sapm_2017"))
+
+
+
+
 ```
 
 
+
 ```{r}
-hist_sapm_2008 <- hist_sapm |> 
-  filter(YEAR <= 2008)
+library(tmap)
+tmap_mode("view")
+tm_shape(filter(sapm2010_conso, original_name == "Ampanihy")) + 
+  tm_polygons(col = "red") +
+  tm_shape(sapm_2017) +
+  tm_polygons(col = "green")
+  
 
-hist_sapm_2008 |> 
-  st_write("data/hist_sapm_2008.geojson")
-
-hist_sapm |> 
-  st_write("data/hist_sapm.geojson")
 ```
 
 
-## Tentative
-Recherche sur les historiques de pages Wikipedia
 
+
+
+
+
+# Recherche automatique
 
 
 ```{r}
-sapm_2010 <- read_rds("data/sapm_2010.rds")
+match_dict <- function(
+  x_df, 
+  y_df, 
+  x_cols,          # character vector of columns in x that may hold a name
+  y_cols,          # character vector of columns in y that may hold a name
+  pivot_col = NA,  # if NA, use x_cols[1] as pivot col name
+  ratio = 0.3      # e.g., if distance <= 0.3 * nchar(y_val), accept
+) {
+  # 0) If pivot_col is NA, default to the first element of x_cols
+  if (is.na(pivot_col)) {
+    pivot_col <- x_cols[1]
+  }
+  
+  # 1) Sanity check: pivot_col must exist in x_df
+  if (! pivot_col %in% colnames(x_df)) {
+    stop(sprintf(
+      "Pivot column '%s' not found in x_df. Please specify a valid pivot_col or use pivot_col = NA to default to x_cols[1].",
+      pivot_col
+    ))
+  }
+  
+  # 2) We'll work on a copy of x_df, 
+  #    so we can remove rows once they match (enforce one-to-one).
+  #    For reliable removal, add a "uid" to keep track of rows even if we remove them.
+  x_work <- x_df %>% 
+    mutate(uid___match_dict = row_number())
+  
+  # 3) Prepare an output skeleton from y_df
+  #    We'll add columns: best_x_val, best_y_val, distance, tie, plus *pivot_col*.
+  out <- y_df
+  
+  # Create the columns we will fill
+  out$best_x_val  <- NA_character_
+  out$best_y_val  <- NA_character_
+  out$distance    <- NA_real_
+  out$tie         <- NA_character_
+  # Dynamically create an empty column with the name pivot_col (e.g. "short_name_sapm_2017")
+  out[[pivot_col]] <- NA_character_
+  
+  # 4) Row-by-row iteration over y_df
+  for (i in seq_len(nrow(out))) {
+    
+    # Track the best match found so far
+    best_dist      <- Inf
+    best_x_str     <- NA_character_
+    best_y_str     <- NA_character_
+    best_pivot_val <- NA_character_
+    tie_candidates <- character(0)
+    
+    # We'll also store which row in x_work we matched
+    best_x_uid     <- NA_integer_
+    
+    # For each name column in y_cols
+    for (this_y_col in y_cols) {
+      y_val <- out[[this_y_col]][i]
+      
+      # Skip empty or NA
+      if (is.null(y_val) || is.na(y_val) || !nzchar(trimws(y_val))) {
+        next
+      }
+      
+      # Compare to each row in x_work (which hasn't been matched/removed yet)
+      for (x_i in seq_len(nrow(x_work))) {
+        
+        for (this_x_col in x_cols) {
+          x_val <- x_work[[this_x_col]][x_i]
+          
+          if (is.null(x_val) || is.na(x_val) || !nzchar(trimws(x_val))) {
+            next
+          }
+          
+          # Jaro-Winkler distance
+          dist_jw <- stringdist(x_val, y_val, method = "jw")
+          threshold <- ratio * nchar(y_val)
+          
+          # Check if it's a new best match + under threshold
+          if (dist_jw < best_dist && dist_jw <= threshold) {
+            best_dist      <- dist_jw
+            best_x_str     <- x_val
+            best_y_str     <- y_val
+            best_x_uid     <- x_work$uid___match_dict[x_i]
+            
+            # pivot_col value
+            pivot_val <- x_work[[pivot_col]][x_i]
+            if (is.null(pivot_val) || length(pivot_val) == 0) {
+              best_pivot_val <- NA_character_
+            } else {
+              best_pivot_val <- as.character(pivot_val)
+            }
+            
+            tie_candidates <- character(0)
+            
+          } else if (abs(dist_jw - best_dist) < 1e-15 && dist_jw <= threshold) {
+            # It's exactly the same distance => tie
+            tie_candidates <- c(tie_candidates, as.character(x_val))
+          }
+        }
+      }
+    } # end y_cols loop
+    
+    # 5) If we found a valid match
+    if (best_dist != Inf) {
+      out$best_x_val[i]  <- best_x_str
+      out$best_y_val[i]  <- best_y_str
+      out$distance[i]    <- best_dist
+      out[[pivot_col]][i] <- best_pivot_val
+      
+      if (length(tie_candidates) > 0) {
+        out$tie[i] <- paste(tie_candidates, collapse = "; ")
+      } else {
+        out$tie[i] <- NA_character_
+      }
+      
+      # 6) Remove that matched row from x_work, so it can't match again
+      #    (Greedy approach)
+      if (!is.na(best_x_uid)) {
+        # find which row in x_work has uid___match_dict == best_x_uid
+        x_remove_index <- which(x_work$uid___match_dict == best_x_uid)
+        if (length(x_remove_index) == 1) {
+          x_work <- slice(x_work, -x_remove_index)
+        }
+      }
+    }
+    
+  } # end for y rows
+  
+  out
+}
 
-sapm_2010 |> 
-  group_by(YEAR_IMPLE) |> 
-  summarise(n = n())
+sapm_evol_names <- sapm_evol_2001_2011 %>%
+  st_drop_geometry() %>%
+  select(nom_sapm_evol_2001_2011 = NOM)
+  
+sapm_evol_names_test <- match_dict(
+  x_df = pa_names,
+  y_df = sapm_evol_names,
+  x_cols = colnames(select(pa_names, -WDPAID)),
+  y_cols = "nom_sapm_evol_2001_2011")
+  
 
-sapm_2010 |> 
-  filter(YEAR_IMPLE == "in 2008") |> 
-  pluck("NOM")
+sapm_2010_names <- sapm_2010 %>%
+  st_drop_geometry() %>%
+  select(nom_sapm_2010 = NOM)
 
-split_class_clean |> 
-  filter(year(date_txt) == 2008) |> 
-  pluck("pa")
+sapm_2010_names_test <- match_dict(
+  x_df = pa_names,
+  y_df = sapm_2010_names,
+  x_cols = colnames(select(pa_names, -WDPAID)),
+  y_cols = "nom_sapm_2010")
+
+sum(sapm_2010_names_test <= 0.1, na.rm = TRUE)
 ```

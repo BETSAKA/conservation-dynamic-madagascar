@@ -1,4 +1,67 @@
+# AP
+Enrichir décrets
+Ajouter lidte ap 0ôur décrets collectifs
+
+
+## Séquence.
+Wdpa parquets dans source et en rds dans data
+ajout vahatra
+
+
+Fonction agglo
+Table géo attributs: nom + liste valeur nommé + geom + centroide + hash geom
+Verif identiques Hash + centroide
+
+### Créé dict
+Base SAPM 2024
+Verif id : nom unique
+Jointure Vahatra
+Jointure wdpa : nom long et court
+Jointure décret
+Recherche dans base geom littéral ou proche 90%
+Recherche spatial base geom retour nom id match
+Nouveau dico par pivot
+Diagnostic des restants
+Verif manuelle sur tmap
+
+
+Verif sur restant
+Jointure Géométrie
+
+
+Trouver ID 
+
+# Problèmes :
+Scinder : "Analalava I - II" (correspondant à "Analabe Betanatanana" et "Analalava")
+
+
+
+
+
+
+
+V Chercher liste d'AP créées par le décret de 2008
+V Documents du Projet environnemental de la banque mondiale (P074235) => pas trouvé
+V Historique sur Redbioma
+- Etendre requête AP décrets
+- Table correspondance ID AP
+- Application de visualisation des AP
+- 
+
 
 
 - Système de projection
 - Décrets pour les quels on n'a pas d'AP.
+
+Gérer MAny to many.
+
+
+Concerversion des noms : 
+Alan' i Vohibe = Ambalabe (source : Vohibe Forest New Protected Area ... Location - Ambalabe Commune in the Atsinanana, https://ecohealthglobal.org/network-sites/vohibe-forest-new-protected-area/)
+Complexe Manambolomaty = Complexe Zones humides - Fort dense sche Tsimemb (https://www.fapbm.org/aire_protegee/le-paysage-harmonieux-de-tsimembo-manambolomaty/)
+
+ Olivier LangrandVoir le profil de Olivier Langrand
+ Rechercher données UNEP GEO3: https://web.archive.org/web/20020123004046/http://geo3.grid.unep.ch/
+ 
+ 
+ 

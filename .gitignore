@@ -8,3 +8,4 @@ data/*
 test_*
 /.quarto/
 *.Rproj
+Backlog.txt

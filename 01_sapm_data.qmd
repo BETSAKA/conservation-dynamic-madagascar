@@ -6,11 +6,19 @@ editor_options:
 
 # Harmonisation des données SAPM
 
-On a passe ici en revue un série de jeux de données issues de sources officielles qui ont à une époque eu la charge de consolider ces informations. A chaque fois on les ouvre dans leur format original, on corrige d'éventuelle erreurs topologiques, et on les enregistre dans un format homogène.
+Dans cette section, nous passons en revue plusieurs jeux de données ayant documenté les aires protégées à Madagascar à différentes périodes. Ces données, issues de sources officielles, ont été produites et mises à jour par différentes institutions. Nous les harmonisons en appliquant un ensemble de traitements standardisés :
+
+-   Correction des erreurs topologiques.
+
+-   Homogénéisation des formats de fichiers et des projections.
+
+-   Consolidation et validation des attributs descriptifs.
+
+-   Construction d’une série temporelle cohérente des aires protégées de 2002 à 2024.
 
 ## ANGAP 2002
 
-Avant la création du SAPM, l'ANGAP était la seule entité chargée de gérer les aires protégées, et donc leurs données. L'ANGAP avait dans ce cadre transmis à l'institut national de géographie malgache (FTM) pour la mise à jour de la base de donnée topographique (BD 500). 
+Avant la création du SAPM, l'ANGAP était la seule entité chargée de gérer les aires protégées, et donc leurs données. L'ANGAP avait dans ce cadre transmis à l'institut national de géographie malgache (FTM) pour la mise à jour de la base de donnée topographique (BD 500).
 
 ```{r}
 # On charge les librairies nécessaires
@@ -23,7 +31,9 @@ library(gt) # Pour faire de jolis tableaux
 data_dir <- "sources/"
 # Specify CRS
 my_crs <- 29702
+```
 
+```{r}
 # Load and preprocess the shapefile
 angap_2002 <- st_read(paste0(data_dir, "ap_angap BD 500/ap_angap.shp"), 
 quiet = TRUE) %>%
@@ -34,8 +44,6 @@ quiet = TRUE) %>%
          has_name = case_when(is.na(NOM) ~ "Pas de nom",
                               NOM == "Hors AP" ~ "Hors AP",
                               .default = "Nommé"))
-
-write_rds(angap_2002, "data/angap_2002.rds")
 
 # Separate datasets: "Pas de nom", "Hors AP", and "Nommé"
 angap_pas_de_nom <- angap_2002 %>% filter(has_name == "Pas de nom")
@@ -68,17 +76,43 @@ tm_shape(angap_hors_ap) +
                 col = c("red", "blue"), 
                 lwd = c(3, 3, 0.5), 
                 title = "Contour")
+
+
+
 ```
 
 Le champ "classement" de ce jeu de données fait référence à des décrets parus jusqu'en 1998 Mais il fait aussi référence à 11 entités qui n'ont pas de métadonnées les caractérisant.
 
-Parmi celles-ci, 6 n'ont pas de nom :   
+Parmi celles-ci, 6 n'ont pas de nom :
 
-- Le Parc National d'Ankarafantsika, né en 2002 de la fusion de la réserve naturelle intégrale n°15 d'Ankarafantsika et de la réserve - forestière d'Anktarafantsika.
-- Mantadia, dont les limites ont été étendues en 2002.
-- Tsingy de Namoroka, créé en 1927 et devenu parc national en 2002.
+-   Le Parc National d'Ankarafantsika, né en 2002 de la fusion de la réserve naturelle intégrale n°15 d'Ankarafantsika et de la réserve - forestière d'Anktarafantsika.
+-   Mantadia, dont les limites ont été étendues en 2002.
+-   Tsingy de Namoroka, créé en 1927 et devenu parc national en 2002.
 
-Tout indique qu'il s'agit d'un jeu datant de 2002 (cohérent avec les indications qui m'ont été données quand le jeu m'a été remis).
+Le jeu de données n'inclut pas de métadonnées explicitant sa date, mais il nous a été expliTout indique qu'il s'agit d'un jeu datant de 2002 (cohérent avec les indications qui m'ont été données quand le jeu m'a été remis).
+
+On effectue donc les opération suivantes : identification des polygones sans nom qui font visiblement partie d'une AP, regroupement des polygones simples en multipolygones s'ils ont les mêmes attributs, et suppression des polygones explicitement référencés comme "Hors AP".
+
+```{r}
+angap_2002 <- angap_2002 %>%
+  select(APBON = APBON_, APBON_ID, NOM, TYPE_AP, CLASSEMENT, IUCN) %>%
+  mutate(NOM = case_when( # Rename the patches visibly included in PAs
+    APBON_ID %in% c(100006, 100005) ~ "Ranomafana",
+    APBON_ID %in% c(100002, 100003, 100004) ~ "Masoala",
+    APBON == 27 ~ "Baie de Baly",
+    .default = NOM)) %>%
+  group_by(across(NOM:IUCN)) %>%
+  summarize(geometry = st_union(geometry)) %>%
+  ungroup() %>%
+  filter(NOM != "Hors AP") # Discard the explicitely labelled as not PA
+
+write_rds(angap_2002, "data/angap_2002.rds")
+
+tm_shape(angap_2002) +
+  tm_polygons()
+```
+
+Le résultat est présenté dans la carte ci-dessus.
 
 ## SAPM 2010
 
@@ -89,6 +123,9 @@ sapm_2010 <- st_read(paste0(data_dir,"Vieilledent_sapm_20101220/AP-NAP_38s.shp")
                      quiet = TRUE, options = "ENCODING=WINDOWS-1252") |> 
     st_transform(my_crs) |> 
     write_rds("data/sapm_2010.rds")
+
+tm_shape(sapm_2010) %>%
+  tm_borders(col = "purple")
 ```
 
 ## Evolution du SAPM 2002-2011
@@ -96,7 +133,6 @@ sapm_2010 <- st_read(paste0(data_dir,"Vieilledent_sapm_20101220/AP-NAP_38s.shp")
 Ce jeu de données a été publié en ligne par un consultant du SAPM, avec la référence suivante : Evolution of the Madagascar Protected Area System (SAPM), Tom Allnut, https://hub.arcgis.com/content/4218737646234c7cab1c7a20e2c2489d/about
 
 It is provided as a .mpk, which is in fact a zip including shapefiles. We convert to Zip and open the shapefiles.
-
 
 ```{r}
 # Specify the directory path
@@ -133,55 +169,6 @@ sapm_evol_2001_2011 %>%
 write_rds(sapm_evol_2001_2011, "data/sapm_evol_2001_2011.rds")
 ```
 
-## SAPM 2013
-
-> Où a été trouvé ce jeu de données : Vieilledent ?
-
-```{r}
-# Try encoding = "UTF-8" or "LATIN1" depending on the data
-sapm_2013 <- st_read(paste0(data_dir,"SAPM 2013/limite_sapm.shp"), 
-  quiet = TRUE, options = "ENCODING=WINDOWS-1252") %>%
-  st_set_crs(4326) %>%  # Transform to WGS 84 (EPSG:4326)
-  st_make_valid() %>%  # Fix invalid geometries
-  st_transform(my_crs)
-
-# Step 2: Remove potential sites
-sapm_2013 <- sapm_2013 %>% filter(!st_is_empty(geometry)) %>%
-  filter(!(DESCRIPTIO %in% c("Site Prioritaire AP", "Sites Importants Koloala", "Sites Potentiels AP",
-    "Sites Potentiels AP Marine", "Sites Potentiels Koloala")))
-
-write_rds(sapm_2013, "data/sapm_2013.rds")
-
-# Create and format the table
-sapm_2013 %>%
-  st_drop_geometry() %>%
-  group_by(DESCRIPTIO) %>%
-  summarise(n = n(),
-            total_area = sum(HECTARES, na.rm = TRUE)) %>%
-  rename(Catégorie = DESCRIPTIO) %>%  # Rename column for display
-  gt() %>%
-  tab_header(
-    title = "Données SAPM 2013"  # Add title to the table
-  ) %>%
-  fmt_number(
-    columns = c(total_area),  # Format the total_area column
-    decimals = 0,                # Round to 0 decimals
-    use_seps = TRUE              # Use thousand separators
-  ) %>%
-  cols_label(
-    n = "Nombre d'éléments",      # Label for the 'n' column
-    total_area = "Superficie totale (ha)")  # Label for the area column
-
-
-# Step 3: Plot the shapefile using tmap
-tm_shape(sapm_2013) + 
-  tm_fill(col = "DESCRIPTIO") + 
-  tmap_options(check.and.fix = TRUE)
-
-```
-
-J'ai un doute sur l'origine de ce jeu de données.
-
 ## SAPM 2017
 
 Ce jeu de données nous a été remis par la FAPBM. Il s'agit visiblement des données SAPM mises à jour en mars 2017.
@@ -202,6 +189,14 @@ tm_shape(sapm_2017) +
   tm_polygons(col = "CATEG_IUCN")
 ```
 
+## Vahatra 2017
+
+```{r}
+load("sources/AP_Vahatra.rds")
+AP_Vahatra %>%
+  st_transform(my_crs) %>%
+  write_rds("data/vahatra.rds")
+```
 
 ## SAPM 2024
 
@@ -280,7 +275,8 @@ if (nrow(invalid_geometries) > 0) {
 
 # Step 5: Filter out invalid geometries for now to plot the valid ones
 sapm_2024_valid_clean <- sapm_2024_valid %>%
-  filter(st_is_valid(geometry))
+  filter(st_is_valid(geometry)) %>%
+  st_transform(my_crs)
 
 write_rds(sapm_2024_valid_clean, "data/sapm_2024.rds")
 

@@ -3,16 +3,30 @@ output: html_document
 editor_options: 
   chunk_output_type: console
 ---
+
 # Création d'une base réglementaire à partir de CNLEGIS
 
 ## Objet
 
-Le processus de création, modification ou disparition des aires protégées passe par des lois, décrets et arrêtés officels. Ces éléments réglementaires sont dispersés dans divers textes juridiques, que nous allons ici collecter et consolider à partir de la base du Centre National d'Informatoin et de Documentation Legislative et Juridique (CNLEGIS). Cette instance centralise les textes réglementaires à Madagascar et propose un moteur de recherche permettant de trouver les documents pertinents en fonction de recherches full-text. 
+Le processus de création, modification ou disparition des aires protégées passe par des lois, décrets et arrêtés officiels. Ces éléments réglementaires sont dispersés dans divers textes juridiques, que nous allons ici collecter et consolider à partir de la base du Centre National d'Information et de Documentation Legislative et Juridique (CNLEGIS). Cette instance centralise les textes réglementaires à Madagascar et propose un moteur de recherche permettant de trouver les documents pertinents en fonction de recherches full-text. Cette section détaille la méthodologie employée pour collecter, traiter et structurer ces informations.
 
 ## Extraction des textes pertinents
 
-La base CNLEGIS ne propose pas d'API, donc l'extraction a dû être réalisée manuellement. Nous avons simplement entré la requête "aire protégée", ce qui a retourné 131 résultats. Nous avons extrait les 14 pages web correspondantes. Le code ci-dessous extrait l'information pertinente, la nettoie et la restitue sous forme de tableaux.
+La base CNLEGIS ne propose pas d'API, donc l'extraction a dû être réalisée manuellement, à partir de requête contenant les expressions reconnues pour désigner les aires protégées. Loi N° 90-033 du 21 décembre 1990 portant Charte de l'Environnement Malgache n'établissait pas de typologies pour les aires protégées et se référait simplement aux "parcs et réserves". Dans la [Loi n° 2001-005 portant code de gestion des aires protégées](https://assemblee-nationale.mg/wp-content/uploads/2020/11/Loi-n%C2%B0-2001-005-Portant-CODE-DE-GESTION-DES-AIRES-PROTEGEES.pdf) établissait trois catégories : Réserve naturelle intégrale, Parc national, et Réserve spéciale. La [Loi n°2008-025 portant refonte du Code de Gestion des Aires Protégées](https://assemblee-nationale.mg/wp-content/uploads/2020/11/Loi-n%C2%B0-2008-025-portant-refonte-du-Code-de-Gestion-des-Aires-Prot%C3%A9g%C3%A9es-Promulgation.pdf) étend cette liste à 7 catégories : La Réserve Naturelle Intégrale (RNI), le Parc National (PN), la Réserve Spéciale (RS), le Parc Naturel (PNAT), le Monument Naturel (MONAT), le Paysage Harmonieux Protégé (PHP), et la Réserve de Ressources Naturelles (RRN). La [Loi n°2015-005 portant refonte du Code de Gestion des Aires Protégées](https://edbm.mg/wp-content/uploads/2017/12/Loi-n-2015-005_COAP.pdf) reprend cette même liste.
 
+Sur cette base, on a entré les requêtes suivantes, qui ont donné le nombre de résultats indiqués ensuite :
+
+-   aire protégée : 131
+-   monument natuel : 0
+-   parc national : 29
+-   parc naturel : 1
+-   paysage harmonieux : 1
+-   réserve naturelle : 12
+-   réserve spéciale : 21
+-   réserve de ressource : 0
+-   protection temporaire globale: 3
+
+Les résultats de chaque requête sont regroupées par pages contenant entre 1 et 2 réponses. Nous avons extrait les 25 pages web contenant les résultats ont été enregistrées localement. Le code ci-dessous extrait les informations pertinentes qu'elles contiennent, les nettoient et les restitue sous forme tabulaire.
 
 ```{r}
 library(rvest)
@@ -22,7 +36,7 @@ library(sf)
 # Specify the source repository 
 data_dir <- "sources/"
 # Directory containing the HTML files
-input_dir <- paste0(data_dir, "Décrets/CNLEGIS")
+input_dir <- paste0(data_dir, "Décrets/CNLEGIS_complet")
 
 
 # Columns to select
@@ -73,12 +87,13 @@ extract_table <- function(file_path) {
 }
 
 # Get a list of all HTML files in the directory
-html_files <- list.files(input_dir, pattern = "\\.html$", full.names = TRUE)
+html_files <- list.files(input_dir, pattern = "\\.html?$", full.names = TRUE)
 
 # Apply the extraction function to all files
 all_results <- map_dfr(html_files, extract_table) %>%
   mutate(date_txt = dmy(date_textes), # Convertit les dates
-         date_jo = dmy(date_jo)) %>%
+         date_jo = dmy(date_jo),
+         date_jo = coalesce(date_jo, date_txt)) %>% # 2 cas
   relocate(date_txt, date_jo, .before = everything()) # place les dates au début
 
 all_results |>
@@ -88,58 +103,47 @@ all_results |>
 
 ## Classification par type de réglement
 
-Pour mieux organiser les données extraites, les textes sont classifiés selon le type de transformation qu'elles opèrent (création, modification, prorogation, etc.) à l’aide de règles de typologie.
+Les décisions identifiées ont des effets variés : certaines créent de nouvelles aires protégées, d’autres modifient leurs limites, tandis que d’autres prorogent leur statut. Nous appliquons des règles de typologie permettant d'assigner une catégorie à chaque texte.
 
 ```{r}
 # Add typology columns
 class_results <- all_results %>%
   mutate(
     creation_definitive = str_detect(
-      textes, regex("(?<!en )(création|crétion de l'aire protégée)", 
+      textes, regex("(?<!en )(création|crétion de l'aire protégée)|instituant", 
                     ignore_case = TRUE)),
-    modifiant = str_detect(textes, regex("modifiant", ignore_case = TRUE)),
+    modifiant = str_detect(textes, regex("(modifi)|(changem)|Précis", ignore_case = TRUE)),
     prorogation = str_detect(textes, regex("prorog", ignore_case = TRUE)),
     delegation_gestion = str_detect(
       textes, regex("délégation de gestion", ignore_case = TRUE)),
     mise_protection_temporaire = str_detect(
       textes, regex("protection temporaire", ignore_case = TRUE)),
-
     nomination = str_detect(textes, regex("nomination", ignore_case = TRUE))) %>%
-mutate(
+  mutate(
     total_true = rowSums(select(., creation_definitive:nomination), na.rm = TRUE),
     concatenated_true = pmap_chr(
       select(., creation_definitive:nomination),
-      ~ paste(names(which(c(...))), collapse = ", ")
-    ),
-    .before = everything()
-  ) %>%
+      ~ paste(names(which(c(...))), collapse = ", ")),
+    .before = everything()) %>%
   filter(!(total_true == 0)) %>%
   filter(!(total_true == 1 & nomination)) %>% # On enlève le copil Sydney
   filter(!(str_detect(textes, "fonctionnement du Comité de Pilotage"))) %>%
   filter(!(str_detect(textes, "fonctionnement de la Commission"))) %>%
   filter(!(str_detect(textes, "organisation du Comité")))
-
-arr_creation_pre2008 <- class_results %>%
-  filter(year(date_jo) < 2008 & (date_jo) > 2008 &
-           (mise_protection_temporaire | creation_definitive)) %>%
-  arrange(date_jo)
-
 ```
 
 Deux exceptions méritent d'être relevées :
 
-- Un cas important est l'[Arrêté Interministériel n° 18633/2008/MEFT/MEM du 17 octobre 2008 portant mise en protection temporaire globale des sites visés par l’Arrêté interministériel n° 17914 du 18 octobre 2006 et levant la suspension de l’octroi des permis miniers et forestiers pour certains sites.](https://faolex.fao.org/docs/pdf/Mad173201.pdf) Cette décision s'applique à 97 nouvelles aires protégées en cours de création et 29 sites prioritaires pour la biodiversité et la gestion forestière.   
-- Ce dernier a été amendé par l'[Arrêté interministériel n° 52005/2010 du 20 décembre 2010 modifiant l'arrêté interministériel Mine-Forêts n°18633 du 17 octobre 2008 portant mise en protection temporaire globale des sites visés par l’arrêté n°17914 du 18 octobre 2006 et levant la suspension de l’octroi des permis miniers et forestiers pour certains sites.](https://faolex.fao.org/docs/pdf/mad142467.pdf) Cette décision s'applique à 95 aires protégées (24 ayant déjà un statut de protection temporaire).
+-   Un cas important est l'[Arrêté Interministériel n° 18633/2008/MEFT/MEM du 17 octobre 2008 portant mise en protection temporaire globale des sites visés par l’Arrêté interministériel n° 17914 du 18 octobre 2006 et levant la suspension de l’octroi des permis miniers et forestiers pour certains sites.](https://faolex.fao.org/docs/pdf/Mad173201.pdf) Cette décision s'applique à 97 nouvelles aires protégées en cours de création et 29 sites prioritaires pour la biodiversité et la gestion forestière.\
+-   Ce dernier a été amendé par l'[Arrêté interministériel n° 52005/2010 du 20 décembre 2010 modifiant l'arrêté interministériel Mine-Forêts n°18633 du 17 octobre 2008 portant mise en protection temporaire globale des sites visés par l’arrêté n°17914 du 18 octobre 2006 et levant la suspension de l’octroi des permis miniers et forestiers pour certains sites.](https://faolex.fao.org/docs/pdf/mad142467.pdf) Cette décision s'applique à 95 aires protégées (24 ayant déjà un statut de protection temporaire).
 
-Ces deux textes concernent une liste très étendue de sites potentiels, qui ne sont pas nommément listés dans le texte. On a juste une carte (peu précise) et une somme de zones concernées (en nombre et en surface).
+Ces deux textes concernent une liste très étendue de sites potentiels, qui ne sont pas nommément listés dans le texte. On a juste une carte (peu précise) et une somme de zones concernées (en nombre et en surface). Nous devons donc croiser ces informations avec la base SAPM pour retrouver les sites affectés.
 
 ## Appariement des noms d'aires protégées entre CNLEGIS et SAPM
 
-On va avoir besoin de rapprocher ces textes juridiques des données spatiales SAPM et WDPA. On doit le faire à partir des noms des aires protégées, mais ceux-ci ne sont pas normalisés. Une première étape essentielle consiste  à extraire ces noms et à les nettoyer avant de procéder à la recherche de correspondances avec les bases spatiales.
+Dans une première étape, nous extrayons les noms des aires protégées dans les textes des décrets.
 
 ```{r}
-   
-
 class_results <- class_results %>%
   mutate(
     pa = str_extract(
@@ -160,7 +164,7 @@ class_results <- class_results %>%
       ),
       pa
     ),
-    pa = str_replace(pa, "\"Complexe des Aires", "Complexe des Aires"), 
+    pa = str_replace(pa, "\"Complexe des Aires", "Complexe des Aires"),
     pa = str_remove(pa, "^nommée\\s*"),  # Supprime "nommée"
     pa = str_remove(pa, "^respectivement\\s*"),  # Supprime "nommée"
     pa = str_remove(pa, "(?<=\")[^\"«]*$"),  # Supprime tout après le 2e guillemet
@@ -170,10 +174,51 @@ class_results <- class_results %>%
     pa = str_remove(pa, "^'"),
     .before = textes
   )
+
+pn_rs <- c("Andohahela", "Nosy Mangabe",  "Montagne d'Ambre", "Ankarafantsika",
+  "Analamazaotra", "Kirindy Mite", "Tsimanampesotse", "Mikea", "Nosy Hara", 
+  "Nosy Tanikely", "Lokobe", "Ankarafantsika", "Tsimanampetsotsa", "Namokora", 
+  "Mantadia", "Marojejy", "Kirindy Mite", "Befotaka Midongy",
+  "Zombitse-Vohibasia", "Baie de Baly", "Tsingy-de-Bemaraha", "Masoala", 
+  "Mantadia", "Isalo", "montagne d'Ambre", "Lokobe", "Ankarafantsika", 
+  "Tsimanampetsotsa", "Namokora", "Marojejy",  
+  "Tsingy-de-Bemaraha", "Andringitra", "Ankarafantsika", "Ankarafantsika", 
+  "Nosy Mangabe", "Montagne d'Ambre", "Manongarivo", "Ambatovaky", 
+  "Beza-Mahafaly", "Cap Sainte Marie", "Anjanaharibe-Sud", 
+  "forêt d'Ambohitantely", "Manombo", "île de Mangabe", "Ambatovavy", 
+  "pic d'Ivohibe", "Mangerivola", "Manombo", "cap Sainte-Marie", 
+  "forêt d'Ambre", "forêt Tampoketsa d'Analamaitso", "Andranomena", 
+  "Anjanaharibe-Sud", "Ambohijanahary", "Pointe à Larrée")  |> 
+  unique() |> 
+  sort()
+
+class_results <- class_results %>%
+  mutate(
+    textes = str_replace_all(textes, "[\r\n]", " "),  
+    textes = str_replace_all(textes, "/", " "), 
+    textes = str_squish(textes),
+    pa = ifelse(
+      is.na(pa),
+      map_chr(textes, ~ first(pn_rs[str_detect(.x, pn_rs)], default = NA_character_)),
+      pa
+    ), # for some unkown reason, "Pointe à Larrée is not recognized
+    pa = ifelse(num_texte == "2015-773", "Pointe à Larrée", pa),# Explicit assignment
+    pa = ifelse(num_texte == "98-376", "Andrigitra", pa)# Explicit assignment
+  )
+
+class_results <- class_results %>%
+  mutate( # For 2008, we find the list of PA created then
+    pa = ifelse(num_texte == "18633/2008" | num_texte == "52005/2010" |
+                  num_texte == "9874/2013",
+                read_rds("data/sapm_2010.rds") |>
+                  filter(YEAR_IMPLE == "X") |> 
+                  pluck("NOM") |> 
+                  paste(collapse = ", "),
+                pa)
+  )
 ```
 
-
-Une fois les noms des aires protégées concernées extraites de chaque texte, on les compare aux noms de la base SAPM. On le fait tout d'abord automatiquement avec un algorithme d'appariement approximatif ("fuzzy matching"), qui tient compte des variations d'orthographe ou des dénominations multiple.
+Une fois les noms des aires protégées concernées extraites de chaque texte, on les compare aux noms de la base SAPM. On le fait tout d'abord automatiquement avec un algorithme d'appariement approximatif ("fuzzy matching"), qui tient compte des variations d'orthographe ou des dénominations multiple, afin d'identifier les correspondances les plus probables.
 
 ```{r}
 library(stringdist)
@@ -235,11 +280,53 @@ conversion_table <- split_class_clean %>%
     )
   ) %>%
   ungroup() %>%
-  select(original_pa = single_cleaned_pa, closest_match, match_distance)
+  select(original_pa = single_cleaned_pa, closest_match, match_distance) %>%
+  distinct(original_pa, .keep_all = TRUE)
 
 
 writexl::write_xlsx(conversion_table, "conversion_table.xlsx")
-
 ```
 
-Cette base est envoyée vers excel et on effectue une vérification manuelle pour avoir une liste complète des rapprochements.
+On a à ce stade effectué une modification manuelle, correspondant à la réserve naturelle intégrale n°5 devenue parc national n°14 en 1998 est dénomée "Antsiranana" dans la base, mais il s'agit d'Andrigitra, cf. site 47 dans @goodman2018.
+
+Cette base est envoyée vers excel et on effectue une vérification manuelle pour avoir une liste complète des rapprochements. A l'issue de ce travail, on dispose d'une liste des noms des AP tels qu'on les trouve dans les textes officiels, avec une table de correspondance indiquant le nom équivalent avec lequel elles sont enregistrées dans la base SAPM 2017. 
+
+## Intégration des correspondances validées et finalisation de la base
+
+Après validation des correspondances, nous consolidons la base en associant chaque décision réglementaire à l’aire protégée correspondante. Cela nous permet d’établir une base réglementaire normalisée, directement exploitable pour des analyses historiques ou spatiales.
+
+```{r}
+library(readxl)
+
+# Load the verified conversion table
+conversion_table_verif <- read_xlsx("data/conversion_table_verif.xlsx") %>%
+  select(original_pa, closest_match) %>%
+  unique()
+
+# Merge with split_class_clean to integrate the verified closest matches
+decision_pa <- split_class_clean %>%
+  left_join(conversion_table_verif, by = c("single_cleaned_pa" = "original_pa")) %>%
+  rename(verified_match = closest_match)  %>%
+  distinct(pa, num_texte, .keep_all = TRUE) %>%
+  select(date_texte = date_txt,
+         ap_nom_texte = pa,
+         ap_match_sapm = verified_match,
+         texte = textes,
+         type_texte = type,
+         num_texte,
+         num_texte_variante = num,
+         id_texte = id,
+         objet_texte = objet,
+         type_decision = concatenated_true,
+         date_jo,
+         page_jo,
+         etat_texte = etat,
+         notes_texte = notes,
+         ministeres,
+         html_fr,
+         html_mg)
+
+write_rds(decision_pa, "legal_texts.rds")
+```
+
+Nous disposons maintenant d’une base de données consolidée des décisions réglementaires, où chaque texte est relié aux aires protégées qu’il concerne. Cette base est prête à être croisée avec les données spatiales pour analyser l’évolution historique des aires protégées à Madagascar.

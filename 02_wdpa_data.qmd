@@ -26,11 +26,16 @@ library(arrow)
 library(geoarrow)
 library(sf)
 
+my_crs <- 29702
+
+
 # Load parquet
-wdpa_mdg <- read_parquet("data/MDG_WDPA_Consolidated.parquet")
+wdpa_mdg <- read_parquet("sources/MDG_WDPA_Consolidated.parquet") %>%
+  mutate(geometry = st_as_sfc(geometry)) %>%
+  st_as_sf() %>%
+  st_transform(st_crs(my_crs))
 
-
-str(wdpa_mdg)
+write_parquet(wdpa_mdg, "data/MDG_WDPA_Consolidated.parquet")
 ```
 
 ```{r}

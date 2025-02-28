@@ -1,0 +1,294 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+# Consolidation des noms 
+
+## Chargement des données
+
+```{r}
+library(tidyverse)
+library(sf)
+library(arrow)
+library(geoarrow)
+library(stringdist)
+
+# Lecture de tes .rds en utilisant readr::read_rds (plutôt que readRDS)
+angap_2002 <- read_rds("data/angap_2002.rds")
+sapm_2010  <- read_rds("data/sapm_2010.rds")
+sapm_2017  <- read_rds("data/sapm_2017.rds")
+sapm_2024  <- read_rds("data/sapm_2024.rds") 
+sapm_evol_2001_2011 <- read_rds("data/sapm_evol_2001_2011.rds")
+vahatra <- read_rds("data/vahatra.rds")
+
+# Lecture du Parquet WDPA
+# on convertit geometry en sf si on veut le manipuler de façon spatiale
+wdpa_mdg_all <- read_parquet("data/MDG_WDPA_Consolidated.parquet")  %>%
+  mutate(geometry = st_as_sfc(geometry)) %>%
+  st_as_sf() 
+```
+
+
+## Consolidation des données SAPM
+
+On agrège tous les jeux de données. Ils n'ont pas tous les mêmes attributs, alors outre le nom et la géométrie, tous les attributs sont imbiqués dans une colonne spécifique.
+
+```{r}
+# Function to convert an sf/data.frame row into: 
+#  - original_name, dataset, local_id as separate cols
+#  - geometry as a separate col
+#  - everything else inside 'attributes' as a single-row tibble
+create_nested_structure <- function(df, name_col, dataset_id) {
+  
+  # Retain the original CRS and process the dataset
+  df %>%
+    # Convert sf -> tibble, keep geometry as is
+    as_tibble() %>%
+    # Add standard columns
+    mutate(
+      original_name = .data[[name_col]],
+      dataset       = dataset_id,
+      local_id      = row_number()
+    ) %>%
+    # Switch to rowwise so each row is processed individually
+    rowwise() %>%
+    # Create a list-col "attributes" that is a 1-row tibble 
+    # with all columns except geometry/original_name/dataset/local_id
+    mutate(
+      attributes = list(
+        as_tibble(
+          pick(-geometry, -original_name, -dataset, -local_id)
+        )
+      )
+    ) %>%
+    ungroup() %>%
+    # Keep exactly these five columns
+    select(original_name, dataset, local_id, attributes, geometry) %>%
+    # Reassign CRS explicitly to ensure consistency
+    st_as_sf(crs = st_crs(df))
+}
+
+
+# EXAMPLE USAGE ------------------------------------------------------
+
+# 1) Create each "conso" dataset
+angap_conso <- create_nested_structure(
+  df         = angap_2002,
+  name_col   = "NOM",
+  dataset_id = "ANGAP_2002"
+)
+
+sapm2010_conso <- create_nested_structure(
+  df         = sapm_2010,
+  name_col   = "NOM",
+  dataset_id = "SAPM_2010"
+)
+
+sapm2017_conso <- create_nested_structure(
+  df         = sapm_2017,
+  name_col   = "SHORT_NAME",
+  dataset_id = "SAPM_2017"
+)
+
+sapm2024_conso <- create_nested_structure(
+  df         = sapm_2024,
+  name_col   = "SHORT_NAME",
+  dataset_id = "SAPM_2024"
+)
+
+sapm_evol_conso <- create_nested_structure(
+  df         = sapm_evol_2001_2011,
+  name_col   = "NOM",
+  dataset_id = "SAPM_evol_2001_2011"
+)
+
+vahatra_conso <- create_nested_structure(
+  df         = vahatra,
+  name_col   = "nom",
+  dataset_id = "Vahatra_2017"
+)
+
+wdpa_conso <- create_nested_structure(
+  df         = wdpa_mdg_all,
+  name_col   = "NAME",
+  dataset_id = "WDPA_2010_2024"
+)
+
+```
+
+
+## Matching des sources SAPM avec SAPM 2017
+
+
+```{r}
+# Combine all national data socurces except 2017 
+sapm_vintages <- bind_rows(
+  angap_conso,
+  sapm2010_conso,
+  sapm2024_conso,
+  sapm_evol_conso,
+  vahatra_conso
+)
+
+
+match_protected_areas <- function(x, y,
+                                  pa_name_x = "original_name",
+                                  pa_name_y = "original_name",
+                                  x_keep_cols = NULL) {
+  # Step 0: Validate x_keep_cols
+  if (!is.null(x_keep_cols)) {
+    missing_cols <- setdiff(x_keep_cols, colnames(x))
+    if (length(missing_cols) > 0) {
+      stop(paste("The following columns are missing in `x`:", paste(missing_cols, collapse = ", ")))
+    }
+  }
+  
+  # Step 1: Prepare data
+  x <- x %>%
+    select(all_of(c(pa_name_x, x_keep_cols))) %>%
+    mutate(index_x = row_number(),
+           centroid_x = st_centroid(geometry))
+  
+  y <- y %>%
+    select(all_of(pa_name_y)) %>%
+    mutate(index_y = row_number(), 
+           centroid_y = st_centroid(geometry))
+  
+  # Step 2: Find 3 closest centroids
+  x_with_closest <- x %>%
+    rowwise() %>%
+    mutate(
+      closest_y = list(
+        y %>%
+          st_drop_geometry() %>%
+          mutate(dist = as.numeric(st_distance(centroid_x, centroid_y))) %>%
+          arrange(dist) %>%
+          slice_head(n = 3) %>%
+          select(index_y, dist)
+      )
+    ) %>%
+    unnest(closest_y)  # Safely unnest the closest_y column
+  
+  # Step 3: Calculate percentage overlap
+  x_with_overlap <- x_with_closest %>%
+    rowwise() %>%
+    mutate(
+      intersection = list(
+        tryCatch(
+          st_intersection(geometry, y$geometry[index_y]),
+          error = function(e) NULL
+        )
+      ),
+      overlap = if (!is.null(intersection) && length(intersection) > 0) {
+        round(
+          as.numeric(st_area(intersection[[1]]) / st_area(geometry)),
+          3)
+      } else {
+        0
+      }
+    ) %>%
+    select(-intersection)  # Drop intermediate intersection column
+  
+  # Step 4: Consolidate
+  x_together <- x_with_overlap %>%
+    st_drop_geometry() %>%
+    mutate(name_x  = x[[pa_name_x]][index_x],
+           name = y[[pa_name_y]][index_y],
+           stringdist = stringdist(name_x, name, method = "jw", p = 0)) %>%
+    group_by(index_x) %>%
+    mutate(rank = row_number()) %>%
+    ungroup()
+
+  # Step 5: Reorganize the columns in the desired format
+  output <- x_together %>%
+    select(index_x, name_x, all_of(x_keep_cols), rank, name, dist, overlap, stringdist) %>%
+    pivot_wider(
+      id_cols = c(index_x, name_x, all_of(x_keep_cols)),  # Include additional columns to avoid collapsing
+      names_from = rank,
+      values_from = c(name, dist, overlap, stringdist),
+      names_prefix = "y"
+    ) %>%
+    select(
+      index_x, name_x, all_of(x_keep_cols),
+      name_y1, dist_y1, overlap_y1, stringdist_y1,
+      name_y2, dist_y2, overlap_y2, stringdist_y2,
+      name_y3, dist_y3, overlap_y3, stringdist_y3
+    )
+  
+  return(output)
+}
+
+
+sapm_vintages_match <- sapm_vintages |> 
+    match_protected_areas(sapm2017_conso, x_keep_cols = "dataset")
+
+# Keep the remaining ones
+sapm_vintages_names <- sapm_vintages_match %>% 
+  mutate(name_pivot = case_when(
+  overlap_y2 > 0.35 & overlap_y2 > overlap_y1 ~ name_y2,
+  overlap_y1 < 0.10 ~ NA,
+  .default = name_y1),
+  .after = name_x)
+
+# We group some observations that are below these thresholds but have very clos
+# names or centroids
+sapm_vintages_names <- sapm_vintages_names %>% 
+  mutate(name_pivot = case_when(
+    name_x == "Bezaha Mahafaly" ~ "Bezà-Mahafaly",
+    name_x == "Extension ala maiky Ankodida Tsimelahy" ~ "Ankodida",
+    name_x == "Ranomafana" ~ "Ranomafana",
+    name_x == "Tsingy de Bemaraha" ~ "Bemaraha",
+    name_x == "Corridor entre Parcelles I et II d'Andohahela" ~ "Andohahela",
+    name_x == "Ambatofotsy" ~ "Ambatofotsy",
+    .default = name_pivot
+  ))
+
+# Remove intermediary columns
+sapm_vintages_names <- sapm_vintages_names %>%
+  select(original_name_copy = name_x, dataset_copy = dataset, name_in_sapm2017 = name_pivot)
+
+# Identify the unmatched (withoug geomtry)
+unmatched <- sapm_vintages_names %>% 
+  filter(is.na(name_in_sapm2017))
+# match with their original files
+sapm_vintages_unmatched <- sapm_vintages %>%
+  filter(paste(dataset, original_name) %in% 
+           paste(unmatched$dataset_copy, unmatched$original_name_copy))
+## Stats for the unmatched
+# sapm_vintages_unmatched %>%
+#   mutate(area = st_area(.)) %>%
+#   st_drop_geometry() %>%
+#   group_by(dataset) %>%
+#   summarise(n = n(),
+#             area = sum(area)/1e6)
+
+# Bind matched name with original name only by rank
+sapm_matched <- sapm_vintages %>%
+  bind_cols(sapm_vintages_names) 
+
+error_binding <- sapm_matched %>%
+  mutate(diff_names = original_name != original_name_copy,
+         diff_dataset = dataset != dataset_copy) %>%
+  filter(diff_names | diff_dataset)
+# Throws an error if any mismatch
+if (nrow(error_binding) > 0) {
+  "ERROR: Some mismatched rows were bound"
+}
+colnames(sapm_matched)
+sapm_matched <- sapm_matched %>%
+  select(-original_name_copy, -dataset_copy)
+
+write_rds(sapm_matched, "data/sapm_matched.rds")
+```
+
+
+## Legal side
+
+
+```{r}
+
+```
+
+

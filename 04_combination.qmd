@@ -4,9 +4,9 @@ editor_options:
   chunk_output_type: console
 ---
 
-# Consolidation des noms 
+## Consolidation des noms 
 
-## Chargement des données
+Charge toutes les données
 
 ```{r}
 library(tidyverse)
@@ -14,6 +14,8 @@ library(sf)
 library(arrow)
 library(geoarrow)
 library(stringdist)
+
+# 1) CHARGER LES DONNÉES -----------------------------------------------
 
 # Lecture de tes .rds en utilisant readr::read_rds (plutôt que readRDS)
 angap_2002 <- read_rds("data/angap_2002.rds")
@@ -23,6 +25,7 @@ sapm_2024  <- read_rds("data/sapm_2024.rds")
 sapm_evol_2001_2011 <- read_rds("data/sapm_evol_2001_2011.rds")
 vahatra <- read_rds("data/vahatra.rds")
 
+
 # Lecture du Parquet WDPA
 # on convertit geometry en sf si on veut le manipuler de façon spatiale
 wdpa_mdg_all <- read_parquet("data/MDG_WDPA_Consolidated.parquet")  %>%
@@ -31,9 +34,9 @@ wdpa_mdg_all <- read_parquet("data/MDG_WDPA_Consolidated.parquet")  %>%
 ```
 
 
-## Consolidation des données SAPM
-
 On agrège tous les jeux de données. Ils n'ont pas tous les mêmes attributs, alors outre le nom et la géométrie, tous les attributs sont imbiqués dans une colonne spécifique.
+
+
 
 ```{r}
 # Function to convert an sf/data.frame row into: 
@@ -116,39 +119,91 @@ wdpa_conso <- create_nested_structure(
   dataset_id = "WDPA_2010_2024"
 )
 
+# 2) Combine them
+all_AP_records <- bind_rows(
+  angap_conso,
+  sapm2010_conso,
+  sapm2017_conso,
+  sapm2024_conso,
+  sapm_evol_conso,
+  vahatra_conso,
+  wdpa_conso
+)
+
 ```
 
 
-## Matching des sources SAPM avec SAPM 2017
+On crée maintenant une table des noms :
 
 
 ```{r}
-# Combine all national data socurces except 2017 
-sapm_vintages <- bind_rows(
-  angap_conso,
-  sapm2010_conso,
-  sapm2024_conso,
-  sapm_evol_conso,
-  vahatra_conso
-)
+# On commence par SAPM 2017
+pa_names <- sapm_2017 %>%
+  st_drop_geometry() %>%
+  select(short_name_sapm_2017 = SHORT_NAME, full_name_sapm_2017 = FULL_NAME) %>%
+  mutate(short_name_sapm_2017 = str_remove(short_name_sapm_2017, "\\n"),
+         full_name_sapm_2017 = str_remove(full_name_sapm_2017, "\\n"))
+
+# Handling duplicates
+## There are 2 PAs under the name "Analalava". Need to rename the 2nd
+pa_names <- pa_names %>%
+  mutate(short_name_sapm_2017 = ifelse(
+    full_name_sapm_2017 == "Réserve de Ressources Naturelles d\'Analalava", 
+    "RRN Analalava", short_name_sapm_2017))
+wdpa_mdg_all <- wdpa_mdg_all %>%
+  mutate(NAME = ifelse(WDPAID == 555697889, "RRN Analalava", NAME))
+
+# On rapproche Vahatra
+vahatra_names <- vahatra %>%
+  st_drop_geometry() %>%
+  select(nom_vahatra = nom, full_name_vahatra = full_name,
+         nom_wdpa_vahatra = nom_wdpa) %>%
+  mutate(full_name_vahatra = str_replace(full_name_vahatra,
+                                         "Nouvelle Aire", "Aire"))
+
+pa_names <- pa_names %>%
+  left_join(vahatra_names, by = c("full_name_sapm_2017" = "full_name_vahatra"))
 
 
+# On joint WDPA 2024
+wdpa_2024_names <- wdpa_mdg_all %>%
+  st_drop_geometry() %>%
+  filter(data_year == 2024) %>%
+  select(name_wdpa = NAME, orig_name_wdpa = ORIG_NAME, WDPAID)
+
+pa_names <- pa_names %>%
+  mutate(name_wdpa = ifelse(is.na(nom_wdpa_vahatra), short_name_sapm_2017,
+                            nom_wdpa_vahatra),
+         name_wdpa = case_when(
+           name_wdpa == "Behara Tranomaro" ~ "Behara-Tranomaro",
+           name_wdpa == "Ranobe bay" ~ "Ranobe Bay",
+           name_wdpa == "Tampoketsa d'Analamaitso" ~ "Tampoketsa Analamaitso",
+           name_wdpa == "Allée des Baobabs" ~ "Allées des Baobabs",
+           name_wdpa == "Analabe Betanatanana" ~ "Analabe-Betanatanana",
+           name_wdpa == "Ampotaka-Ankorabe" ~ "Ampotaka Ankorabe",
+           .default = name_wdpa)
+  ) %>%
+  select(-nom_wdpa_vahatra)
+
+pa_names <- pa_names %>%
+  left_join(wdpa_2024_names, by = c("name_wdpa"), 
+             # Duplicate in WDPA with a wrong/incomplete Antrema
+            multiple = "first") %>%
+  select(-orig_name_wdpa)
+```
+
+On va maintenant rapprocher les autres
+
+## SAPM 2010
+
+```{r}
 match_protected_areas <- function(x, y,
                                   pa_name_x = "original_name",
-                                  pa_name_y = "original_name",
-                                  x_keep_cols = NULL) {
-  # Step 0: Validate x_keep_cols
-  if (!is.null(x_keep_cols)) {
-    missing_cols <- setdiff(x_keep_cols, colnames(x))
-    if (length(missing_cols) > 0) {
-      stop(paste("The following columns are missing in `x`:", paste(missing_cols, collapse = ", ")))
-    }
-  }
-  
-  # Step 1: Prepare data
+                                  pa_name_y = "original_name") {
+  # Prepare data
   x <- x %>%
-    select(all_of(c(pa_name_x, x_keep_cols))) %>%
-    mutate(index_x = row_number(),
+    select(all_of(pa_name_x)) %>%
+    mutate(index_x = row_number(), 
            centroid_x = st_centroid(geometry))
   
   y <- y %>%
@@ -156,7 +211,7 @@ match_protected_areas <- function(x, y,
     mutate(index_y = row_number(), 
            centroid_y = st_centroid(geometry))
   
-  # Step 2: Find 3 closest centroids
+  # Find 3 closest centroids
   x_with_closest <- x %>%
     rowwise() %>%
     mutate(
@@ -171,7 +226,7 @@ match_protected_areas <- function(x, y,
     ) %>%
     unnest(closest_y)  # Safely unnest the closest_y column
   
-  # Step 3: Calculate percentage overlap
+   # Step 2: Calculate percentage overlap
   x_with_overlap <- x_with_closest %>%
     rowwise() %>%
     mutate(
@@ -191,7 +246,7 @@ match_protected_areas <- function(x, y,
     ) %>%
     select(-intersection)  # Drop intermediate intersection column
   
-  # Step 4: Consolidate
+  # Consolidate
   x_together <- x_with_overlap %>%
     st_drop_geometry() %>%
     mutate(name_x  = x[[pa_name_x]][index_x],
@@ -201,17 +256,16 @@ match_protected_areas <- function(x, y,
     mutate(rank = row_number()) %>%
     ungroup()
 
-  # Step 5: Reorganize the columns in the desired format
+  # Réorganiser les colonnes dans le format souhaité
   output <- x_together %>%
-    select(index_x, name_x, all_of(x_keep_cols), rank, name, dist, overlap, stringdist) %>%
+    select(name_x, rank, name, dist, overlap, stringdist) %>%
     pivot_wider(
-      id_cols = c(index_x, name_x, all_of(x_keep_cols)),  # Include additional columns to avoid collapsing
       names_from = rank,
       values_from = c(name, dist, overlap, stringdist),
       names_prefix = "y"
     ) %>%
     select(
-      index_x, name_x, all_of(x_keep_cols),
+      name_x, 
       name_y1, dist_y1, overlap_y1, stringdist_y1,
       name_y2, dist_y2, overlap_y2, stringdist_y2,
       name_y3, dist_y3, overlap_y3, stringdist_y3
@@ -220,75 +274,105 @@ match_protected_areas <- function(x, y,
   return(output)
 }
 
-
-sapm_vintages_match <- sapm_vintages |> 
-    match_protected_areas(sapm2017_conso, x_keep_cols = "dataset")
-
-# Keep the remaining ones
-sapm_vintages_names <- sapm_vintages_match %>% 
+sapm_2010_names <- match_protected_areas(sapm2010_conso, sapm2017_conso) %>%
   mutate(name_pivot = case_when(
-  overlap_y2 > 0.35 & overlap_y2 > overlap_y1 ~ name_y2,
-  overlap_y1 < 0.10 ~ NA,
-  .default = name_y1),
-  .after = name_x)
+    overlap_y2 > 0.35 & overlap_y2 > overlap_y1 ~ name_y2,
+    overlap_y1 < 0.10 ~ NA,
+    .default = name_y1),
+    .after = name_x) %>%
+  select(name_sapm_2010 = name_x, name_pivot)
 
-# We group some observations that are below these thresholds but have very clos
-# names or centroids
-sapm_vintages_names <- sapm_vintages_names %>% 
-  mutate(name_pivot = case_when(
-    name_x == "Bezaha Mahafaly" ~ "Bezà-Mahafaly",
-    name_x == "Extension ala maiky Ankodida Tsimelahy" ~ "Ankodida",
-    name_x == "Ranomafana" ~ "Ranomafana",
-    name_x == "Tsingy de Bemaraha" ~ "Bemaraha",
-    name_x == "Corridor entre Parcelles I et II d'Andohahela" ~ "Andohahela",
-    name_x == "Ambatofotsy" ~ "Ambatofotsy",
-    .default = name_pivot
-  ))
 
-# Remove intermediary columns
-sapm_vintages_names <- sapm_vintages_names %>%
-  select(original_name_copy = name_x, dataset_copy = dataset, name_in_sapm2017 = name_pivot)
+sapm_2010_na_pivot <- sum(is.na(sapm_2010_names$name_pivot))
+# [1] 27
 
-# Identify the unmatched (withoug geomtry)
-unmatched <- sapm_vintages_names %>% 
-  filter(is.na(name_in_sapm2017))
-# match with their original files
-sapm_vintages_unmatched <- sapm_vintages %>%
-  filter(paste(dataset, original_name) %in% 
-           paste(unmatched$dataset_copy, unmatched$original_name_copy))
-## Stats for the unmatched
-# sapm_vintages_unmatched %>%
-#   mutate(area = st_area(.)) %>%
-#   st_drop_geometry() %>%
-#   group_by(dataset) %>%
-#   summarise(n = n(),
-#             area = sum(area)/1e6)
+pa_names <- pa_names %>%
+  full_join(sapm_2010_names, by = c("short_name_sapm_2017" = "name_pivot"))
 
-# Bind matched name with original name only by rank
-sapm_matched <- sapm_vintages %>%
-  bind_cols(sapm_vintages_names) 
-
-error_binding <- sapm_matched %>%
-  mutate(diff_names = original_name != original_name_copy,
-         diff_dataset = dataset != dataset_copy) %>%
-  filter(diff_names | diff_dataset)
-# Throws an error if any mismatch
-if (nrow(error_binding) > 0) {
-  "ERROR: Some mismatched rows were bound"
-}
-colnames(sapm_matched)
-sapm_matched <- sapm_matched %>%
-  select(-original_name_copy, -dataset_copy)
-
-write_rds(sapm_matched, "data/sapm_matched.rds")
+verif_pivot <- sum(
+  !is.na(pa_names$name_sapm_2010) & is.na(pa_names$short_name_sapm_2017)
+  )
+# [1] 27 # Merge OK
 ```
 
 
-## Legal side
+
+## SAPM évolution
 
 
 ```{r}
+sapm_evol_names <- match_protected_areas(sapm_evol_conso, sapm2017_conso) %>%
+  mutate(name_pivot = case_when(
+    overlap_y2 > 0.35 & overlap_y2 > overlap_y1 ~ name_y2,
+    overlap_y1 < 0.10 ~ NA,
+    .default = name_y1),
+    .after = name_x) %>%
+  select(name_sapm_evol = name_x, name_pivot)
 
+pa_names <- pa_names %>%
+  full_join(sapm_evol_names, by = c("short_name_sapm_2017" = "name_pivot"))
+
+library(tmap)
+tmap_mode("view")
+tm_shape(filter(sapm_evol_conso, original_name == "Analalava I - II")) + 
+  tm_polygons(col = "red", alpha = 0.2) +
+  tm_shape(sapm_2017) +
+  tm_polygons(col = "green", alpha = 0.2) +
+  tmap_options(check.and.fix = TRUE)
 ```
+
+
+## ANGAP 2002
+
+```{r}
+angap_names <- match_protected_areas(angap_conso, sapm2017_conso) %>%
+  mutate(across(everything(), ~ sapply(., first))) %>%
+  mutate(name_pivot = case_when(
+    overlap_y2 > 0.35 & overlap_y2 > overlap_y1 ~ name_y2,
+    overlap_y1 < 0.10 ~ NA,
+    .default = name_y1),
+    .after = name_x) %>%
+  select(name_angap_2002 = name_x, name_pivot)
+
+pa_names <- pa_names %>%
+  full_join(angap_names, by = c("short_name_sapm_2017" = "name_pivot"))
+```
+
+
+```{r}
+#
+legal_texts <- read_rds("data/legal_texts.rds")
+
+# 1. Noms uniques dans chaque base
+legal_names <- legal_texts %>%
+  distinct(ap_match_sapm) %>%
+  rename(name_legal = ap_match_sapm)
+
+sapm_names <- pa_names %>%
+  distinct(short_name_sapm_2017) %>%
+  rename(name_sapm = short_name_sapm_2017)
+
+# 2. Vérifier les noms de `legal_texts` qui ne sont pas dans `pa_names`
+not_in_sapm <- anti_join(legal_names, sapm_names, by = c("name_legal" = "name_sapm"))
+
+# 3. Vérifier les noms de `pa_names` qui ne sont pas dans `legal_texts`
+not_in_legal <- anti_join(sapm_names, legal_names, by = c("name_sapm" = "name_legal"))
+
+# 4. Résumé clair
+cat("Nombre d’identifiants légaux uniques :", nrow(legal_names), "\n")
+cat("Nombre d’identifiants SAPM 2017 uniques :", nrow(sapm_names), "\n")
+cat("Noms dans legal_texts absents de pa_names :", nrow(not_in_sapm), "\n")
+cat("Noms dans pa_names absents de legal_texts :", nrow(not_in_legal), "\n")
+
+# 5. Affichage facultatif des noms non appariés
+not_in_sapm %>% arrange(name_legal)
+not_in_legal %>% arrange(name_sapm)
+```
+
+
+
+
+
+
 
 

@@ -31,6 +31,7 @@ library(gt) # Pour faire de jolis tableaux
 data_dir <- "sources/"
 # Specify CRS
 my_crs <- 29702
+
 ```
 
 ```{r}

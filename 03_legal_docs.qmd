@@ -17,7 +17,7 @@ La base CNLEGIS ne propose pas d'API, donc l'extraction a dû être réalisée m
 Sur cette base, on a entré les requêtes suivantes, qui ont donné le nombre de résultats indiqués ensuite :
 
 -   aire protégée : 131
--   monument natuel : 0
+-   monument naturel : 0
 -   parc national : 29
 -   parc naturel : 1
 -   paysage harmonieux : 1
@@ -324,9 +324,11 @@ decision_pa <- split_class_clean %>%
          notes_texte = notes,
          ministeres,
          html_fr,
-         html_mg)
+         html_mg,
+         doc_pdf_fr, 
+         doc_pdf_mg)
 
-write_rds(decision_pa, "legal_texts.rds")
+write_rds(decision_pa, "data/legal_texts.rds")
 ```
 
 Nous disposons maintenant d’une base de données consolidée des décisions réglementaires, où chaque texte est relié aux aires protégées qu’il concerne. Cette base est prête à être croisée avec les données spatiales pour analyser l’évolution historique des aires protégées à Madagascar.

@@ -2,13 +2,13 @@
 
 ## Résumé
 
-Les données spatiales sur les aires protégées sont essentielles pour les études de conservation. Cependant, les bases existantes se limitent souvent aux frontières actuelles, ignorant les évolutions historiques. Cette lacune engendre des biais dans l'analyse de leur impact environnemental et social. Dans ce projet, nous proposons un modèle de données dynamique documentant l'évolution des aires protégées à Madagascar de 2000 à 2024. Ce modèle inclut chaque état successif avec ses périodes de validité, garantissant une base analytique robuste et traçable. Les données seront publiées en accès libre pour favoriser leur utilisation par la communauté scientifique et les praticiens.
+Les données spatiales sur les aires protégées sont essentielles pour les études de conservation. Cependant, les bases existantes se limitent souvent aux frontières actuelles, ignorant les évolutions historiques. Cette lacune engendre des biais dans l'analyse de leur impact environnemental et social. Dans ce projet, nous proposons un modèle de données dynamique documentant l'évolution des aires protégées à Madagascar de 2000 à 2024. Ce modèle inclut chaque état successif avec ses périodes de validité, fournissant une base analytique plus robuste. Les données seront publiées en accès libre pour favoriser leur utilisation par la communauté scientifique et les praticiens.
 
 ## Contexte et enjeux
 
 ### Importance des données ouvertes
 
-Madagascar, confronté à une extrême pauvreté, dispose de ressources limitées pour gérer ses données administratives, notamment dans le domaine de la conservation. L'exemple du portail "Redbioma", aujourd'hui hors ligne, illustre les pertes fréquentes de données essentielles. La mise à disposition de données en open data renforce leur accessibilité, transparence, reproductibilité, et surtout leur persistance.
+Madagascar, confronté à une extrême pauvreté, dispose de ressources limitées pour gérer ses données administratives, notamment dans le domaine de la conservation. Par exemple, les données relatives à la conservation à Madagascar ont longtemps été rendues accessibles sur le portail "Redbioma", mais ce dernier aujourd'hui hors ligne et les jeux de données qu'il contenait sont introuvables. La mise à disposition de données sur un portail open data pérenne adossé à des procédures d'archivage renforce leur accessibilité, transparence, reproductibilité, et surtout leur persistance.
 
 ### Limites des approches actuelles
 

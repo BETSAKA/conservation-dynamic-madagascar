@@ -81,7 +81,7 @@ tm_shape(angap_hors_ap) +
 
 ```
 
-Le champ "classement" de ce jeu de données fait référence à des décrets parus jusqu'en 1998 Mais il fait aussi référence à 11 entités qui n'ont pas de métadonnées les caractérisant.
+Le champ "classement" de ce jeu de données fait référence à des décrets parus jusqu'en 1998, mais il fait aussi référence à 11 entités qui n'ont pas de métadonnées les caractérisant.
 
 Parmi celles-ci, 6 n'ont pas de nom :
 
@@ -89,7 +89,7 @@ Parmi celles-ci, 6 n'ont pas de nom :
 -   Mantadia, dont les limites ont été étendues en 2002.
 -   Tsingy de Namoroka, créé en 1927 et devenu parc national en 2002.
 
-Le jeu de données n'inclut pas de métadonnées explicitant sa date, mais il nous a été expliTout indique qu'il s'agit d'un jeu datant de 2002 (cohérent avec les indications qui m'ont été données quand le jeu m'a été remis).
+Le jeu de données n'inclut pas de métadonnées explicitant sa date, mais il nous a été remis avec l'explication qu'il s'agissait d'un jeu datant de 2002. Cette assertion est cohérente avec le fait que le jeu de donnée inclut l'extension d'Ankarafantsika opérée en 2002, mais pas les création **[Compléter]**.
 
 On effectue donc les opération suivantes : identification des polygones sans nom qui font visiblement partie d'une AP, regroupement des polygones simples en multipolygones s'ils ont les mêmes attributs, et suppression des polygones explicitement référencés comme "Hors AP".
 

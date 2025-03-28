@@ -324,8 +324,6 @@ tm_shape(filter(sapm_evol_conso, original_name == "Analalava I - II")) +
 
 ## ANGAP 2002
 
-
-
 ```{r}
 angap_names <- match_protected_areas(angap_conso, sapm2017_conso) %>%
   mutate(across(everything(), ~ sapply(., first))) %>%
@@ -341,28 +339,6 @@ pa_names <- pa_names %>%
 ```
 
 
-
-# Checks
-
-```{r}
-name_orphans_2010 <- pa_names %>%
-  filter(!is.na(name_sapm_2010) & is.na(short_name_sapm_2017)) %>%
-  pluck("name_sapm_2010")
-orphans_sapm_2010 <- sapm_2010 %>%
-  filter(NOM %in% name_orphans_2010)
-
-library(tmap)
-tmap_mode("view")
-# tm_shape(orphans_sapm_2010) +
-tm_shape(filter(sapm2013_conso, original_name == "Loky-Manambato")) + 
-  tm_polygons(col = "red", alpha = 0.5) +
-  tm_shape(sapm_2017) +
-  tm_polygons(col = "green", alpha = 0.5) +
-  tmap_options(check.and.fix = TRUE)
-  
-
-loky <- filter(sapm_2013, NOM == "Loky-Manambato")
-```
 
 
 

@@ -32,6 +32,19 @@ data_dir <- "sources/"
 # Specify CRS
 my_crs <- 29702
 
+# Cleans PA name columns only (e.g. NOM, SHORT_NAME, etc.)
+# You must specify which columns to clean
+clean_pa_names_cols <- function(df, name_cols) {
+  df %>%
+    mutate(across(
+      all_of(name_cols),
+      ~ .x %>%
+        str_replace_all("[\r\n\t]", " ") %>%  # replace line breaks, carriage returns, tabs with space
+        str_squish() %>%                      # collapse multiple spaces into one
+        str_trim()                           # remove leading/trailing whitespace
+    ))
+}
+
 ```
 
 ```{r}
@@ -39,6 +52,7 @@ my_crs <- 29702
 angap_2002 <- st_read(paste0(data_dir, "ap_angap BD 500/ap_angap.shp"), 
 quiet = TRUE) %>%
   st_set_crs(my_crs) %>%  # Laborde Magasiaraka CRS
+  clean_pa_names_cols(name_cols = "NOM") %>%
   mutate(has_info = ifelse(is.na(CLASSEMENT), 
                            "Attributs absents", 
                            "Attributs présents"),
@@ -107,7 +121,7 @@ angap_2002 <- angap_2002 %>%
   ungroup() %>%
   filter(NOM != "Hors AP") # Discard the explicitely labelled as not PA
 
-write_rds(angap_2002, "data/angap_2002.rds")
+write_rds(angap_2002, "data/no_id/angap_2002.rds")
 
 tm_shape(angap_2002) +
   tm_polygons()
@@ -121,12 +135,15 @@ Le site REBIOMA qui mettait en ligne les données du SAPM ne fonctionne plus dep
 
 ```{r}
 sapm_2010 <- st_read(paste0(data_dir,"Vieilledent_sapm_20101220/AP-NAP_38s.shp"), 
-                     quiet = TRUE, options = "ENCODING=WINDOWS-1252") |> 
-    st_transform(my_crs) |> 
-    write_rds("data/sapm_2010.rds")
+                     quiet = TRUE, options = "ENCODING=WINDOWS-1252") %>% 
+    st_transform(my_crs) %>% 
+    clean_pa_names_cols(name_cols = "NOM")
 
-tm_shape(sapm_2010) %>%
-  tm_borders(col = "purple")
+write_rds(sapm_2010, "data/no_id/sapm_2010.rds")
+
+tm_shape(sapm_2010) +
+  tm_borders(col = "purple") +
+  tmap_options(check.and.fix = TRUE)
 ```
 
 ## Evolution du SAPM 2002-2011
@@ -153,7 +170,8 @@ date_shapefiles <- shapefile_paths[str_detect(shapefile_names, "20[0-9]{2}")]
 
 # Load and bind the shapefiles
 sapm_evol_2001_2011 <- date_shapefiles %>%
-  map(st_read, quiet = TRUE) %>%    # Read each shapefile
+  map(~ st_read(.x, quiet = TRUE) %>% # Read each shapefile
+        clean_pa_names_cols(name_cols = "NOM")) %>% # and clean PA name
   reduce(bind_rows) %>%
   mutate(YEAR = str_extract(YEAR, "\\d{4}")) %>% # Extract the 4-digit year
   st_transform(crs = my_crs) # On passe les données en laborde malgache
@@ -167,7 +185,7 @@ sapm_evol_2001_2011 %>%
   tmap_options(check.and.fix = TRUE)
 
 # Save the data to a specified path
-write_rds(sapm_evol_2001_2011, "data/sapm_evol_2001_2011.rds")
+write_rds(sapm_evol_2001_2011, "data/no_id/sapm_evol_2001_2011.rds")
 ```
 
 ## SAPM 2017
@@ -181,10 +199,11 @@ L'un des points du périmètre de l'aire protégée Andrafiamena Andavakoera (in
 sapm_2017 <- st_read(paste0(data_dir, "sapm_201703017_om_surface/sapm_201703017_om_surface.shp"),
                      options = "ENCODING=WINDOWS-1252") %>%
   st_transform(my_crs) %>%
-  st_make_valid()
+  st_make_valid() %>%
+  clean_pa_names_cols(name_cols = c("SHORT_NAME", "FULL_NAME"))
 
 # Save the data
-write_rds(sapm_2017, "data/sapm_2017.rds")
+write_rds(sapm_2017, "data/no_id/sapm_2017.rds")
 
 tm_shape(sapm_2017) +
   tm_polygons(col = "CATEG_IUCN")
@@ -196,7 +215,8 @@ tm_shape(sapm_2017) +
 load("sources/AP_Vahatra.rds")
 AP_Vahatra %>%
   st_transform(my_crs) %>%
-  write_rds("data/vahatra.rds")
+  clean_pa_names_cols(name_cols = c("nom", "full_name", "nom_wdpa")) %>%
+  write_rds("data/no_id/vahatra.rds")
 ```
 
 ## SAPM 2024
@@ -208,6 +228,7 @@ sapm_2024 <- st_read(paste0(data_dir, "Shape AP mai2023/dernier version shape_ap
 
 # Check for invalid geometries
 invalid_geometries <- sapm_2024 %>%
+  st_zm(drop = TRUE, what = "ZM") %>%   # <- remove Z and M before anything else
   rownames_to_column(var = "index") %>%
   rowwise() %>%
   mutate(is_valid = st_is_valid(geometry)) %>%
@@ -277,9 +298,10 @@ if (nrow(invalid_geometries) > 0) {
 # Step 5: Filter out invalid geometries for now to plot the valid ones
 sapm_2024_valid_clean <- sapm_2024_valid %>%
   filter(st_is_valid(geometry)) %>%
+  clean_pa_names_cols(name_cols = c("Name", "SHORT_NAME")) %>%
   st_transform(my_crs)
 
-write_rds(sapm_2024_valid_clean, "data/sapm_2024.rds")
+write_rds(sapm_2024_valid_clean, "data/no_id/sapm_2024.rds")
 
 # Step 6: Plot the valid geometries using tmap
 tm_shape(sapm_2024_valid_clean) +

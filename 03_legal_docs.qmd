@@ -175,6 +175,21 @@ class_results <- class_results %>%
     .before = textes
   )
 
+# Cleans PA name columns only (e.g. NOM, SHORT_NAME, etc.)
+# You must specify which columns to clean
+clean_pa_names_cols <- function(df, name_cols) {
+  df %>%
+    mutate(across(
+      all_of(name_cols),
+      ~ .x %>%
+        str_replace_all("[\r\n\t]", " ") %>%  # replace line breaks, carriage returns, tabs with space
+        str_squish() %>%                      # collapse multiple spaces into one
+        str_trim()                           # remove leading/trailing whitespace
+    ))
+}
+# Clean extracted PA names (remove \r, \n, tabs, trim spaces)
+class_results <- clean_pa_names_cols(class_results, name_cols = "pa")
+
 pn_rs <- c("Andohahela", "Nosy Mangabe",  "Montagne d'Ambre", "Ankarafantsika",
   "Analamazaotra", "Kirindy Mite", "Tsimanampesotse", "Mikea", "Nosy Hara", 
   "Nosy Tanikely", "Lokobe", "Ankarafantsika", "Tsimanampetsotsa", "Namokora", 
@@ -210,7 +225,7 @@ class_results <- class_results %>%
   mutate( # For 2008, we find the list of PA created then
     pa = ifelse(num_texte == "18633/2008" | num_texte == "52005/2010" |
                   num_texte == "9874/2013",
-                read_rds("data/sapm_2010.rds") |>
+                read_rds("data/no_id/sapm_2010.rds") |>
                   filter(YEAR_IMPLE == "X") |> 
                   pluck("NOM") |> 
                   paste(collapse = ", "),
@@ -225,7 +240,7 @@ library(stringdist)
 library(fuzzyjoin)
 
 
-sapm_2017 <- read_rds("data/sapm_2017.rds")
+sapm_2017 <- read_rds("data/no_id/sapm_2017.rds")
 
 
 
@@ -301,7 +316,9 @@ library(readxl)
 # Load the verified conversion table
 conversion_table_verif <- read_xlsx("data/conversion_table_verif.xlsx") %>%
   select(original_pa, closest_match) %>%
-  unique()
+  unique() %>%
+  clean_pa_names_cols(name_cols = c("original_pa", "closest_match"))
+  
 
 # Merge with split_class_clean to integrate the verified closest matches
 decision_pa <- split_class_clean %>%
@@ -328,7 +345,7 @@ decision_pa <- split_class_clean %>%
          doc_pdf_fr, 
          doc_pdf_mg)
 
-write_rds(decision_pa, "data/legal_texts.rds")
+write_rds(decision_pa, "data/no_id/legal_texts.rds")
 ```
 
 Nous disposons maintenant d’une base de données consolidée des décisions réglementaires, où chaque texte est relié aux aires protégées qu’il concerne. Cette base est prête à être croisée avec les données spatiales pour analyser l’évolution historique des aires protégées à Madagascar.

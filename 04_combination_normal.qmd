@@ -6,7 +6,7 @@ editor_options:
 
 ## Consolidation des noms 
 
-Charge toutes les données
+Nous chargeons les différents jeux de données spatiaux provenant de sources hétérogènes (ANGAP, SAPM, WDPA, Vahatra) ainsi que les données légales extraites manuellement. Ils seront harmonisés et fusionnés dans un jeu unique de référence.
 
 ```{r}
 # Load required libraries
@@ -40,7 +40,9 @@ legal <- read_rds("data/id/legal_texts.rds")
 ```
 
 
+## Traitement des métadonnées ANGAP (2002)
 
+Le champ `CLASSEMENT` contient des références légales souvent partielles ou hétérogènes. Une extraction manuelle a permis d’en dériver les champs `date_texte`, `type_texte`, `num_texte` (catégories existantes dans les données CNLEGIS), et une année de statut `STATUS_YR`. Ces champs sont intégrés au jeu de données harmonisé.
 
 ```{r}
 angap_2002 <- angap_2002 |> 
@@ -118,7 +120,14 @@ angap_2002 <- angap_2002 %>%
   ) |> 
   select(-LEGAL_TXT) |> 
   mutate(dataset_id = "ANGAP_2002")
+```
 
+
+## Harmonisation des autres sources (SAPM, Vahatra)
+
+Les autres jeux de données sont également harmonisés avec un sous-ensemble de variables cibles. On applique des transformations simples et un renommage standardisé pour assurer l’interopérabilité.
+
+```{r}
 sapm_2010 <- sapm_2010 |>
   select(NAME = NOM, DESIG = DESCRIPTIO, MANG_AUTH = DATAADMIN) |> 
   mutate(DESIG = str_replace(DESIG, "Protge", "Protégée"),
@@ -160,7 +169,13 @@ vahatra <- vahatra |>
   select(NAME = nom, IUCN_CAT = cat_iucn, ORIG_NAME = full_name,
          num_texte = creation, MANG_AUTH, STATUS_YR, date_texte) |> 
   mutate(dataset_id = "Vahatra")
+```
 
+## Fusion dans un jeu consolidé
+
+Tous les jeux de données sont fusionnés dans un unique tableau avec un schéma unifié.
+
+```{r}
 all_PAs <- bind_rows(
   angap_2002,
   sapm_2010,
@@ -171,7 +186,9 @@ all_PAs <- bind_rows(
 )
 ```
 
-On agrège tous les jeux de données. Ils n'ont pas tous les mêmes attributs, alors outre le nom et la géométrie, tous les attributs sont imbiqués dans une colonne spécifique.
+Appariement spatial avec la WDPA
+
+On utilise une fonction `pa_match()` pour identifier les aires protégées correspondantes dans la WDPA, sur la base de la proximité spatiale et du taux de recouvrement géométrique.
 
 ```{r}
 # Match protected areas from x to y based on centroid distance and spatial overlap.
@@ -377,9 +394,11 @@ all_PAs_matched <- pa_match_fallback_name(x  = all_PAs_matched,
 
 ```
 
+## Ajout des données légales issues des textes officiels
+
+On ajoute les aires protégées mentionnées dans les décrets à travers le jeu decision_pa. Ces données ne comportent pas de géométrie, aussi on en ajoute une vide afin de pouvoir les consolider dans la même table.
+
 ```{r}
-
-
 # Format to be compatible with the spatial data
 legal_conso <- decision_pa %>%
   mutate(
@@ -393,8 +412,14 @@ legal_conso <- decision_pa %>%
 all_PAs_matched <- all_PAs_matched %>%
   st_transform(st_crs(legal_conso)) %>%
   bind_rows(legal_conso)
+```
 
+## Export final
 
+On ajoute enfin les données WDPA de mars 2025. Le jeu consolidé est exporté dans des formats interopérables (.parquet et 
+.rds).
+
+```{r}
 all_PAs_conso <- wdpa_mdg_2025 |> 
   st_transform(st_crs(all_PAs_matched))  |> 
   bind_rows(all_PAs_conso)

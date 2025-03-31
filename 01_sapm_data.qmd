@@ -16,6 +16,8 @@ Dans cette section, nous passons en revue plusieurs jeux de données ayant docum
 
 -   Construction d’une série temporelle cohérente des aires protégées de 2002 à 2024.
 
+Ces opérations visent à rendre comparables des jeux de données produits à des moments différents et selon des logiques institutionnelles variées. Elles permettent la construction d’une série temporelle cohérente, indispensable à toute analyse historique ou comparative sur les dynamiques de conservation à Madagascar.
+
 Ces opérations sont réalisées avec R, avec une série de package appropriés.
 
 ```{r}
@@ -191,6 +193,8 @@ sapm_evol_2001_2011 %>%
 write_rds(sapm_evol_2001_2011, "data/no_id/sapm_evol_2001_2011.rds")
 ```
 
+La superposition des limites extraites de cette série temporelle avec celles issues de la base ANGAP 2002 permet de visualiser les premiers recouvrements et écarts.
+
 ## SAPM 2017
 
 Ce jeu de données nous a été remis par la FAPBM. Il s'agit visiblement des données SAPM mises à jour en mars 2017.
@@ -222,7 +226,11 @@ AP_Vahatra %>%
   write_rds("data/no_id/vahatra.rds")
 ```
 
+ dans certaines entités.
+
 ## SAPM 2024
+
+Ce jeu de données constitue l’état le plus récent de la base SAPM. Il inclut de nouvelles aires protégées récemment créées ainsi que des ajustements sur les périmètres existants.
 
 ```{r}
 # Load shapefile

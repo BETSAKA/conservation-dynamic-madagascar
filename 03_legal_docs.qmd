@@ -141,7 +141,7 @@ Ces deux textes concernent une liste très étendue de sites potentiels, qui ne 
 
 ## Appariement des noms d'aires protégées entre CNLEGIS et SAPM
 
-Dans une première étape, nous extrayons les noms des aires protégées dans les textes des décrets.
+Les noms extraits des textes officiels peuvent varier par rapport aux noms standardisés dans les bases spatiales (SAPM, WDPA), en raison de différences d’orthographe, de formulation, ou de précision géographique. Un nettoyage et une extraction robuste sont donc nécessaires avant tout appariement.
 
 ```{r}
 class_results <- class_results %>%
@@ -233,7 +233,7 @@ class_results <- class_results %>%
   )
 ```
 
-Une fois les noms des aires protégées concernées extraites de chaque texte, on les compare aux noms de la base SAPM. On le fait tout d'abord automatiquement avec un algorithme d'appariement approximatif ("fuzzy matching"), qui tient compte des variations d'orthographe ou des dénominations multiple, afin d'identifier les correspondances les plus probables.
+Une fois les noms des aires protégées concernées extraites de chaque texte, on les compare aux noms de la base SAPM. On le fait tout d'abord automatiquement avec un algorithme d'appariement approximatif ("fuzzy matching"), qui tient compte des variations d'orthographe ou des dénominations multiple, afin d'identifier les correspondances les plus probables. Nous utilisons la distance de Levenshtein proportionnelle à la longueur des chaînes afin de minimiser les erreurs d’appariement sur des noms courts.
 
 ```{r}
 library(stringdist)
@@ -307,7 +307,7 @@ Cette base est envoyée vers excel et on effectue une vérification manuelle pou
 
 ## Intégration des correspondances validées et finalisation de la base
 
-Après validation des correspondances, nous consolidons la base en associant chaque décision réglementaire à l’aire protégée correspondante. Cela nous permet d’établir une base réglementaire normalisée, directement exploitable pour des analyses historiques ou spatiales.
+Après validation des correspondances, nous consolidons la base en associant chaque décision réglementaire à l’aire protégée correspondante. Cela nous permet d’établir une base réglementaire normalisée, directement exploitable pour des analyses historiques ou spatiales. 
 
 ```{r}
 library(readxl)
@@ -346,5 +346,7 @@ decision_pa <- split_class_clean %>%
 
 write_rds(decision_pa, "data/id/legal_texts.rds")
 ```
+
+La base ainsi consolidée peut servir de référence pour des travaux d’analyse juridique, historique ou spatiale sur la dynamique des aires protégées à Madagascar. Elle constitue aussi une base d’appui pour la production d’indicateurs ou la vérification des statuts réglementaires.
 
 Nous disposons maintenant d’une base de données consolidée des décisions réglementaires, où chaque texte est relié aux aires protégées qu’il concerne. Cette base est prête à être croisée avec les données spatiales pour analyser l’évolution historique des aires protégées à Madagascar.

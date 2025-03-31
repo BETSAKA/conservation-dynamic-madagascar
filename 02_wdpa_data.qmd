@@ -20,6 +20,8 @@ Ainsi, nous avons obtenu deux fichiers parquet contenant toutes les données WDP
 
 ## Creation d'une base WDPA pour Madagascar pour 2010-2024
 
+À partir de la base globale, nous extrayons les observations correspondant à Madagascar pour produire une base allégée dédiée à l’analyse nationale. Ce sous-ensemble est ensuite reprojeté dans le système de coordonnées local utilisé à Madagascar (Laborde, EPSG:29702).
+
 ```{r}
 library(tidyverse)
 library(arrow)
@@ -37,6 +39,8 @@ wdpa_mdg <- read_parquet("sources/MDG_WDPA_Consolidated.parquet") %>%
 
 write_parquet(wdpa_mdg, "data/MDG_WDPA_Consolidated.parquet")
 ```
+
+Nous pouvons ensuite produire des premiers indicateurs simples permettant de visualiser l’évolution du nombre et de la surface cumulée des aires protégées à Madagascar entre 2010 et 2024
 
 ```{r}
 # Calculer le nombre d'aires protégées par année

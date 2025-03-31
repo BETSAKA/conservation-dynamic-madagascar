@@ -6,7 +6,7 @@ editor_options:
 
 ## Consolidation des noms 
 
-Charge toutes les données
+Nous chargeons les différents jeux de données spatiaux provenant de sources hétérogènes (ANGAP, SAPM, WDPA, Vahatra) ainsi que les données légales extraites manuellement. Ils seront harmonisés et fusionnés dans un jeu unique de référence.
 
 ```{r}
 # Load required libraries
@@ -31,114 +31,171 @@ wdpa_mdg_2025 <- wdpa_read("sources/WDPA_WDOECM_mar2025_Public_MDG.zip") %>%
 # Read WDPA historical parquet file
 wdpa_mdg_all <- read_parquet("data/MDG_WDPA_Consolidated.parquet")  %>%
   mutate(geometry = st_as_sfc(geometry)) %>%
-  st_as_sf() 
+  st_as_sf() |> 
+  mutate(dataset_id = paste0("WDPA_", data_year)) |> 
+  select(data_year)
+
+# Load legal data
+legal <- read_rds("data/id/legal_texts.rds")
 ```
 
 
-On agrège tous les jeux de données. Ils n'ont pas tous les mêmes attributs, alors outre le nom et la géométrie, tous les attributs sont imbiqués dans une colonne spécifique.
+## Traitement des métadonnées ANGAP (2002)
 
-
+Le champ `CLASSEMENT` contient des références légales souvent partielles ou hétérogènes. Une extraction manuelle a permis d’en dériver les champs `date_texte`, `type_texte`, `num_texte` (catégories existantes dans les données CNLEGIS), et une année de statut `STATUS_YR`. Ces champs sont intégrés au jeu de données harmonisé.
 
 ```{r}
-# Function to convert an sf/data.frame row into: 
-#  - original_name, dataset, local_id as separate cols
-#  - geometry as a separate col
-#  - everything else inside 'attributes' as a single-row tibble
-create_nested_structure <- function(df, name_col, dataset_id) {
-  
-  # Retain the original CRS and process the dataset
-  df %>%
-    # Convert sf -> tibble, keep geometry as is
-    as_tibble() %>%
-    # Add standard columns
-    mutate(
-      original_name = .data[[name_col]],
-      dataset       = dataset_id,
-      local_id      = row_number()
-    ) %>%
-    # Switch to rowwise so each row is processed individually
-    rowwise() %>%
-    # Create a list-col "attributes" that is a 1-row tibble 
-    # with all columns except geometry/original_name/dataset/local_id
-    mutate(
-      attributes = list(
-        as_tibble(
-          pick(-geometry, -original_name, -dataset, -local_id)
-        )
-      )
-    ) %>%
-    ungroup() %>%
-    # Keep exactly these five columns
-    select(original_name, dataset, attributes, geometry) %>%
-    # Reassign CRS explicitly to ensure consistency
-    st_as_sf(crs = st_crs(df))
-}
+angap_2002 <- angap_2002 |> 
+  rename(NAME = NOM, DESIG = TYPE_AP, IUCN_CAT = IUCN, LEGAL_TXT = CLASSEMENT)
 
-
-# create each "conso" dataset
-angap_conso <- create_nested_structure(
-  df         = angap_2002,
-  name_col   = "NOM",
-  dataset_id = "ANGAP_2002"
-)
-
-sapm2010_conso <- create_nested_structure(
-  df         = sapm_2010,
-  name_col   = "NOM",
-  dataset_id = "SAPM_2010"
-)
-
-sapm2017_conso <- create_nested_structure(
-  df         = sapm_2017,
-  name_col   = "SHORT_NAME",
-  dataset_id = "SAPM_2017"
-)
-
-sapm2024_conso <- create_nested_structure(
-  df         = sapm_2024,
-  name_col   = "SHORT_NAME",
-  dataset_id = "SAPM_2024"
-)
-
-sapm_evol_conso <- create_nested_structure(
-  df         = sapm_evol_2001_2011,
-  name_col   = "NOM",
-  dataset_id = "SAPM_evol_2001_2011"
-)
-
-vahatra_conso <- create_nested_structure(
-  df         = vahatra,
-  name_col   = "nom",
-  dataset_id = "Vahatra_2017"
-)
-
-wdpa_conso <- create_nested_structure(
-  df         = wdpa_mdg_all,
-  name_col   = "NAME",
-  dataset_id = "WDPA_2010_2024"
-)
-
-
-# Combine them
-all_PAs <- bind_rows(
-  angap_conso,
-  sapm2010_conso,
-  sapm2017_conso,
-  sapm2024_conso,
-  sapm_evol_conso,
-  vahatra_conso,
-  wdpa_conso
-)
-
+legal_txt_content <- tribble(
+  ~num_ligne, ~date_texte,        ~type_texte, ~num_texte,
+  1,          "1958-10-28",       "Décret",    "58.10",
+  2,          "1997-03-02",       "Décret",    "97-141",
+  3,          "1958-10-28",       "Décret",    "58.08",
+  4,          "1982-02-12",       "Décret",    "82.078",
+  5,          "1970-07-21",       "Décret",    "2778-MAER/SEGREF/FOR",
+  6,          "1956-02-20",       "Décret",    "56.208",
+  7,          "1997-08-07",       "Décret",    "97.1043",
+  8,          "1958-10-28",       "Décret",    "58.13",
+  9,          "1998-10-19",       "Décret",    "98.376",
+  10,         "1958-10-28",       "Décret",    "58.12",
+  11,         NA,                 NA,          NA,
+  12,         "1956-02-20",       "Décret",    "56.208",
+  13,         "1997-12-18",       "Décret",    "97-1452",
+  14,         NA,                 NA,          NA,
+  15,         "1956-09-10",       "Décret",    NA,
+  16,         "1966-06-01",       "Décret",    "66.242",
+  17,         "1986-06-04",       "Décret",    "86.168",
+  18,         "1966-04-22",       "Décret",    "64-159",
+  19,         "1962-10-24",       "Décret",    "62.527",
+  20,         "1958-10-28",       "Décret",    "58.15",
+  21,         "1997-03-02",       "Décret",    "97-141",
+  22,         "1962-07-19",       "Décret",    "62.371",
+  23,         "1959-04-24",       "Décret",    "58.59",
+  24,         "1956-09-10",       "Décret",    NA,
+  25,         "1997-12-18",       "Décret",    "97.1453",
+  26,         "1966-06-01",       "Décret",    "66.242",
+  27,         "1989-07-25",       "Décret",    "89-216",
+  28,         "1989-07-25",       "Décret",    "89-216",
+  29,         "1958-10-28",       "Décret",    "58.10",
+  30,         "1956-02-20",       "Décret",    "56.208",
+  31,         "1962-12-05",       "Décret",    "62.637",
+  32,         "1956-02-20",       "Décret",    "56.208",
+  33,         NA,                 NA,          NA,
+  34,         "1998-05-19",       "Décret",    "98.375",
+  35,         "1956-02-20",       "Décret",    "56.208",
+  36,         "1997-03-02",       "Décret",    "97-141",
+  37,         NA,                 NA,          NA,
+  38,         "1997-12-18",       "Décret",    "97.1451",
+  39,         "1958-10-28",       "Décret",    "58.07",
+  40,         "1965-12-14",       "Décret",    "95.795", 
+  41,         "1954-09-16",       "Décret",    "64.380",
+  42,         "1989-07-25",       "Décret",    "89-216",
+  43,         NA,                 NA,          NA,
+  44,         "1958-10-28",       "Décret",    "58.14",
+  45,         "1997-03-02",       "Décret",    "97-141",
+  46,         "1966-06-01",       "Décret",    "66.242",
+  47,         "1966-06-01",       "Décret",    "66.242",
+  48,         "1997-08-07",       "Décret",    "97-1045",
+  49,         "1966-06-01",       "Décret",    "66.242",
+  50,         "1966-06-01",       "Décret",    "66.242",
+  51,         "1997-08-07",       "Décret",    "97-1045",
+  52,         NA,                 NA,          NA,
+  53,         "1997-12-18",       "Décret",    "97-1454",
+  54,         "1997-08-07",       "Décret",    "97.1044",
+  55,         "1966-06-01",       "Décret",    "66.242",
+  56,         "1997-12-18",       "Décret",    "97-1454"
+) %>% 
+  mutate(
+    STATUS_YR = case_when(
+      num_ligne %in% c(16, 46, 47, 49, 50, 55) ~ 1927,
+      TRUE ~ lubridate::year(lubridate::ymd(date_texte))
+    )
+  )
+angap_2002 <- angap_2002 %>%
+  bind_cols(
+    legal_txt_content %>%
+      select(-num_ligne)
+  ) |> 
+  select(-LEGAL_TXT) |> 
+  mutate(dataset_id = "ANGAP_2002")
 ```
 
+
+## Harmonisation des autres sources (SAPM, Vahatra)
+
+Les autres jeux de données sont également harmonisés avec un sous-ensemble de variables cibles. On applique des transformations simples et un renommage standardisé pour assurer l’interopérabilité.
+
+```{r}
+sapm_2010 <- sapm_2010 |>
+  select(NAME = NOM, DESIG = DESCRIPTIO, MANG_AUTH = DATAADMIN) |> 
+  mutate(DESIG = str_replace(DESIG, "Protge", "Protégée"),
+         dataset_id = "SAPM_2010")
+
+sapm_evol_2001_2011 <- sapm_evol_2001_2011 |> 
+  mutate(YEAR = as.numeric(YEAR)) |> 
+  select(NAME = NOM, DESIG = DESCRIPTIO, MANG_AUTH = DATAADMIN,
+         STATUS_YR = YEAR) |> 
+  mutate(dataset_id = "SAPM_evol_2001-2011")
+
+sapm_2017 <- sapm_2017 |>
+  mutate(DATE_CREAT = year(ymd(DATE_CREAT)),
+         MANG_AUTH = paste(GEST_1, GEST_2),
+         DAT_ST_DEF = as.character(DAT_ST_DEF)) |> 
+  select(NAME = SHORT_NAME, ORIG_NAME = FULL_NAME, 
+         IUCN_CAT = CATEG_IUCN, STATUS_YR = DATE_CREAT,
+         date_texte = DAT_ST_DEF, MARINE = TYPE_AP, 
+         GOV_TYPE = GOUVERNANC, num_text = STAT_DEF, 
+         MANG_AUTH) |> 
+  mutate(dataset_id = "SAPM_2017")
+
+sapm_2024 <- sapm_2024 |>
+  mutate(DATE_CREAT = year(ymd(DATE_CREAT)),
+         MANG_AUTH = paste(GEST_1, GEST_2),
+         DAT_ST_DEF = as.character(DAT_ST_DEF)) |> 
+  select(NAME = SHORT_NAME,  
+         IUCN_CAT = CATEG_IUCN, STATUS_YR = DATE_CREAT,
+         date_texte = DAT_ST_DEF, MARINE = TYPE_AP, 
+         GOV_TYPE = GOUVERNANC, num_text = STAT_DEF, 
+         MANG_AUTH) |> 
+  mutate(dataset_id = "SAPM_2024")
+
+vahatra <- vahatra |> 
+  mutate(STATUS_YR = year(ymd(date_creation)),
+         MANG_AUTH = paste(gest_1, gest_2),
+         date_texte = ifelse(is.na(date_modification), date_creation,
+                             paste(date_creation, date_modification, sep = ";"))) |> 
+  select(NAME = nom, IUCN_CAT = cat_iucn, ORIG_NAME = full_name,
+         num_texte = creation, MANG_AUTH, STATUS_YR, date_texte) |> 
+  mutate(dataset_id = "Vahatra")
+```
+
+## Fusion dans un jeu consolidé
+
+Tous les jeux de données sont fusionnés dans un unique tableau avec un schéma unifié.
+
+```{r}
+all_PAs <- bind_rows(
+  angap_2002,
+  sapm_2010,
+  sapm_2017,
+  sapm_2024,
+  sapm_evol_2001_2011,
+  vahatra
+)
+```
+
+Appariement spatial avec la WDPA
+
+On utilise une fonction `pa_match()` pour identifier les aires protégées correspondantes dans la WDPA, sur la base de la proximité spatiale et du taux de recouvrement géométrique.
 
 ```{r}
 # Match protected areas from x to y based on centroid distance and spatial overlap.
 # Returns the original x with best matches from y, using overlap thresholds and ranking.
 # Adds matched name, ID, and overlap percentage to x.
 pa_match <- function(x, y,
-                     pa_name_x = "original_name",
+                     pa_name_x = "NAME",
                      pa_name_y = "NAME",
                      pa_id_y = "WDPAID",
                      threshold_strong_match = 0.35,
@@ -174,7 +231,7 @@ pa_match <- function(x, y,
       )
     ) %>%
     unnest(closest_y)
-
+  
   # Compute spatial overlaps
   matches_with_overlap <- x_matches %>%
     rowwise() %>%
@@ -193,8 +250,8 @@ pa_match <- function(x, y,
       name_y = y_aug[[pa_name_y]][index_y],
       id_y = y_aug[[pa_id_y]][index_y]
     ) %>%
-  st_drop_geometry()
-
+    st_drop_geometry()
+  
   # Rank and apply selection logic
   best_matches <- matches_with_overlap %>%
     group_by(index_x) %>%
@@ -220,12 +277,12 @@ pa_match <- function(x, y,
       ),
       .groups = "drop"
     )
-
+  
   # Join results back to x
   output <- x_aug %>%
     left_join(best_matches, by = "index_x") %>%
     select(-index_x, -name_x, -centroid_x)
-
+  
   return(output)
 }
 
@@ -242,16 +299,16 @@ words_to_exlcude <- c("tsingy de",
                       "for[eê]t d['’]?", "aire protégée( d['’]?)?",
                       "androka",
                       "Maromena"
-                      )
+)
 
 # Enhanced fallback matching function for protected areas
 pa_match_fallback_name <- function(x, y,
-                                   pa_name_x = "original_name",
+                                   pa_name_x = "NAME",
                                    pa_name_y = "NAME",
                                    pa_id_y = "WDPAID",
                                    remove_terms,
                                    min_stringdist = 0.08) {
-
+  
   # Clean and normalize names
   clean_name <- function(s) {
     pattern <- str_c(remove_terms, collapse = "|")
@@ -260,10 +317,10 @@ pa_match_fallback_name <- function(x, y,
       str_replace_all(pattern, "") %>%
       str_squish()
   }
-
+  
   # Create index for reinsertion
   x <- x %>% mutate(row_index = row_number())
-
+  
   # Extract unmatched rows
   x_unmatched <- x %>%
     filter(is.na(name_y)) %>%
@@ -271,7 +328,7 @@ pa_match_fallback_name <- function(x, y,
            name_x_clean = clean_name(name_x_raw)) %>%
     distinct(name_x_clean, .keep_all = TRUE) %>%
     mutate(index_x = row_number())
-
+  
   # Prepare y
   y_tbl <- y %>%
     st_drop_geometry() %>%
@@ -279,12 +336,12 @@ pa_match_fallback_name <- function(x, y,
            name_y_clean = clean_name(name_y_raw),
            id_y = .data[[pa_id_y]],
            index_y = row_number())
-
+  
   # String distance matrix
   distance_matrix <- stringdistmatrix(x_unmatched$name_x_clean,
                                       y_tbl$name_y_clean,
                                       method = "jw", p = 0.1)
-
+  
   # Get best match per unmatched row
   closest_matches <- tibble(
     index_x = rep(x_unmatched$index_x, times = nrow(y_tbl)),
@@ -294,13 +351,13 @@ pa_match_fallback_name <- function(x, y,
     group_by(index_x) %>%
     slice_min(dist, n = 1, with_ties = FALSE) %>%
     ungroup()
-
+  
   # Join metadata
   matched <- closest_matches %>%
     left_join(x_unmatched, by = "index_x") %>%
     left_join(y_tbl, by = "index_y") %>%
     filter(dist < min_stringdist)
-
+  
   # Compute overlap with matched geometry
   matched <- matched %>%
     rowwise() %>%
@@ -309,7 +366,7 @@ pa_match_fallback_name <- function(x, y,
       if (length(inter) > 0) round(as.numeric(st_area(inter) / st_area(geometry)), 3) else 0
     }, error = function(e) NA_real_)) %>%
     ungroup()
-
+  
   # Replace original rows
   x_updated <- x %>%
     left_join(
@@ -325,7 +382,7 @@ pa_match_fallback_name <- function(x, y,
       stringdist = if ("stringdist.x" %in% names(.)) coalesce(stringdist, stringdist.x) else stringdist
     ) %>%
     select(-row_index, -ends_with(".x"), -ends_with(".y"), -stringdist)
-
+  
   return(x_updated)
 } 
 
@@ -337,34 +394,38 @@ all_PAs_matched <- pa_match_fallback_name(x  = all_PAs_matched,
 
 ```
 
-```{r}
-# Load legal data
-legal <- read_rds("data/id/legal_texts.rds")
+## Ajout des données légales issues des textes officiels
 
+On ajoute les aires protégées mentionnées dans les décrets à travers le jeu decision_pa. Ces données ne comportent pas de géométrie, aussi on en ajoute une vide afin de pouvoir les consolider dans la même table.
+
+```{r}
 # Format to be compatible with the spatial data
 legal_conso <- decision_pa %>%
   mutate(
-    original_name = ap_nom_texte,
-    dataset = "CNLEGIS_2024",
-    geometry = st_sfc(rep(st_geometrycollection(), n()), crs = 4326)
-  ) %>%
-  rowwise() %>%
-  mutate(attributes = list(as_tibble(cur_data())[!(names(cur_data()) %in%
-                                      c("ap_nom_texte", "original_name", 
-                                        "dataset", "WDPA_NAME", "WDPAID", 
-                                        "geometry"))])) %>%
-  ungroup() %>%
-  select(original_name, dataset, attributes, WDPA_NAME, WDPAID, geometry) %>%
+    NAME = ap_nom_texte,
+    dataset_id = "CNLEGIS_2024",
+    date_texte = as.character(date_texte),
+    geometry = st_sfc(rep(st_geometrycollection(), n()), crs = 4326)) |> 
+  select(NAME, dataset_id, date_texte, type_texte, num_texte, type_decision, WDPA_NAME, WDPAID, geometry) %>%
   st_as_sf()
 
-all_PAs_conso <- all_PAs_matched %>%
+all_PAs_matched <- all_PAs_matched %>%
   st_transform(st_crs(legal_conso)) %>%
-  bind_rows(legal_conso) %>%
-  relocate(WDPA_NAME, WDPAID, WDPA_overlap, .before(attributes))
+  bind_rows(legal_conso)
+```
 
-all_PAs_conso %>%
+## Export final
+
+On ajoute enfin les données WDPA de mars 2025. Le jeu consolidé est exporté dans des formats interopérables (.parquet et 
+.rds).
+
+```{r}
+all_PAs_conso <- wdpa_mdg_2025 |> 
+  st_transform(st_crs(all_PAs_matched))  |> 
+  bind_rows(all_PAs_conso)
+all_PAs_conso |> 
+  write_parquet("data/id/all_PAs_conso.parquet")
+all_PAs_conso |> 
   write_rds("data/id/all_PAs_conso.rds")
-
-
 ```
 

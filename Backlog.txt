@@ -64,4 +64,26 @@ Complexe Manambolomaty = Complexe Zones humides - Fort dense sche Tsimemb (https
  Rechercher données UNEP GEO3: https://web.archive.org/web/20020123004046/http://geo3.grid.unep.ch/
  
  
+# Fonctions associée à la base :
+
+La base WDPA comportait initialement tellement d'erreur qu'on l'avait laissé un peu de côté pour se concentrer sur les versions successives de SAPM. Les modifications importantes que vous avez récemment apporté à WDPA permettent d'envisager quelque chose de plus ambitieux et complémentaire avec WDPA. 
+
+En effet, on peut maintenant intégrer dans une même base parquet (nouvelle technologie particulièrement performante en compression et rapidité de lecture) : 
+1. l'ensemble des données spatiales malgaches (2002-2024), en imbriquant les attributs de sorte qu'on puisse mettre toutes les données dans une seule table, même si leur schéma est différent; [fait]
+2. l'ensemble des documents réglementaires malgaches disponibles dans la base CNLEGIS se rapportant à ces aires protégées ; [fait]
+3. l'ensemble des périmètres internes à ces aires protégées. [à faire]
+
+J'ai fait tout un travail de jointures afin que toutes les informations ci-dessus soit identifiées à l'aide de l'identifiant WDPA (WDPAID) de l'AP à laquelle ils se réfèrent. De cette manière, autorités, gestionnaires et chercheurs peuvent sélectionner leur AP d'intérêt et obtenir instantanément toutes les données légales, spatiales et de gestion qui s'y réfèrent. Cela permet de servir plusieurs cas d'usages :
+
+
+- Fiabiliser WDPA : 
+    o Identifier des erreurs qui existent encore dans la base WDPA actuelle pour les corriger
+    o Identifier des erreurs dans des millésimes précédent ayant servi de base à des études afin de vérifier que les résultats de ces dernières sont robustes suite aux corrections
+    o Mesurer l'ampleur des améliorations apportées grâce à ces efforts pour avoir un indicateur valorisant l'effort de fiabilisation des données.
+
+- Enrichir WDPA :
+    o Histoire légale plus complexe : décrets temporaires et changements de statut
+    o Changements de statuts
+    o Périmètres internes aux aires protégées
+ 
  

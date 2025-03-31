@@ -240,19 +240,18 @@ library(stringdist)
 library(fuzzyjoin)
 
 
-sapm_2017 <- read_rds("data/no_id/sapm_2017.rds")
+wdpa_mdg_2025 <- wdpa_read("sources/WDPA_WDOECM_mar2025_Public_MDG.zip")
 
 
-
-sapm_2017 %>%
-  pluck("SHORT_NAME")
+wdpa_mdg_2025 %>%
+  pluck("NAME")
 
 class_results %>%
   pluck("pa")
 
 # Harmonization for comparison (without modifying original data)
-sapm_clean <- sapm_2017 %>%
-  mutate(cleaned_SHORT_NAME = str_trim(str_to_lower(SHORT_NAME)))
+wdpa_clean <- wdpa_mdg_2025 %>%
+  mutate(cleaned_NAME = str_trim(str_to_lower(NAME)))
 
 class_clean <- class_results %>%
   mutate(cleaned_pa = str_trim(str_to_lower(pa)))
@@ -264,18 +263,18 @@ split_class_clean <- class_clean %>%
   rename(single_cleaned_pa = cleaned_pa_split)  # Rename for clarity
 
 # Function to compute proportional string distance
-match_pa_to_sapm <- function(pa_name, sapm_names) {
+match_pa_to_wdpa <- function(pa_name, wdpa_names) {
   # Calculate proportional distances
   distances <- stringdist(
     a = pa_name,
-    b = sapm_names,
+    b = wdpa_names,
     method = "lv"  # Levenshtein distance
-  ) / pmax(nchar(pa_name), nchar(sapm_names))
+  ) / pmax(nchar(pa_name), nchar(wdpa_names))
   
   # Find the best match
   best_match_idx <- which.min(distances)
   list(
-    closest_match = sapm_names[best_match_idx],
+    closest_match = wdpa_names[best_match_idx],
     match_distance = distances[best_match_idx]
   )
 }
@@ -284,14 +283,14 @@ match_pa_to_sapm <- function(pa_name, sapm_names) {
 conversion_table <- split_class_clean %>%
   rowwise() %>%
   mutate(
-    match_result = list(match_pa_to_sapm(single_cleaned_pa, sapm_clean$cleaned_SHORT_NAME)),
-    closest_match = sapm_clean$SHORT_NAME[which.min(
-      stringdist(single_cleaned_pa, sapm_clean$cleaned_SHORT_NAME) / 
-        pmax(nchar(single_cleaned_pa), nchar(sapm_clean$cleaned_SHORT_NAME))
+    match_result = list(match_pa_to_wdpa(single_cleaned_pa, wdpa_clean$cleaned_NAME)),
+    closest_match = wdpa_clean$NAME[which.min(
+      stringdist(single_cleaned_pa, wdpa_clean$cleaned_NAME) / 
+        pmax(nchar(single_cleaned_pa), nchar(wdpa_clean$cleaned_NAME))
     )],
     match_distance = min(
-      stringdist(single_cleaned_pa, sapm_clean$cleaned_SHORT_NAME) /
-        pmax(nchar(single_cleaned_pa), nchar(sapm_clean$cleaned_SHORT_NAME))
+      stringdist(single_cleaned_pa, wdpa_clean$cleaned_NAME) /
+        pmax(nchar(single_cleaned_pa), nchar(wdpa_clean$cleaned_NAME))
     )
   ) %>%
   ungroup() %>%
@@ -315,19 +314,19 @@ library(readxl)
 
 # Load the verified conversion table
 conversion_table_verif <- read_xlsx("data/conversion_table_verif.xlsx") %>%
-  select(original_pa, closest_match) %>%
+  select(original_pa, WDPA_NAME, WDPAID) %>%
   unique() %>%
-  clean_pa_names_cols(name_cols = c("original_pa", "closest_match"))
-  
+  clean_pa_names_cols(name_cols = c("original_pa", "WDPA_NAME"))
+
 
 # Merge with split_class_clean to integrate the verified closest matches
 decision_pa <- split_class_clean %>%
   left_join(conversion_table_verif, by = c("single_cleaned_pa" = "original_pa")) %>%
-  rename(verified_match = closest_match)  %>%
   distinct(pa, num_texte, .keep_all = TRUE) %>%
   select(date_texte = date_txt,
          ap_nom_texte = pa,
-         ap_match_sapm = verified_match,
+         WDPA_NAME,
+         WDPAID,
          texte = textes,
          type_texte = type,
          num_texte,
@@ -345,7 +344,7 @@ decision_pa <- split_class_clean %>%
          doc_pdf_fr, 
          doc_pdf_mg)
 
-write_rds(decision_pa, "data/no_id/legal_texts.rds")
+write_rds(decision_pa, "data/id/legal_texts.rds")
 ```
 
 Nous disposons maintenant d’une base de données consolidée des décisions réglementaires, où chaque texte est relié aux aires protégées qu’il concerne. Cette base est prête à être croisée avec les données spatiales pour analyser l’évolution historique des aires protégées à Madagascar.

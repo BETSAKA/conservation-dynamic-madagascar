@@ -16,9 +16,7 @@ Dans cette section, nous passons en revue plusieurs jeux de données ayant docum
 
 -   Construction d’une série temporelle cohérente des aires protégées de 2002 à 2024.
 
-## ANGAP 2002
-
-Avant la création du SAPM, l'ANGAP était la seule entité chargée de gérer les aires protégées, et donc leurs données. L'ANGAP avait dans ce cadre transmis à l'institut national de géographie malgache (FTM) pour la mise à jour de la base de donnée topographique (BD 500).
+Ces opérations sont réalisées avec R, avec une série de package appropriés.
 
 ```{r}
 # On charge les librairies nécessaires
@@ -46,6 +44,11 @@ clean_pa_names_cols <- function(df, name_cols) {
 }
 
 ```
+
+## ANGAP 2002
+
+Avant la création du SAPM, l'ANGAP était la seule entité chargée de gérer les aires protégées, et donc leurs données. L'ANGAP avait dans ce cadre transmis à l'institut national de géographie malgache (FTM) pour la mise à jour de la base de donnée topographique (BD 500).
+
 
 ```{r}
 # Load and preprocess the shapefile

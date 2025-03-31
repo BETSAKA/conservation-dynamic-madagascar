@@ -396,11 +396,11 @@ all_PAs_matched <- pa_match_fallback_name(x  = all_PAs_matched,
 
 ## Ajout des données légales issues des textes officiels
 
-On ajoute les aires protégées mentionnées dans les décrets à travers le jeu decision_pa. Ces données ne comportent pas de géométrie, aussi on en ajoute une vide afin de pouvoir les consolider dans la même table.
+On ajoute les aires protégées mentionnées dans les décrets à travers le jeu `legal` contenant les données CNLEGIS. Ces données ne comportent pas de géométrie, aussi on en ajoute une vide afin de pouvoir les consolider dans la même table.
 
 ```{r}
 # Format to be compatible with the spatial data
-legal_conso <- decision_pa %>%
+legal_conso <- legal %>%
   mutate(
     NAME = ap_nom_texte,
     dataset_id = "CNLEGIS_2024",
@@ -422,7 +422,7 @@ On ajoute enfin les données WDPA de mars 2025. Le jeu consolidé est exporté d
 ```{r}
 all_PAs_conso <- wdpa_mdg_2025 |> 
   st_transform(st_crs(all_PAs_matched))  |> 
-  bind_rows(all_PAs_conso)
+  bind_rows(all_PAs_matched)
 all_PAs_conso |> 
   write_parquet("data/id/all_PAs_conso.parquet")
 all_PAs_conso |> 

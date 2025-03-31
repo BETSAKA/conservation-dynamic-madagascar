@@ -32,6 +32,7 @@ Les résultats de chaque requête sont regroupées par pages contenant entre 1 e
 library(rvest)
 library(tidyverse)
 library(sf)
+library(wdpar)
 
 # Specify the source repository 
 data_dir <- "sources/"

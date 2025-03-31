@@ -13,7 +13,7 @@ book:
     - 01_sapm_data.qmd
     - 02_wdpa_data.qmd
     - 03_legal_docs.qmd
-    - 04_combination_algo.qmd
+    - 04_combination.qmd
     - 05_visual_verif.qmd
 
 bibliography: references.bib

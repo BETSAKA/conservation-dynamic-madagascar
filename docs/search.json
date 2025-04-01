@@ -1,5 +1,165 @@
 [
   {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Données des aires protégées à Madagascar",
+    "section": "",
+    "text": "1 Conserver l’histoire des aires protégées à Madagascar : un modèle de données dynamique (2000-2024)",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Conserver l'histoire des aires protégées à Madagascar : un modèle de données dynamique (2000-2024)</span>"
+    ]
+  },
+  {
+    "objectID": "index.html#résumé",
+    "href": "index.html#résumé",
+    "title": "Données des aires protégées à Madagascar",
+    "section": "1.1 Résumé",
+    "text": "1.1 Résumé\nLes données spatiales sur les aires protégées sont essentielles pour les études de conservation. Cependant, les bases existantes se limitent souvent aux frontières actuelles, ignorant les évolutions historiques. Cette lacune engendre des biais dans l’analyse de leur impact environnemental et social. Dans ce projet, nous proposons un modèle de données dynamique documentant l’évolution des aires protégées à Madagascar de 2000 à 2024. Ce modèle inclut chaque état successif avec ses périodes de validité, fournissant une base analytique plus robuste. Les données seront publiées en accès libre pour favoriser leur utilisation par la communauté scientifique et les praticiens.",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Conserver l'histoire des aires protégées à Madagascar : un modèle de données dynamique (2000-2024)</span>"
+    ]
+  },
+  {
+    "objectID": "index.html#contexte-et-enjeux",
+    "href": "index.html#contexte-et-enjeux",
+    "title": "Données des aires protégées à Madagascar",
+    "section": "1.2 Contexte et enjeux",
+    "text": "1.2 Contexte et enjeux\n\n1.2.1 Importance des données ouvertes\nMadagascar, confronté à une extrême pauvreté, dispose de ressources limitées pour gérer ses données administratives, notamment dans le domaine de la conservation. Par exemple, les données relatives à la conservation à Madagascar ont longtemps été rendues accessibles sur le portail “Redbioma”, mais ce dernier aujourd’hui hors ligne et les jeux de données qu’il contenait sont introuvables. La mise à disposition de données sur un portail open data pérenne adossé à des procédures d’archivage renforce leur accessibilité, transparence, reproductibilité, et surtout leur persistance.\n\n\n1.2.2 Limites des approches actuelles\nLes bases de données nationales et internationales incluent généralement les caractéristiques actuelles des aires protégées sans tenir compte des modifications passées. Cette approche statique entraîne des pertes d’informations et des biais dans l’évaluation des impacts ou l’étude des dynamiques historiques, notamment dans le contexte des changements de limites (“degazetting”).",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Conserver l'histoire des aires protégées à Madagascar : un modèle de données dynamique (2000-2024)</span>"
+    ]
+  },
+  {
+    "objectID": "index.html#originalité-de-la-solution",
+    "href": "index.html#originalité-de-la-solution",
+    "title": "Données des aires protégées à Madagascar",
+    "section": "1.3 Originalité de la solution",
+    "text": "1.3 Originalité de la solution\nNotre méthodologie repose sur :\n\nUne documentation exhaustive : Compilation de données issues de cartographies historiques, décrets, gestionnaires d’aires protégées, et autres sources.\nTraçabilité et contrôle de version : Chaque modification est documentée dans un système de gestion de version pour garantir une transparence totale.\nFormats adaptés : Les données sont proposées au format GeoParquet pour les analyses standard et en GML ou OGC Moving Features pour des besoins avancés.\nConstruction rétrospective : La base est reconstruite à partir des états récents vers les états passés.",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Conserver l'histoire des aires protégées à Madagascar : un modèle de données dynamique (2000-2024)</span>"
+    ]
+  },
+  {
+    "objectID": "index.html#méthodologie",
+    "href": "index.html#méthodologie",
+    "title": "Données des aires protégées à Madagascar",
+    "section": "1.4 Méthodologie",
+    "text": "1.4 Méthodologie\n\nHarmonisation des données SAPM : Consolidation des versions successives, notamment entre 2002 et 2011.\nHarmonisation des données WDPA : Intégration des données internationales selon la même approche.\nCréation d’une base réglementaire : Extraction et structuration des textes juridiques via la base CNLEGIS.\nAnalyse et consolidation : Croisement des sources pour produire un ensemble cohérent.\nOutil de vérification visuelle : Développement d’un outil interactif pour valider la qualité et la traçabilité des données consolidées.",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Conserver l'histoire des aires protégées à Madagascar : un modèle de données dynamique (2000-2024)</span>"
+    ]
+  },
+  {
+    "objectID": "index.html#résultats-attendus",
+    "href": "index.html#résultats-attendus",
+    "title": "Données des aires protégées à Madagascar",
+    "section": "1.5 Résultats attendus",
+    "text": "1.5 Résultats attendus\nNous publions un jeu de données couvrant Madagascar entre 2000 et 2024, accessible via un portail pérenne. Ce modèle permettra de corriger des biais observés dans des études emblématiques, offrant des conclusions plus fiables sur l’impact de la conservation.",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Conserver l'histoire des aires protégées à Madagascar : un modèle de données dynamique (2000-2024)</span>"
+    ]
+  },
+  {
+    "objectID": "index.html#perspectives",
+    "href": "index.html#perspectives",
+    "title": "Données des aires protégées à Madagascar",
+    "section": "1.6 Perspectives",
+    "text": "1.6 Perspectives\nCe projet contribue à une meilleure compréhension des dynamiques de conservation et propose un cadre méthodologique réplicable dans d’autres contextes. En intégrant des pratiques ouvertes et transparentes, il répond aux défis de la gestion des données dans les pays en développement tout en offrant des outils adaptés aux besoins des chercheurs et gestionnaires.",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Conserver l'histoire des aires protégées à Madagascar : un modèle de données dynamique (2000-2024)</span>"
+    ]
+  },
+  {
+    "objectID": "01_sapm_data.html",
+    "href": "01_sapm_data.html",
+    "title": "2  Harmonisation des données SAPM",
+    "section": "",
+    "text": "2.1 ANGAP 2002\nDans cette section, nous passons en revue plusieurs jeux de données ayant documenté les aires protégées à Madagascar à différentes périodes. Ces données, issues de sources officielles, ont été produites et mises à jour par différentes institutions. Nous les harmonisons en appliquant un ensemble de traitements standardisés :\nCes opérations visent à rendre comparables des jeux de données produits à des moments différents et selon des logiques institutionnelles variées. Elles permettent la construction d’une série temporelle cohérente, indispensable à toute analyse historique ou comparative sur les dynamiques de conservation à Madagascar.\nCes opérations sont réalisées avec R, avec une série de package appropriés.\nAvant la création du SAPM, l’ANGAP était la seule entité chargée de gérer les aires protégées, et donc leurs données. L’ANGAP avait dans ce cadre transmis à l’institut national de géographie malgache (FTM) pour la mise à jour de la base de donnée topographique (BD 500).\nCode\n# Load and preprocess the shapefile\nangap_2002 &lt;- st_read(paste0(data_dir, \"ap_angap BD 500/ap_angap.shp\"), \nquiet = TRUE) %&gt;%\n  st_set_crs(my_crs) %&gt;%  # Laborde Magasiaraka CRS\n  clean_pa_names_cols(name_cols = \"NOM\") %&gt;%\n  mutate(has_info = ifelse(is.na(CLASSEMENT), \n                           \"Attributs absents\", \n                           \"Attributs présents\"),\n         has_name = case_when(is.na(NOM) ~ \"Pas de nom\",\n                              NOM == \"Hors AP\" ~ \"Hors AP\",\n                              .default = \"Nommé\"))\n\n# Separate datasets: \"Pas de nom\", \"Hors AP\", and \"Nommé\"\nangap_pas_de_nom &lt;- angap_2002 %&gt;% filter(has_name == \"Pas de nom\")\nangap_hors_ap &lt;- angap_2002 %&gt;% filter(has_name == \"Hors AP\")\nangap_named &lt;- angap_2002 %&gt;% filter(has_name == \"Nommé\")\n\n# Set tmap to interactive mode\ntmap_mode(\"view\")\n\n# Create the map with three layers\ntm_shape(angap_named) +\n  tm_fill(col = \"has_info\", \n          id = \"NOM\",\n          popup.vars = names(st_drop_geometry(angap_named))) +\n  tm_borders(col = \"black\", lwd = 0.5) +  # Default borders for named features\ntm_shape(angap_pas_de_nom) +\n  tm_fill(col = \"has_info\", \n          id = \"NOM\",\n          popup.vars = names(st_drop_geometry(angap_pas_de_nom)),\n          legend.show = FALSE) +\n  tm_borders(col = \"red\", lwd = 3) +  # Thick red borders for \"Pas de nom\"\ntm_shape(angap_hors_ap) +\n  tm_fill(col = \"has_info\", \n          id = \"NOM\",\n          popup.vars = names(st_drop_geometry(angap_hors_ap)),\n          legend.show = FALSE) +\n  tm_borders(col = \"blue\", lwd = 3) + # Thick blue borders for \"Hors AP\"\n  tm_add_legend(type = \"fill\", \n                labels = c(\"Pas de nom\", \"Hors AP\"), \n                col = c(\"red\", \"blue\"), \n                lwd = c(3, 3, 0.5), \n                title = \"Contour\")\nLe champ “classement” de ce jeu de données fait référence à des décrets parus jusqu’en 1998, mais il fait aussi référence à 11 entités qui n’ont pas de métadonnées les caractérisant.\nParmi celles-ci, 6 n’ont pas de nom :\nLe jeu de données n’inclut pas de métadonnées explicitant sa date, mais il nous a été remis avec l’explication qu’il s’agissait d’un jeu datant de 2002. Cette assertion est cohérente avec le fait que le jeu de donnée inclut l’extension d’Ankarafantsika opérée en 2002, mais pas les création [Compléter].\nOn effectue donc les opération suivantes : identification des polygones sans nom qui font visiblement partie d’une AP, regroupement des polygones simples en multipolygones s’ils ont les mêmes attributs, et suppression des polygones explicitement référencés comme “Hors AP”.\nCode\nangap_2002 &lt;- angap_2002 %&gt;%\n  select(APBON = APBON_, APBON_ID, NOM, TYPE_AP, CLASSEMENT, IUCN) %&gt;%\n  mutate(NOM = case_when( # Rename the patches visibly included in PAs\n    APBON_ID %in% c(100006, 100005) ~ \"Ranomafana\",\n    APBON_ID %in% c(100002, 100003, 100004) ~ \"Masoala\",\n    APBON == 27 ~ \"Baie de Baly\",\n    .default = NOM)) %&gt;%\n  group_by(across(NOM:IUCN)) %&gt;%\n  summarize(geometry = st_union(geometry)) %&gt;%\n  ungroup() %&gt;%\n  filter(NOM != \"Hors AP\") # Discard the explicitely labelled as not PA\n\nwrite_rds(angap_2002, \"data/no_id/angap_2002.rds\")\n\ntm_shape(angap_2002) +\n  tm_polygons()\nLe résultat est présenté dans la carte ci-dessus.",
+    "crumbs": [
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Harmonisation des données SAPM</span>"
+    ]
+  },
+  {
+    "objectID": "01_sapm_data.html#angap-2002",
+    "href": "01_sapm_data.html#angap-2002",
+    "title": "2  Harmonisation des données SAPM",
+    "section": "",
+    "text": "Le Parc National d’Ankarafantsika, né en 2002 de la fusion de la réserve naturelle intégrale n°15 d’Ankarafantsika et de la réserve - forestière d’Anktarafantsika.\nMantadia, dont les limites ont été étendues en 2002.\nTsingy de Namoroka, créé en 1927 et devenu parc national en 2002.",
+    "crumbs": [
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Harmonisation des données SAPM</span>"
+    ]
+  },
+  {
+    "objectID": "01_sapm_data.html#sapm-2010",
+    "href": "01_sapm_data.html#sapm-2010",
+    "title": "2  Harmonisation des données SAPM",
+    "section": "2.2 SAPM 2010",
+    "text": "2.2 SAPM 2010\nLe site REBIOMA qui mettait en ligne les données du SAPM ne fonctionne plus depuis 2019 d’après les sauvegardes régulières effectuées par Internet Archive. Fort heureusement, une copie des données datées du 10/12/2010 a été sauvegardée par Ghislain Vieilledent et publié en accompagnement d’une publication (Vieilledent et al. 2020).\n\n\nCode\nsapm_2010 &lt;- st_read(paste0(data_dir,\"Vieilledent_sapm_20101220/AP-NAP_38s.shp\"), \n                     quiet = TRUE, options = \"ENCODING=WINDOWS-1252\") %&gt;% \n    st_transform(my_crs) %&gt;% \n    clean_pa_names_cols(name_cols = \"NOM\")\n\nwrite_rds(sapm_2010, \"data/no_id/sapm_2010.rds\")\n\ntm_shape(sapm_2010) +\n  tm_borders(col = \"purple\") +\n  tmap_options(check.and.fix = TRUE)",
+    "crumbs": [
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Harmonisation des données SAPM</span>"
+    ]
+  },
+  {
+    "objectID": "01_sapm_data.html#evolution-du-sapm-2002-2011",
+    "href": "01_sapm_data.html#evolution-du-sapm-2002-2011",
+    "title": "2  Harmonisation des données SAPM",
+    "section": "2.3 Evolution du SAPM 2002-2011",
+    "text": "2.3 Evolution du SAPM 2002-2011\nCe jeu de données a été publié en ligne par un consultant du SAPM, avec la référence suivante : Evolution of the Madagascar Protected Area System (SAPM), Tom Allnut, https://hub.arcgis.com/content/4218737646234c7cab1c7a20e2c2489d/about\nIt is provided as a .mpk, which is in fact a zip including shapefiles. We convert to Zip and open the shapefiles.\n\n\nCode\n# Specify the directory path\ndir_path &lt;- paste0(data_dir, \"sapm_evolution_2012/commondata/data1\")\n\n# List all .shp files in the directory\nshapefile_paths &lt;- list.files(path = dir_path, \n                              pattern = \"\\\\.shp$\", \n                              full.names = TRUE, \n                              recursive = TRUE)\n\n# Extract the filenames without the full path\nshapefile_names &lt;- basename(shapefile_paths)\n\n# Filter shapefiles with a date in the filename (e.g., \"2008\", \"2009\", etc.)\ndate_shapefiles &lt;- shapefile_paths[str_detect(shapefile_names, \"20[0-9]{2}\")]\n\n# Load and bind the shapefiles\nsapm_evol_2001_2011 &lt;- date_shapefiles %&gt;%\n  map(~ st_read(.x, quiet = TRUE) %&gt;% # Read each shapefile\n        clean_pa_names_cols(name_cols = \"NOM\")) %&gt;% # and clean PA name\n  reduce(bind_rows) %&gt;%\n  mutate(YEAR = str_extract(YEAR, \"\\\\d{4}\")) %&gt;% # Extract the 4-digit year\n  st_transform(crs = my_crs) # On passe les données en laborde malgache\n\nsapm_evol_2001_2011 %&gt;%\n  filter(YEAR == 2002) %&gt;%\n  tm_shape() +\n  tm_borders(col = \"blue\") + \n  tm_shape(angap_2002) +\n  tm_fill(col = \"red\", alpha = 0.5) + \n  tmap_options(check.and.fix = TRUE)\n\n\n\n\n\n\nCode\n# Save the data to a specified path\nwrite_rds(sapm_evol_2001_2011, \"data/no_id/sapm_evol_2001_2011.rds\")\n\n\nLa superposition des limites extraites de cette série temporelle avec celles issues de la base ANGAP 2002 permet de visualiser les premiers recouvrements et écarts.",
+    "crumbs": [
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Harmonisation des données SAPM</span>"
+    ]
+  },
+  {
+    "objectID": "01_sapm_data.html#sapm-2017",
+    "href": "01_sapm_data.html#sapm-2017",
+    "title": "2  Harmonisation des données SAPM",
+    "section": "2.4 SAPM 2017",
+    "text": "2.4 SAPM 2017\nCe jeu de données nous a été remis par la FAPBM. Il s’agit visiblement des données SAPM mises à jour en mars 2017.\nL’un des points du périmètre de l’aire protégée Andrafiamena Andavakoera (index 32, sommet numéro 841) est localisé de manière aberrante, formant un papillon et entraînant des erreurs topologiques. La fonction st_make_valid retire ce point aberrant.\n\n\nCode\n# Load and transform data\nsapm_2017 &lt;- st_read(paste0(data_dir, \"sapm_201703017_om_surface/sapm_201703017_om_surface.shp\"),\n                     options = \"ENCODING=WINDOWS-1252\") %&gt;%\n  st_transform(my_crs) %&gt;%\n  st_make_valid() %&gt;%\n  clean_pa_names_cols(name_cols = c(\"SHORT_NAME\", \"FULL_NAME\"))\n\n\noptions:        ENCODING=WINDOWS-1252 \nReading layer `sapm_201703017_om_surface' from data source \n  `C:\\Users\\fbede\\Documents\\Statistiques\\conservation-dynamic-madagascar\\sources\\sapm_201703017_om_surface\\sapm_201703017_om_surface.shp' \n  using driver `ESRI Shapefile'\nSimple feature collection with 123 features and 23 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 58336.43 ymin: 57373.5 xmax: 833924.5 ymax: 1562970\nProjected CRS: laborde\n\n\nCode\n# Save the data\nwrite_rds(sapm_2017, \"data/no_id/sapm_2017.rds\")\n\ntm_shape(sapm_2017) +\n  tm_polygons(col = \"CATEG_IUCN\")",
+    "crumbs": [
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Harmonisation des données SAPM</span>"
+    ]
+  },
+  {
+    "objectID": "01_sapm_data.html#vahatra-2017",
+    "href": "01_sapm_data.html#vahatra-2017",
+    "title": "2  Harmonisation des données SAPM",
+    "section": "2.5 Vahatra 2017",
+    "text": "2.5 Vahatra 2017\n\n\nCode\nload(\"sources/AP_Vahatra.rds\")\nAP_Vahatra %&gt;%\n  st_transform(my_crs) %&gt;%\n  clean_pa_names_cols(name_cols = c(\"nom\", \"full_name\", \"nom_wdpa\")) %&gt;%\n  write_rds(\"data/no_id/vahatra.rds\")\n\n\ndans certaines entités.",
+    "crumbs": [
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Harmonisation des données SAPM</span>"
+    ]
+  },
+  {
+    "objectID": "01_sapm_data.html#sapm-2024",
+    "href": "01_sapm_data.html#sapm-2024",
+    "title": "2  Harmonisation des données SAPM",
+    "section": "2.6 SAPM 2024",
+    "text": "2.6 SAPM 2024\nCe jeu de données constitue l’état le plus récent de la base SAPM. Il inclut de nouvelles aires protégées récemment créées ainsi que des ajustements sur les périmètres existants.\n\n\nCode\n# Load shapefile\nsapm_2024 &lt;- st_read(paste0(data_dir, \"Shape AP mai2023/dernier version shape_ap_28042023.shp\"), \n                   quiet = TRUE)\n\n# Check for invalid geometries\ninvalid_geometries &lt;- sapm_2024 %&gt;%\n  st_zm(drop = TRUE, what = \"ZM\") %&gt;%   # &lt;- remove Z and M before anything else\n  rownames_to_column(var = \"index\") %&gt;%\n  rowwise() %&gt;%\n  mutate(is_valid = st_is_valid(geometry)) %&gt;%\n  filter(!is_valid) %&gt;%\n  select(Index = index, Nom = SHORT_NAME, Source = path)\n\n# Create a folder to save the images\noutput_dir &lt;- \"invalid_geometry_plots\"\ndir.create(output_dir, showWarnings = FALSE)\n\n# Loop through invalid geometries and save the plots\nfor (i in seq_len(nrow(invalid_geometries))) {\n  geometry_index &lt;- invalid_geometries$Index[i]\n  \n  # Generate a file name\n  plot_file &lt;- file.path(output_dir, paste0(\"geometry_\", geometry_index, \".png\"))\n  \n  # Save the plot\n  png(plot_file)\n  plot(st_geometry(sapm_2024[geometry_index, ]))\n  dev.off()\n}\n\n# Add image file paths to the invalid geometries table\ninvalid_geometries &lt;- invalid_geometries %&gt;%\n  mutate(\n    Geometrie = paste0(output_dir, \"/geometry_\", Index, \".png\")\n  )\n\n# Display the table with gt\nif (nrow(invalid_geometries) == 0) {\n  message(\"All geometries are valid.\")\n} else {\n  invalid_geometries %&gt;%\n    st_drop_geometry() %&gt;%\n    gt() %&gt;%\n    text_transform(\n      locations = cells_body(columns = Geometrie),\n      fn = function(x) {\n        local_image(filename = x, height = 100)  # Embed local image with specified height\n      }\n    ) %&gt;%\n    tab_header(\n      title = \"Géométries invalides\",\n      subtitle = \"Liste des géométries invalides\"\n    )\n}\n\n\n\n\n\n\n\n\nGéométries invalides\n\n\nListe des géométries invalides\n\n\nIndex\nNom\nSource\nGeometrie\n\n\n\n\n3\nCM7B\nNA\n\n\n\n8\nMangiho\nNA\n\n\n\n12\nIVOHIBORO\nD:\\ASA AP\\FOREST SHAPE.shp\n\n\n\n22\nBehara Tranomaro\nD:\\SHAPE AP\\Shapfile vaovao\\sapm_201703017_dd\\sapm_201703017_dd.shp\n\n\n\n34\nTorotorofotsy\nD:\\SHAPE AP\\Shapfile vaovao\\sapm_201703017_dd\\sapm_201703017_dd.shp\n\n\n\n47\nAndrafiamena Andavakoera\nD:\\SHAPE AP\\Shapfile vaovao\\sapm_201703017_dd\\sapm_201703017_dd.shp\n\n\n\n50\nMenabe Antimena\nD:\\SHAPE AP\\Shapfile vaovao\\sapm_201703017_dd\\sapm_201703017_dd.shp\n\n\n\n61\nAnalalava\nD:\\SHAPE AP\\Shapfile vaovao\\sapm_201703017_dd\\sapm_201703017_dd.shp\n\n\n\n65\nMakirovana Tsihomanaomby\nD:\\SHAPE AP\\Shapfile vaovao\\sapm_201703017_dd\\sapm_201703017_dd.shp\n\n\n\n68\nPointe à Larrée\nD:\\SHAPE AP\\Shapfile vaovao\\sapm_201703017_dd\\sapm_201703017_dd.shp\n\n\n\n70\nAntrema\nD:\\SHAPE AP\\Shapfile vaovao\\sapm_201703017_dd\\sapm_201703017_dd.shp\n\n\n\n107\nPic d'Ivohibe\nD:\\SHAPE AP\\Shapfile vaovao\\sapm_201703017_dd\\sapm_201703017_dd.shp\n\n\n\n108\nRanomafana\nD:\\SHAPE AP\\Shapfile vaovao\\sapm_201703017_dd\\sapm_201703017_dd.shp\n\n\n\n112\nZahamena\nD:\\SHAPE AP\\Shapfile vaovao\\sapm_201703017_dd\\sapm_201703017_dd.shp\n\n\n\n121\nBemanevika\nD:\\SHAPE AP\\Shapfile vaovao\\sapm_201703017_dd\\sapm_201703017_dd.shp\n\n\n\n131\nCOMATSA Nord\nD:\\SHAPE AP\\Shapfile vaovao\\sapm_201703017_dd\\sapm_201703017_dd.shp\n\n\n\n133\nNord-Ifotaka\nD:\\SHAPE AP\\Shapfile vaovao\\sapm_201703017_dd\\sapm_201703017_dd.shp\n\n\n\n\n\n\n\n\nCode\n# Now try to make this valid\n\nsapm_2024_valid &lt;- sapm_2024 %&gt;%\n  st_make_valid()\n\n# Identify invalid geometries\ninvalid_geometries &lt;- sapm_2024_valid %&gt;%\n  filter(!st_is_valid(geometry))\n\n#  Print the names (or identifiers) of the invalid geometries\n# Replace 'NOM' with the actual column containing the name or identifier\nif (nrow(invalid_geometries) &gt; 0) {\n  cat(\"Invalid geometries found:\\n\")\n  print(invalid_geometries$SHORT_NAME)  # Adjust this to match your column name\n} else {\n  cat(\"All geometries are valid.\\n\")\n}\n\n\nInvalid geometries found:\n[1] \"CM7B\"                     \"Mangiho\"                 \n[3] \"IVOHIBORO\"                \"Andrafiamena Andavakoera\"\n\n\nCode\n# Step 5: Filter out invalid geometries for now to plot the valid ones\nsapm_2024_valid_clean &lt;- sapm_2024_valid %&gt;%\n  filter(st_is_valid(geometry)) %&gt;%\n  clean_pa_names_cols(name_cols = c(\"Name\", \"SHORT_NAME\")) %&gt;%\n  st_transform(my_crs)\n\nwrite_rds(sapm_2024_valid_clean, \"data/no_id/sapm_2024.rds\")\n\n# Step 6: Plot the valid geometries using tmap\ntm_shape(sapm_2024_valid_clean) +\n  tm_fill(col = \"blue\", alpha = 0.5) + \n  tm_shape(sapm_2017) +\n  tm_fill(col = \"red\", alpha = 0.5)\n\n\n\n\n\n\n\n\n\n\nVieilledent, Ghislain, Marie Nourtier, Clovis Grinand, Miguel Pedrono, Alison Clausen, Tsiky Rabetrano, Jean-Roger Rakotoarijaona, et al. 2020. “It’s Not Just Poverty: Unregulated Global Market and Bad Governance Explain Unceasing Deforestation in Western Madagascar.” BioRxiv, 2020–07.",
+    "crumbs": [
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Harmonisation des données SAPM</span>"
+    ]
+  },
+  {
+    "objectID": "02_wdpa_data.html",
+    "href": "02_wdpa_data.html",
+    "title": "3  Exploration of WDPA historical data",
+    "section": "",
+    "text": "3.1 Creation WDPA global historical database 2010-2024\nNous avons développé un jeu de données spatio-temporel consolidant les données mondiales publiées par la World Database on Protected Areas (WDPA) depuis 2010. Nous avons compilé un jeu de données par an, en prenant pour référence le mois d’octobre ou, lorsque les données d’octobre n’étaient pas disponibles, le mois le plus proche.\nLes sources ont été obtenues grâce à une recherche approfondie dans les archives pour récupérer les enregistrements historiques publiés par la WDPA, puisque seules les données les plus récentes sont disponibles publiquement sur protectedplanet.net. Google Earth Engine archive les données depuis 2017, et nous avons trouvé les données pour les années 2010 à 2016 dans le dépôt public AWS de l’UNEP-WCMC.\nLes schémas des données ont évolué au fil du temps, et nous avons entrepris des efforts d’harmonisation pour aligner les attributs entre les différentes versions du jeu de données.\nLe résultat est un jeu de données comprenant 2 721 134 enregistrements annuels d’aires protégées pour le monde entier. Les géométries des aires protégées sont complexes et représentent plus de 95 % du volume des données. La déduplication de ce nombre d’observations est une opération computationnellement intensive. Nous utilisons l’algorithme Blake3, une fonction de hachage cryptographique déterministe qui produit systématiquement la même valeur de hachage pour des données identiques, ce qui le rend extrêmement efficace pour la déduplication des données. Cet algorithme, l’un des plus performants disponibles, est implémenté en C dans notre code. Les hachages produits par Blake3 servent de clés pour séparer les données attributaires des données spatiales.\nAinsi, nous avons obtenu deux fichiers parquet contenant toutes les données WDPA des 15 dernières années pour 365 592 aires protégées : un fichier contenant 2 721 134 enregistrements annuels d’attributs des aires protégées (190 Mo) et un autre contenant 1 425 023 géométries spatiales uniques (13,9 Go).",
+    "crumbs": [
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Exploration of WDPA historical data</span>"
+    ]
+  },
+  {
+    "objectID": "02_wdpa_data.html#creation-dune-base-wdpa-pour-madagascar-pour-2010-2024",
+    "href": "02_wdpa_data.html#creation-dune-base-wdpa-pour-madagascar-pour-2010-2024",
+    "title": "3  Exploration of WDPA historical data",
+    "section": "3.2 Creation d’une base WDPA pour Madagascar pour 2010-2024",
+    "text": "3.2 Creation d’une base WDPA pour Madagascar pour 2010-2024\nÀ partir de la base globale, nous extrayons les observations correspondant à Madagascar pour produire une base allégée dédiée à l’analyse nationale. Ce sous-ensemble est ensuite reprojeté dans le système de coordonnées local utilisé à Madagascar (Laborde, EPSG:29702).\n\n\nCode\nlibrary(tidyverse)\nlibrary(arrow)\nlibrary(geoarrow)\nlibrary(sf)\n\nmy_crs &lt;- 29702\n\n\n# Load parquet\nwdpa_mdg &lt;- read_parquet(\"sources/MDG_WDPA_Consolidated.parquet\") %&gt;%\n  mutate(geometry = st_as_sfc(geometry)) %&gt;%\n  st_as_sf() %&gt;%\n  st_transform(st_crs(my_crs))\n\nwrite_parquet(wdpa_mdg, \"data/MDG_WDPA_Consolidated.parquet\")\n\n\nNous pouvons ensuite produire des premiers indicateurs simples permettant de visualiser l’évolution du nombre et de la surface cumulée des aires protégées à Madagascar entre 2010 et 2024\n\n\nCode\n# Calculer le nombre d'aires protégées par année\nap_per_year &lt;- wdpa_mdg %&gt;%\n  st_drop_geometry() %&gt;%\n  group_by(data_year) %&gt;%\n  summarise(Number_of_APs = n())\n\n# Calculer la surface totale par année\narea_per_year &lt;- wdpa_mdg %&gt;%\n  st_drop_geometry() %&gt;%\n  group_by(data_year) %&gt;%\n  summarise(Total_Area = sum(GIS_AREA, na.rm = TRUE))\n\n# Graphique : Nombre d'aires protégées par année\nggplot(ap_per_year, aes(x = data_year, y = Number_of_APs)) +\n  geom_bar(stat = \"identity\", fill = \"blue\") +\n  labs(\n    title = \"Nombre d'aires protégées par année\",\n    x = \"Année\",\n    y = \"Nombre d'AP\"\n  ) +\n  theme_minimal()\n\n\n\n\n\n\n\n\n\nCode\n# Graphique : Surface totale des aires protégées par année\nggplot(area_per_year, aes(x = data_year, y = Total_Area)) +\n  geom_bar(stat = \"identity\", fill = \"green\") +\n  labs(\n    title = \"Surface totale des aires protégées par année\",\n    x = \"Année\",\n    y = \"Surface totale (ha)\"\n  ) +\n  theme_minimal()",
+    "crumbs": [
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Exploration of WDPA historical data</span>"
+    ]
+  },
+  {
     "objectID": "03_legal_docs.html",
     "href": "03_legal_docs.html",
     "title": "4  Création d’une base réglementaire à partir de CNLEGIS",
@@ -94,9 +254,59 @@
     "href": "04_combination.html#export-final",
     "title": "5  Consolidation des noms",
     "section": "5.5 Export final",
-    "text": "5.5 Export final\nOn ajoute enfin les données WDPA de mars 2025. Le jeu consolidé est exporté dans des formats interopérables (.parquet et .rds).\n\n\nCode\nall_PAs_conso &lt;- wdpa_mdg_2025 |&gt; \n  st_transform(st_crs(all_PAs_matched))  |&gt; \n  bind_rows(all_PAs_matched)\nall_PAs_conso |&gt; \n  write_parquet(\"data/id/all_PAs_conso.parquet\")\nall_PAs_conso |&gt; \n  write_rds(\"data/id/all_PAs_conso.rds\")",
+    "text": "5.5 Export final\nOn ajoute enfin les données WDPA de mars 2025. Le jeu consolidé est exporté dans des formats interopérables (.parquet et .rds).\n\n\nCode\nall_PAs_conso &lt;- wdpa_mdg_2025 |&gt; \n  mutate(dataset_id = \"WDPA_2025\") |&gt; \n  st_transform(st_crs(all_PAs_matched))  |&gt; \n  bind_rows(all_PAs_matched)\nall_PAs_conso |&gt; \n  write_parquet(\"data/id/all_PAs_conso.parquet\")\nall_PAs_conso |&gt; \n  write_rds(\"data/id/all_PAs_conso.rds\")",
     "crumbs": [
       "<span class='chapter-number'>5</span>  <span class='chapter-title'>Consolidation des noms</span>"
+    ]
+  },
+  {
+    "objectID": "05_visual_verif.html",
+    "href": "05_visual_verif.html",
+    "title": "6  Visualisation interactive",
+    "section": "",
+    "text": "Vous pouvez accéder à un tableau interactif présentant les aires protégées par source de données ici :\nAccéder au tableau interactif",
+    "crumbs": [
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Visualisation interactive</span>"
+    ]
+  },
+  {
+    "objectID": "06_use_cases.html",
+    "href": "06_use_cases.html",
+    "title": "7  Cas d’usage",
+    "section": "",
+    "text": "7.1 Fiabiliser WDPA\nOutre l’exploration AP par AP, ces données permettent de servir plusieurs cas d’usages.\n[Inclure un exemple sous chaque titre]",
+    "crumbs": [
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Cas d'usage</span>"
+    ]
+  },
+  {
+    "objectID": "06_use_cases.html#fiabiliser-wdpa",
+    "href": "06_use_cases.html#fiabiliser-wdpa",
+    "title": "7  Cas d’usage",
+    "section": "",
+    "text": "7.1.1 Identifier et corriger des erreurs dans la base WDPA actuelle\n\nDates erronées ou absentes\nMauvais statut ou désignation\nPérimètres inexacts ou doublons\n\n\n\n7.1.2 Vérifier la robustesse d’études s’appuyant sur des bases WDPA passées\n\n\n7.1.3 Mesurer l’ampleur des améliorations apportées\n\nDisposer d’un indicateur valorisant l’effort de fiabilisation des données",
+    "crumbs": [
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Cas d'usage</span>"
+    ]
+  },
+  {
+    "objectID": "06_use_cases.html#enrichir-wdpa",
+    "href": "06_use_cases.html#enrichir-wdpa",
+    "title": "7  Cas d’usage",
+    "section": "7.2 Enrichir WDPA",
+    "text": "7.2 Enrichir WDPA\n\n7.2.1 Histoire légale plus complexe : décrets temporaires et changements de statut\n\nIntégration des protections temporaires, absentes de la WDPA\nTraçabilité des reclassements ou abandons\n\n\n\n7.2.2 Changements de statuts\n\nPassage de réserve spéciale à parc national, ou inversement\nCas de statuts abrogés ou modifiés\n\n\n\n7.2.3 Périmètres internes aux aires protégées\n\nAjout de périmètres partiels ou d’extensions intermédiaires\nDocumentation des aires non encore spatialement représentées",
+    "crumbs": [
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Cas d'usage</span>"
+    ]
+  },
+  {
+    "objectID": "06_use_cases.html#documenter-lhistorique-réglementaire-réel",
+    "href": "06_use_cases.html#documenter-lhistorique-réglementaire-réel",
+    "title": "7  Cas d’usage",
+    "section": "7.3 Documenter l’historique réglementaire réel",
+    "text": "7.3 Documenter l’historique réglementaire réel\n\n7.3.1 Restituer les étapes d’évolution d’une aire protégée\n\n\n7.3.2 Associer chaque polygone à une source réglementaire vérifiable\n\n\n7.3.3 Repérer les aires protégées documentées dans les textes mais absentes de WDPA",
+    "crumbs": [
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Cas d'usage</span>"
     ]
   }
 ]

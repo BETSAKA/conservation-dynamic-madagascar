@@ -15,6 +15,7 @@ book:
     - 03_legal_docs.qmd
     - 04_combination.qmd
     - 05_visual_verif.qmd
+    - 06_use_cases.qmd
 
 bibliography: references.bib
 

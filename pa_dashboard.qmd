@@ -1,0 +1,35 @@
+---
+title: "Visualisation interactive"
+format: html
+server: shiny
+---
+
+```{r}
+#| label: setup
+#| echo: false
+#| message: false
+#| warning: false
+
+library(shiny)
+library(dplyr)
+
+# Load the consolidated PA dataset
+data <- readRDS("data/id/all_PAs_conso.rds")
+
+```
+
+```{r}
+tableOutput("pa_count_table")
+```
+
+```{r}
+#| context: server
+
+output$pa_count_table <- renderTable({
+  data %>%
+    count(dataset_id) %>%
+    arrange(desc(n))
+})
+
+```
+

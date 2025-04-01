@@ -421,6 +421,7 @@ On ajoute enfin les données WDPA de mars 2025. Le jeu consolidé est exporté d
 
 ```{r}
 all_PAs_conso <- wdpa_mdg_2025 |> 
+  mutate(dataset_id = "WDPA_2025") |> 
   st_transform(st_crs(all_PAs_matched))  |> 
   bind_rows(all_PAs_matched)
 all_PAs_conso |> 

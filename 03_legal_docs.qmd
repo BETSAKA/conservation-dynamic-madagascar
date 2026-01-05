@@ -34,7 +34,7 @@ library(tidyverse)
 library(sf)
 library(wdpar)
 
-# Specify the source repository 
+# Specify the source repository
 data_dir <- "sources/"
 # Directory containing the HTML files
 input_dir <- paste0(data_dir, "Décrets/CNLEGIS_complet")
@@ -42,48 +42,80 @@ input_dir <- paste0(data_dir, "Décrets/CNLEGIS_complet")
 
 # Columns to select
 keep_columns <- c(
-  "DATE(S)", "DATE TEXTES", "TEXTE(S)", "TYPE", "NUM TEXTE", "NUM", "OBJET",
-  "OBJET MG", "NUM JO", "DATE JO", "DATE JO FR", "PAGE JO", "ETAT", "NOTE(S)",
-  "NOTES MG", "DOC PDF FR", "DOC PDF MG", "MINISTERE(S)", "id", "HTML FR", 
-  "HTML MG")
+  "DATE(S)",
+  "DATE TEXTES",
+  "TEXTE(S)",
+  "TYPE",
+  "NUM TEXTE",
+  "NUM",
+  "OBJET",
+  "OBJET MG",
+  "NUM JO",
+  "DATE JO",
+  "DATE JO FR",
+  "PAGE JO",
+  "ETAT",
+  "NOTE(S)",
+  "NOTES MG",
+  "DOC PDF FR",
+  "DOC PDF MG",
+  "MINISTERE(S)",
+  "id",
+  "HTML FR",
+  "HTML MG"
+)
 keep_types <- c(
-  "Constitution", "Loi constitutionnelle", "Loi organique", "Loi",
-  "Ordonnance", "Décret", "Arrêté", "Circulaire", "Décision",
-  "Instruction", "Note", "Délibération", "Arrêt", "Avis", "Palmarès",
-  "Procès verbal", "Exposé des motifs de la loi", "Jugement", "Déclaration")
+  "Constitution",
+  "Loi constitutionnelle",
+  "Loi organique",
+  "Loi",
+  "Ordonnance",
+  "Décret",
+  "Arrêté",
+  "Circulaire",
+  "Décision",
+  "Instruction",
+  "Note",
+  "Délibération",
+  "Arrêt",
+  "Avis",
+  "Palmarès",
+  "Procès verbal",
+  "Exposé des motifs de la loi",
+  "Jugement",
+  "Déclaration"
+)
 
 # Function to clean column names
 clean_column_names <- function(names) {
   names %>%
-    str_replace_all("\\(|\\)", "") %>%  # Remove parentheses
-    str_replace_all(" ", "_") %>%      # Replace spaces with underscores
-    str_to_lower()                     # Convert to lowercase
+    str_replace_all("\\(|\\)", "") %>% # Remove parentheses
+    str_replace_all(" ", "_") %>% # Replace spaces with underscores
+    str_to_lower() # Convert to lowercase
 }
-
 
 
 # Function to extract the desired table from a single HTML file
 extract_table <- function(file_path) {
   # Read the HTML file
   html <- read_html(file_path)
-  
+
   # Extract the table
   table <- html %>%
     html_node("table#Lst_docs") %>%
     html_table(fill = TRUE)
-  
-  
+
   # Select the relevant columns
   selected_columns <- table %>%
     select(all_of(keep_columns)) %>%
     filter(TYPE %in% keep_types)
-  
-   colnames(selected_columns) <- clean_column_names(colnames(selected_columns))
 
-      # Ensure all columns are converted to text
-   selected_columns<- selected_columns %>%
-     mutate(across(everything(), as.character))
-   
+  colnames(selected_columns) <- clean_column_names(colnames(selected_columns))
+
+  # Ensure all columns are converted to text
+  selected_columns <- selected_columns %>%
+    mutate(across(everything(), as.character))
+
   return(selected_columns)
 }
 
@@ -92,14 +124,24 @@ html_files <- list.files(input_dir, pattern = "\\.html?$", full.names = TRUE)
 
 # Apply the extraction function to all files
 all_results <- map_dfr(html_files, extract_table) %>%
-  mutate(date_txt = dmy(date_textes), # Convertit les dates
-         date_jo = dmy(date_jo),
-         date_jo = coalesce(date_jo, date_txt)) %>% # 2 cas
+  mutate(
+    date_txt = dmy(date_textes), # Convertit les dates
+    date_jo = dmy(date_jo),
+    date_jo = coalesce(date_jo, date_txt)
+  ) %>% # 2 cas
   relocate(date_txt, date_jo, .before = everything()) # place les dates au début
 
 all_results |>
-  select(-html_fr, -html_mg, -objet_mg, -textes, -num, -doc_pdf_fr, -doc_pdf_mg) |> 
-   DT::datatable(height = 10)
+  select(
+    -html_fr,
+    -html_mg,
+    -objet_mg,
+    -textes,
+    -num,
+    -doc_pdf_fr,
+    -doc_pdf_mg
+  ) |>
+  DT::datatable(height = 10)
 ```
 
 ## Classification par type de réglement
@@ -111,21 +153,38 @@ Les décisions identifiées ont des effets variés : certaines créent de nouvel
 class_results <- all_results %>%
   mutate(
     creation_definitive = str_detect(
-      textes, regex("(?<!en )(création|crétion de l'aire protégée)|instituant", 
-                    ignore_case = TRUE)),
-    modifiant = str_detect(textes, regex("(modifi)|(changem)|Précis", ignore_case = TRUE)),
+      textes,
+      regex(
+        "(?<!en )(création|crétion de l'aire protégée)|instituant",
+        ignore_case = TRUE
+      )
+    ),
+    modifiant = str_detect(
+      textes,
+      regex("(modifi)|(changem)|Précis", ignore_case = TRUE)
+    ),
     prorogation = str_detect(textes, regex("prorog", ignore_case = TRUE)),
     delegation_gestion = str_detect(
-      textes, regex("délégation de gestion", ignore_case = TRUE)),
+      textes,
+      regex("délégation de gestion", ignore_case = TRUE)
+    ),
     mise_protection_temporaire = str_detect(
-      textes, regex("protection temporaire", ignore_case = TRUE)),
-    nomination = str_detect(textes, regex("nomination", ignore_case = TRUE))) %>%
+      textes,
+      regex("protection temporaire", ignore_case = TRUE)
+    ),
+    nomination = str_detect(textes, regex("nomination", ignore_case = TRUE))
+  ) %>%
   mutate(
-    total_true = rowSums(select(., creation_definitive:nomination), na.rm = TRUE),
+    total_true = rowSums(
+      select(., creation_definitive:nomination),
+      na.rm = TRUE
+    ),
     concatenated_true = pmap_chr(
       select(., creation_definitive:nomination),
-      ~ paste(names(which(c(...))), collapse = ", ")),
-    .before = everything()) %>%
+      ~ paste(names(which(c(...))), collapse = ", ")
+    ),
+    .before = everything()
+  ) %>%
   filter(!(total_true == 0)) %>%
   filter(!(total_true == 1 & nomination)) %>% # On enlève le copil Sydney
   filter(!(str_detect(textes, "fonctionnement du Comité de Pilotage"))) %>%
@@ -148,12 +207,14 @@ Les noms extraits des textes officiels peuvent varier par rapport aux noms stand
 class_results <- class_results %>%
   mutate(
     pa = str_extract(
-      textes, regex("[\"«](.*?)[\"»,]|nommée\\s*(.*?)[»,]", ignore_case = TRUE)
+      textes,
+      regex("[\"«](.*?)[\"»,]|nommée\\s*(.*?)[»,]", ignore_case = TRUE)
     ),
     pa = ifelse(
       is.na(pa),
       str_extract(
-        textes, regex("nommée\\s*(.*?)[\"]", ignore_case = TRUE)
+        textes,
+        regex("nommée\\s*(.*?)[\"]", ignore_case = TRUE)
       ),
       pa
     ),
@@ -166,11 +227,11 @@ class_results <- class_results %>%
       pa
     ),
     pa = str_replace(pa, "\"Complexe des Aires", "Complexe des Aires"),
-    pa = str_remove(pa, "^nommée\\s*"),  # Supprime "nommée"
-    pa = str_remove(pa, "^respectivement\\s*"),  # Supprime "nommée"
-    pa = str_remove(pa, "(?<=\")[^\"«]*$"),  # Supprime tout après le 2e guillemet
-    pa = str_remove_all(pa, "[\"«»]"),  # Supprime les quotes
-    pa = str_trim(pa),  # Supprime les espaces en trop
+    pa = str_remove(pa, "^nommée\\s*"), # Supprime "nommée"
+    pa = str_remove(pa, "^respectivement\\s*"), # Supprime "nommée"
+    pa = str_remove(pa, "(?<=\")[^\"«]*$"), # Supprime tout après le 2e guillemet
+    pa = str_remove_all(pa, "[\"«»]"), # Supprime les quotes
+    pa = str_trim(pa), # Supprime les espaces en trop
     pa = str_remove(pa, ",$"),
     pa = str_remove(pa, "^'"),
     .before = textes
@@ -183,54 +244,104 @@ clean_pa_names_cols <- function(df, name_cols) {
     mutate(across(
       all_of(name_cols),
       ~ .x %>%
-        str_replace_all("[\r\n\t]", " ") %>%  # replace line breaks, carriage returns, tabs with space
-        str_squish() %>%                      # collapse multiple spaces into one
-        str_trim()                           # remove leading/trailing whitespace
+        str_replace_all("[\r\n\t]", " ") %>% # replace line breaks, carriage returns, tabs with space
+        str_squish() %>% # collapse multiple spaces into one
+        str_trim() # remove leading/trailing whitespace
     ))
 }
 # Clean extracted PA names (remove \r, \n, tabs, trim spaces)
 class_results <- clean_pa_names_cols(class_results, name_cols = "pa")
 
-pn_rs <- c("Andohahela", "Nosy Mangabe",  "Montagne d'Ambre", "Ankarafantsika",
-  "Analamazaotra", "Kirindy Mite", "Tsimanampesotse", "Mikea", "Nosy Hara", 
-  "Nosy Tanikely", "Lokobe", "Ankarafantsika", "Tsimanampetsotsa", "Namokora", 
-  "Mantadia", "Marojejy", "Kirindy Mite", "Befotaka Midongy",
-  "Zombitse-Vohibasia", "Baie de Baly", "Tsingy-de-Bemaraha", "Masoala", 
-  "Mantadia", "Isalo", "montagne d'Ambre", "Lokobe", "Ankarafantsika", 
-  "Tsimanampetsotsa", "Namokora", "Marojejy",  
-  "Tsingy-de-Bemaraha", "Andringitra", "Ankarafantsika", "Ankarafantsika", 
-  "Nosy Mangabe", "Montagne d'Ambre", "Manongarivo", "Ambatovaky", 
-  "Beza-Mahafaly", "Cap Sainte Marie", "Anjanaharibe-Sud", 
-  "forêt d'Ambohitantely", "Manombo", "île de Mangabe", "Ambatovavy", 
-  "pic d'Ivohibe", "Mangerivola", "Manombo", "cap Sainte-Marie", 
-  "forêt d'Ambre", "forêt Tampoketsa d'Analamaitso", "Andranomena", 
-  "Anjanaharibe-Sud", "Ambohijanahary", "Pointe à Larrée")  |> 
-  unique() |> 
+pn_rs <- c(
+  "Andohahela",
+  "Nosy Mangabe",
+  "Montagne d'Ambre",
+  "Ankarafantsika",
+  "Analamazaotra",
+  "Kirindy Mite",
+  "Tsimanampesotse",
+  "Mikea",
+  "Nosy Hara",
+  "Nosy Tanikely",
+  "Lokobe",
+  "Ankarafantsika",
+  "Tsimanampetsotsa",
+  "Namokora",
+  "Mantadia",
+  "Marojejy",
+  "Kirindy Mite",
+  "Befotaka Midongy",
+  "Zombitse-Vohibasia",
+  "Baie de Baly",
+  "Tsingy-de-Bemaraha",
+  "Masoala",
+  "Mantadia",
+  "Isalo",
+  "montagne d'Ambre",
+  "Lokobe",
+  "Ankarafantsika",
+  "Tsimanampetsotsa",
+  "Namokora",
+  "Marojejy",
+  "Tsingy-de-Bemaraha",
+  "Andringitra",
+  "Ankarafantsika",
+  "Ankarafantsika",
+  "Nosy Mangabe",
+  "Montagne d'Ambre",
+  "Manongarivo",
+  "Ambatovaky",
+  "Beza-Mahafaly",
+  "Cap Sainte Marie",
+  "Anjanaharibe-Sud",
+  "forêt d'Ambohitantely",
+  "Manombo",
+  "île de Mangabe",
+  "Ambatovavy",
+  "pic d'Ivohibe",
+  "Mangerivola",
+  "Manombo",
+  "cap Sainte-Marie",
+  "forêt d'Ambre",
+  "forêt Tampoketsa d'Analamaitso",
+  "Andranomena",
+  "Anjanaharibe-Sud",
+  "Ambohijanahary",
+  "Pointe à Larrée"
+) |>
+  unique() |>
   sort()
 
 class_results <- class_results %>%
   mutate(
-    textes = str_replace_all(textes, "[\r\n]", " "),  
-    textes = str_replace_all(textes, "/", " "), 
+    textes = str_replace_all(textes, "[\r\n]", " "),
+    textes = str_replace_all(textes, "/", " "),
     textes = str_squish(textes),
     pa = ifelse(
       is.na(pa),
-      map_chr(textes, ~ first(pn_rs[str_detect(.x, pn_rs)], default = NA_character_)),
+      map_chr(
+        textes,
+        ~ first(pn_rs[str_detect(.x, pn_rs)], default = NA_character_)
+      ),
       pa
     ), # for some unkown reason, "Pointe à Larrée is not recognized
-    pa = ifelse(num_texte == "2015-773", "Pointe à Larrée", pa),# Explicit assignment
-    pa = ifelse(num_texte == "98-376", "Andrigitra", pa)# Explicit assignment
+    pa = ifelse(num_texte == "2015-773", "Pointe à Larrée", pa), # Explicit assignment
+    pa = ifelse(num_texte == "98-376", "Andrigitra", pa) # Explicit assignment
   )
 
 class_results <- class_results %>%
-  mutate( # For 2008, we find the list of PA created then
-    pa = ifelse(num_texte == "18633/2008" | num_texte == "52005/2010" |
-                  num_texte == "9874/2013",
-                read_rds("data/no_id/sapm_2010.rds") |>
-                  filter(YEAR_IMPLE == "X") |> 
-                  pluck("NOM") |> 
-                  paste(collapse = ", "),
-                pa)
+  mutate(
+    # For 2008, we find the list of PA created then
+    pa = ifelse(
+      num_texte == "18633/2008" |
+        num_texte == "52005/2010" |
+        num_texte == "9874/2013",
+      read_rds("data/no_id/sapm_2010.rds") |>
+        filter(YEAR_IMPLE == "X") |>
+        pluck("NOM") |>
+        paste(collapse = ", "),
+      pa
+    )
   )
 ```
 
@@ -259,9 +370,9 @@ class_clean <- class_results %>%
 
 # Split cells containing multiple names (both ", " and " et " as separators)
 split_class_clean <- class_clean %>%
-  mutate(cleaned_pa_split = str_split(cleaned_pa, ",\\s*|\\s+et\\s+")) %>%  # Split on commas or " et "
+  mutate(cleaned_pa_split = str_split(cleaned_pa, ",\\s*|\\s+et\\s+")) %>% # Split on commas or " et "
   unnest(cleaned_pa_split) %>%
-  rename(single_cleaned_pa = cleaned_pa_split)  # Rename for clarity
+  rename(single_cleaned_pa = cleaned_pa_split) # Rename for clarity
 
 # Function to compute proportional string distance
 match_pa_to_wdpa <- function(pa_name, wdpa_names) {
@@ -269,9 +380,10 @@ match_pa_to_wdpa <- function(pa_name, wdpa_names) {
   distances <- stringdist(
     a = pa_name,
     b = wdpa_names,
-    method = "lv"  # Levenshtein distance
-  ) / pmax(nchar(pa_name), nchar(wdpa_names))
-  
+    method = "lv" # Levenshtein distance
+  ) /
+    pmax(nchar(pa_name), nchar(wdpa_names))
+
   # Find the best match
   best_match_idx <- which.min(distances)
   list(
@@ -284,9 +396,12 @@ match_pa_to_wdpa <- function(pa_name, wdpa_names) {
 conversion_table <- split_class_clean %>%
   rowwise() %>%
   mutate(
-    match_result = list(match_pa_to_wdpa(single_cleaned_pa, wdpa_clean$cleaned_NAME)),
+    match_result = list(match_pa_to_wdpa(
+      single_cleaned_pa,
+      wdpa_clean$cleaned_NAME
+    )),
     closest_match = wdpa_clean$NAME[which.min(
-      stringdist(single_cleaned_pa, wdpa_clean$cleaned_NAME) / 
+      stringdist(single_cleaned_pa, wdpa_clean$cleaned_NAME) /
         pmax(nchar(single_cleaned_pa), nchar(wdpa_clean$cleaned_NAME))
     )],
     match_distance = min(
@@ -322,28 +437,33 @@ conversion_table_verif <- read_xlsx("data/conversion_table_verif.xlsx") %>%
 
 # Merge with split_class_clean to integrate the verified closest matches
 decision_pa <- split_class_clean %>%
-  left_join(conversion_table_verif, by = c("single_cleaned_pa" = "original_pa")) %>%
+  left_join(
+    conversion_table_verif,
+    by = c("single_cleaned_pa" = "original_pa")
+  ) %>%
   distinct(pa, num_texte, .keep_all = TRUE) %>%
-  select(date_texte = date_txt,
-         ap_nom_texte = pa,
-         WDPA_NAME,
-         WDPAID,
-         texte = textes,
-         type_texte = type,
-         num_texte,
-         num_texte_variante = num,
-         id_texte = id,
-         objet_texte = objet,
-         type_decision = concatenated_true,
-         date_jo,
-         page_jo,
-         etat_texte = etat,
-         notes_texte = notes,
-         ministeres,
-         html_fr,
-         html_mg,
-         doc_pdf_fr, 
-         doc_pdf_mg)
+  select(
+    date_texte = date_txt,
+    ap_nom_texte = pa,
+    WDPA_NAME,
+    WDPAID,
+    texte = textes,
+    type_texte = type,
+    num_texte,
+    num_texte_variante = num,
+    id_texte = id,
+    objet_texte = objet,
+    type_decision = concatenated_true,
+    date_jo,
+    page_jo,
+    etat_texte = etat,
+    notes_texte = notes,
+    ministeres,
+    html_fr,
+    html_mg,
+    doc_pdf_fr,
+    doc_pdf_mg
+  )
 
 write_rds(decision_pa, "data/id/legal_texts.rds")
 ```

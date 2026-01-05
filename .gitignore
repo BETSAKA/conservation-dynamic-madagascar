@@ -10,3 +10,4 @@ test_*
 *.Rproj
 Backlog.txt
 .vscode*
+**/*.quarto_ipynb

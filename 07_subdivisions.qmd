@@ -31,7 +31,8 @@ wdpa_alaotra <- wdpa_mdg |>
   filter(str_detect(DESIG, "Ramsar", negate = TRUE)) # on enlève le site Ramsar
 
 sub_alaotra <- st_read(
-  "data/subdivisions/Alaotra/shapefile/Limite_AP_Alaotra.shp"
+  "data/subdivisions/Alaotra/shapefile/Limite_AP_Alaotra.shp",
+  quiet = TRUE
 )
 
 tm_shape(wdpa_alaotra) +
@@ -61,35 +62,43 @@ wdpa_baobabs <- wdpa_mdg |>
   filter(str_detect(NAME, "Baobabs"))
 
 sub_baobabs_limites <- st_read(
-  "data/subdivisions/Allée de Baobabs/Zonage ADB/Limite AP ADB.shp"
+  "data/subdivisions/Allée de Baobabs/Zonage ADB/Limite AP ADB.shp",
+  quiet = TRUE
 ) |>
   st_transform(st_crs(wdpa_baobabs))
 sub_baobabs_noyau_dur <- st_read(
-  "data/subdivisions/Allée de Baobabs/Zonage ADB/Noyau dur.shp"
+  "data/subdivisions/Allée de Baobabs/Zonage ADB/Noyau dur.shp",
+  quiet = TRUE
 ) |>
   st_transform(st_crs(wdpa_baobabs))
 sub_baobabs_agroforesterie <- st_read(
-  "data/subdivisions/Allée de Baobabs/Zonage ADB/Zone Agroforesterie.shp"
+  "data/subdivisions/Allée de Baobabs/Zonage ADB/Zone Agroforesterie.shp",
+  quiet = TRUE
 ) |>
   st_transform(st_crs(wdpa_baobabs))
 sub_baobabs_habitation <- st_read(
-  "data/subdivisions/Allée de Baobabs/Zonage ADB/Zone d'habitation.shp"
+  "data/subdivisions/Allée de Baobabs/Zonage ADB/Zone d'habitation.shp",
+  quiet = TRUE
 ) |>
   st_transform(st_crs(wdpa_baobabs))
 sub_baobabs_occupation_controlee <- st_read(
-  "data/subdivisions/Allée de Baobabs/Zonage ADB/Zone d'occupation contrôler.shp"
+  "data/subdivisions/Allée de Baobabs/Zonage ADB/Zone d'occupation contrôler.shp",
+  quiet = TRUE
 ) |>
   st_transform(st_crs(wdpa_baobabs))
 sub_baobabs_paturages <- st_read(
-  "data/subdivisions/Allée de Baobabs/Zonage ADB/Zone de paturage.shp"
+  "data/subdivisions/Allée de Baobabs/Zonage ADB/Zone de paturage.shp",
+  quiet = TRUE
 ) |>
   st_transform(st_crs(wdpa_baobabs))
 sub_baobabs_reboisement <- st_read(
-  "data/subdivisions/Allée de Baobabs/Zonage ADB/Zone de reboisement.shp"
+  "data/subdivisions/Allée de Baobabs/Zonage ADB/Zone de reboisement.shp",
+  quiet = TRUE
 ) |>
   st_transform(st_crs(wdpa_baobabs))
 sub_baobabs_tourisme <- st_read(
-  "data/subdivisions/Allée de Baobabs/Zonage ADB/Zone de service touristique.shp"
+  "data/subdivisions/Allée de Baobabs/Zonage ADB/Zone de service touristique.shp",
+  quiet = TRUE
 ) |>
   st_transform(st_crs(wdpa_baobabs))
 
@@ -234,19 +243,23 @@ wdpa_ambohidray <- wdpa_mdg |>
   filter(str_detect(NAME, "Ambohidray"))
 
 sub_ambohidray_limite <- st_read(
-  "data/subdivisions/Ambohidray/shapefiles/Veritable_Limite_Amb.shp"
+  "data/subdivisions/Ambohidray/shapefiles/Veritable_Limite_Amb.shp",
+  quiet = TRUE
 )
 
 sub_ambohidray_tampon <- st_read(
-  "data/subdivisions/Ambohidray/shapefiles/Zone tampon.shp"
+  "data/subdivisions/Ambohidray/shapefiles/Zone tampon.shp",
+  quiet = TRUE
 )
 
 sub_ambohidray_recherche <- st_read(
-  "data/subdivisions/Ambohidray/shapefiles/Zone de recherche.shp"
+  "data/subdivisions/Ambohidray/shapefiles/Zone de recherche.shp",
+  quiet = TRUE
 )
 
 sub_ambohidray_tourisme <- st_read(
-  "data/subdivisions/Ambohidray/shapefiles/Zone écoutouristique.shp"
+  "data/subdivisions/Ambohidray/shapefiles/Zone écoutouristique.shp",
+  quiet = TRUE
 )
 
 tm_shape(wdpa_baobabs) +
@@ -304,7 +317,8 @@ wdpa_ambondrobe <- wdpa_mdg |>
   filter(str_detect(DESIG, "Ramsar", negate = TRUE)) # on enlève le site Ramsar
 
 sub_ambondrobe <- st_read(
-  "data/subdivisions/Ambondrobe/shapefile/Lim_AP_Ambondrobe.shp"
+  "data/subdivisions/Ambondrobe/shapefile/Lim_AP_Ambondrobe.shp",
+  quiet = TRUE
 )
 
 tm_shape(wdpa_ambondrobe) +
@@ -699,31 +713,40 @@ wdpa_antrema <- wdpa_mdg |>
   filter(str_detect(DESIG, "Ramsar", negate = TRUE)) # on enlève le site Ramsar
 
 sub_antrema_limite <- st_read(
-  "data/subdivisions/Antrema/shapefiles/Zonage/Limite Antrema.shp"
+  "data/subdivisions/Antrema/shapefiles/Zonage/Limite Antrema.shp",
+  quiet = TRUE
 )
 sub_antrema_agropastorale <- st_read(
-  "data/subdivisions/Antrema/shapefiles/Zonage/Agropastorale.shp"
+  "data/subdivisions/Antrema/shapefiles/Zonage/Agropastorale.shp",
+  quiet = TRUE
 )
 sub_antrema_recherche <- st_read(
-  "data/subdivisions/Antrema/shapefiles/Zonage/Recherche.shp"
+  "data/subdivisions/Antrema/shapefiles/Zonage/Recherche.shp",
+  quiet = TRUE
 )
 sub_antrema_tourisme <- st_read(
-  "data/subdivisions/Antrema/shapefiles/Zonage/Ecotourisme.shp"
+  "data/subdivisions/Antrema/shapefiles/Zonage/Ecotourisme.shp",
+  quiet = TRUE
 )
 sub_antrema_noyau <- st_read(
-  "data/subdivisions/Antrema/shapefiles/Zonage/Noyau dur.shp"
+  "data/subdivisions/Antrema/shapefiles/Zonage/Noyau dur.shp",
+  quiet = TRUE
 )
 sub_antrema_conservation <- st_read(
-  "data/subdivisions/Antrema/shapefiles/Zonage/Conservation.shp"
+  "data/subdivisions/Antrema/shapefiles/Zonage/Conservation.shp",
+  quiet = TRUE
 )
 sub_antrema_reboisement <- st_read(
-  "data/subdivisions/Antrema/shapefiles/Zonage/Périmètre de reboisement.shp"
+  "data/subdivisions/Antrema/shapefiles/Zonage/Périmètre de reboisement.shp",
+  quiet = TRUE
 )
 sub_antrema_marine <- st_read(
-  "data/subdivisions/Antrema/shapefiles/Zonage/Reserve marine.shp"
+  "data/subdivisions/Antrema/shapefiles/Zonage/Reserve marine.shp",
+  quiet = TRUE
 )
 sub_antrema_utilisation_locale <- st_read(
-  "data/subdivisions/Antrema/shapefiles/Zonage/Utilisation locale.shp"
+  "data/subdivisions/Antrema/shapefiles/Zonage/Utilisation locale.shp",
+  quiet = TRUE
 )
 
 tm_shape(wdpa_antrema) +
@@ -1141,7 +1164,8 @@ wdpa_mahialambo <- wdpa_mdg |>
   filter(str_detect(NAME, regex("Mahimborondro", ignore_case = TRUE)))
 
 sub_mahimborondro <- st_read(
-  "data/subdivisions/Mahimborondro/Mahimborondro_ProtectedArea.shp"
+  "data/subdivisions/Mahimborondro/Mahimborondro_ProtectedArea.shp",
+  quiet = TRUE
 )
 
 
@@ -1718,8 +1742,8 @@ extract_wdpa_id_name <- function(wdpa_sf) {
 nd_to_multipolygon <- function(
   nd_sf,
   crs_target,
-  crs_work = 29702,   # Laborde Madagascar, adapté pour l'union
-  snap = 1e-3         # en mètres dans crs_work, ajuste si besoin
+  crs_work = 29702, # Laborde Madagascar, adapté pour l'union
+  snap = 1e-3 # en mètres dans crs_work, ajuste si besoin
 ) {
   x <- nd_sf |>
     st_transform(crs_target) |>

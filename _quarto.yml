@@ -16,6 +16,7 @@ book:
     - 04_combination.qmd
     - 05_visual_verif.qmd
     - 06_use_cases.qmd
+    - 07_subdivisions.qmd
 
 bibliography: references.bib
 

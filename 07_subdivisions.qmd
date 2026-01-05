@@ -1715,29 +1715,47 @@ extract_wdpa_id_name <- function(wdpa_sf) {
   )
 }
 
-nd_to_multipolygon <- function(nd_sf, crs_target = NULL) {
+nd_to_multipolygon <- function(
+  nd_sf,
+  crs_target,
+  crs_work = 29702,   # Laborde Madagascar, adapté pour l'union
+  snap = 1e-3         # en mètres dans crs_work, ajuste si besoin
+) {
   x <- nd_sf |>
-    st_make_valid()
+    st_transform(crs_target) |>
+    sf::st_make_valid()
 
-  if (!is.null(crs_target)) {
-    x <- st_transform(x, crs_target)
+  # Union en CRS projeté, plus robuste
+  x <- x |>
+    st_transform(crs_work) |>
+    sf::st_make_valid()
+
+  # Option "snap to grid" pour casser certaines auto-intersections numériques
+  # (snap en mètres, ici 1 mm)
+  x <- st_set_precision(x, 1 / snap) |>
+    st_snap_to_grid(snap)
+
+  u <- tryCatch(
+    st_union(x),
+    error = function(e) NULL
+  )
+
+  # Secours: buffer 0 (en CRS projeté) puis union
+  if (is.null(u)) {
+    x2 <- tryCatch(st_buffer(x, 0), error = function(e) x)
+    u <- st_union(x2)
   }
 
-  x <- x |>
-    st_union() |>
-    lwgeom::st_make_valid()
+  u <- u |>
+    sf::st_make_valid() |>
+    st_collection_extract("POLYGON", warn = FALSE) |>
+    st_cast("MULTIPOLYGON", warn = FALSE) |>
+    st_transform(crs_target) |>
+    sf::st_make_valid()
 
-  # Si la réparation produit une GEOMETRYCOLLECTION, on garde les polygones
-  x <- st_collection_extract(x, "POLYGON", warn = FALSE)
-
-  # Forcer MULTIPOLYGON
-  x <- st_cast(x, "MULTIPOLYGON", warn = FALSE)
-
-  # Sécurité: re-validation finale
-  x <- lwgeom::st_make_valid(x)
-
-  x
+  u
 }
+
 
 make_nd_row <- function(pa_label, wdpa_sf, nd_sf) {
   idn <- extract_wdpa_id_name(wdpa_sf)
@@ -1818,10 +1836,12 @@ nd_sf <- nd_rows |>
 
 st_write(
   nd_sf,
-  "outputs/noyaux_durs_exploitables.geojson",
+  "data/noyaux_durs_exploitables.geojson",
   driver = "GeoJSON",
   delete_dsn = TRUE,
   quiet = TRUE
 )
 
 ```
+
+Les données contenant les périmètres internes des 17 AP exploitables sont maintenant enregistrées.

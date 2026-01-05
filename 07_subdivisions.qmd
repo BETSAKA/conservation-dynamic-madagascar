@@ -1,0 +1,1847 @@
+# Validation des données de subdivision
+
+On charge d'abord la base de données WDPA, avec laquelle on viendra comparer les résultats.
+
+```{r}
+# Charger les bibliothèques nécessaires
+library(tidyverse)
+library(sf)
+library(tmap)
+library(wdpar)
+
+# Chargement des données WDPA
+wdpa_mdg <- wdpa_read("data/WDPA_WDOECM_Nov2025_Public_MDG.zip")
+
+# Préciser le mode rendu des cartes
+tmap_mode("view")
+
+tm_shape(wdpa_mdg) +
+  tm_polygons()
+```
+
+On a 167 AP terrestres et marines dans la base WDPA, version de novembre 2025.
+
+## Alaotra
+
+Pour cette AP comme pour les précédente, on va comparer les données WDPA avec celles transmises au MEDD.
+
+```{r}
+wdpa_alaotra <- wdpa_mdg |>
+  filter(str_detect(NAME, "Alaotra")) |> # détecte l'AP et le site RAMSAR
+  filter(str_detect(DESIG, "Ramsar", negate = TRUE)) # on enlève le site Ramsar
+
+sub_alaotra <- st_read(
+  "data/subdivisions/Alaotra/shapefile/Limite_AP_Alaotra.shp"
+)
+
+tm_shape(wdpa_alaotra) +
+  tm_borders(col = "red") +
+  tm_shape(sub_alaotra) +
+  tm_borders(col = "blue")
+```
+
+Les deux données semblent très proches l'une de l'autre, il est peu vraisemblable que les données fournies correspondent à une subdivision interne. A moins que l'AP soit considérée comme une subdivision interne du site Ramsar?
+
+## Allée des Baobabs
+
+Le jeu de données Allée des Baobabs contient de nombeux shapefiles.
+
+```{r}
+list.files(
+  "data/subdivisions/Allée de Baobabs/Zonage ADB",
+  pattern = "\\.shp"
+) |>
+  cat(sep = "\n")
+```
+
+On les charge et on les superpose aux données WPDA.
+
+```{r}
+wdpa_baobabs <- wdpa_mdg |>
+  filter(str_detect(NAME, "Baobabs"))
+
+sub_baobabs_limites <- st_read(
+  "data/subdivisions/Allée de Baobabs/Zonage ADB/Limite AP ADB.shp"
+) |>
+  st_transform(st_crs(wdpa_baobabs))
+sub_baobabs_noyau_dur <- st_read(
+  "data/subdivisions/Allée de Baobabs/Zonage ADB/Noyau dur.shp"
+) |>
+  st_transform(st_crs(wdpa_baobabs))
+sub_baobabs_agroforesterie <- st_read(
+  "data/subdivisions/Allée de Baobabs/Zonage ADB/Zone Agroforesterie.shp"
+) |>
+  st_transform(st_crs(wdpa_baobabs))
+sub_baobabs_habitation <- st_read(
+  "data/subdivisions/Allée de Baobabs/Zonage ADB/Zone d'habitation.shp"
+) |>
+  st_transform(st_crs(wdpa_baobabs))
+sub_baobabs_occupation_controlee <- st_read(
+  "data/subdivisions/Allée de Baobabs/Zonage ADB/Zone d'occupation contrôler.shp"
+) |>
+  st_transform(st_crs(wdpa_baobabs))
+sub_baobabs_paturages <- st_read(
+  "data/subdivisions/Allée de Baobabs/Zonage ADB/Zone de paturage.shp"
+) |>
+  st_transform(st_crs(wdpa_baobabs))
+sub_baobabs_reboisement <- st_read(
+  "data/subdivisions/Allée de Baobabs/Zonage ADB/Zone de reboisement.shp"
+) |>
+  st_transform(st_crs(wdpa_baobabs))
+sub_baobabs_tourisme <- st_read(
+  "data/subdivisions/Allée de Baobabs/Zonage ADB/Zone de service touristique.shp"
+) |>
+  st_transform(st_crs(wdpa_baobabs))
+
+tm_shape(wdpa_baobabs) +
+  tm_borders(col = "red") +
+  tm_shape(sub_baobabs_limites) +
+  tm_borders(col = "blue") +
+  tm_shape(sub_baobabs_noyau_dur) +
+  tm_polygons(col = "green", fill = "green") +
+  tm_shape(sub_baobabs_agroforesterie) +
+  tm_borders(col = "brown") +
+  tm_shape(sub_baobabs_habitation) +
+  tm_borders(col = "orange") +
+  tm_shape(sub_baobabs_occupation_controlee) +
+  tm_borders(col = "purple") +
+  tm_shape(sub_baobabs_paturages) +
+  tm_borders(col = "grey") +
+  tm_shape(sub_baobabs_reboisement) +
+  tm_borders(col = "lightgreen") +
+  tm_shape(sub_baobabs_tourisme) +
+  tm_borders(col = "pink") +
+  tm_add_legend(
+    type = "lines",
+    labels = c(
+      "WDPA",
+      "Limite",
+      "Noyau dur",
+      "Agroforesterie",
+      "Habitation",
+      "Occupation controlée",
+      "Paturages",
+      "reboisement",
+      "Tourisme"
+    ),
+    col = c(
+      "red",
+      "blue",
+      "green",
+      "brown",
+      "orange",
+      "purple",
+      "grey",
+      "lightgreen",
+      "pink"
+    )
+  ) +
+  tm_add_legend(
+    type = "fill",
+    labels = c(
+      "Noyau dur"
+    ),
+    col = c(
+      "lightgreen"
+    )
+  )
+```
+
+Comme les périmètres se recoupent, on ajoute un remplissage pour le noyau dur. On voit que le noyau dur occupe une portion plus restreinte de l'AP comparé à d'autres. On observe un décallage de la limite extérieure de l'AP entre les données transmises au MEDD et les données WDPA. Cela ne semble pas être un problème de projection.
+
+## Ambatofostsy
+
+Il y a cinq shapefiles différents pour Ambatofotsy:
+
+```{r}
+list.files(
+  "data/subdivisions/Ambatofotsy",
+  pattern = "\\.shp"
+) |>
+  cat(sep = "\n")
+```
+
+```{r}
+wdpa_ambatofotsy <- wdpa_mdg |>
+  filter(str_detect(NAME, regex("Ambatofotsy", ignore_case = TRUE)))
+
+sub_ambatofotsy_limite <- st_read(
+  "data/subdivisions/Ambatofotsy/délim_afotsy_wgs84.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_ambatofotsy))
+
+sub_ambatofotsy_dina30m <- st_read(
+  "data/subdivisions/Ambatofotsy/dina30m_afotsy_wgs84.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_ambatofotsy))
+
+sub_ambatofotsy_du <- st_read(
+  "data/subdivisions/Ambatofotsy/du_afotsy_wgs84.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_ambatofotsy))
+
+sub_ambatofotsy_nd <- st_read(
+  "data/subdivisions/Ambatofotsy/nd_afotsy_wgs84.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_ambatofotsy))
+
+sub_ambatofotsy_zuc <- st_read(
+  "data/subdivisions/Ambatofotsy/zuc_afotsy_wgs84.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_ambatofotsy))
+
+tm_shape(wdpa_ambatofotsy) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(sub_ambatofotsy_limite) +
+  tm_borders(col = "blue") +
+  tm_shape(sub_ambatofotsy_nd) +
+  tm_polygons(col = "green", fill = "green") +
+  tm_shape(sub_ambatofotsy_du) +
+  tm_borders(col = "brown") +
+  tm_shape(sub_ambatofotsy_nd) +
+  tm_borders(col = "purple") +
+  tm_shape(sub_ambatofotsy_zuc) +
+  tm_borders(col = "orange") +
+  tm_add_legend(
+    type = "lines",
+    labels = c("WDPA", "Limite", "ND", "DU", "Dina 30m", "ZUC"),
+    col = c("red", "blue", "green", "brown", "purple", "orange")
+  ) +
+  tm_add_legend(
+    type = "fill",
+    labels = c("ND"),
+    col = c("lightgreen")
+  )
+
+```
+
+Tout semble cohérent, hormis un léger décallage des périmètres entre les données transmises au MEDD et les données WDPA.
+
+## Ambohidray
+
+```{r}
+wdpa_ambohidray <- wdpa_mdg |>
+  filter(str_detect(NAME, "Ambohidray"))
+
+sub_ambohidray_limite <- st_read(
+  "data/subdivisions/Ambohidray/shapefiles/Veritable_Limite_Amb.shp"
+)
+
+sub_ambohidray_tampon <- st_read(
+  "data/subdivisions/Ambohidray/shapefiles/Zone tampon.shp"
+)
+
+sub_ambohidray_recherche <- st_read(
+  "data/subdivisions/Ambohidray/shapefiles/Zone de recherche.shp"
+)
+
+sub_ambohidray_tourisme <- st_read(
+  "data/subdivisions/Ambohidray/shapefiles/Zone écoutouristique.shp"
+)
+
+tm_shape(wdpa_baobabs) +
+  tm_borders(col = "red") +
+  tm_shape(sub_baobabs_limites) +
+  tm_borders(col = "blue") +
+  tm_shape(sub_baobabs_noyau_dur) +
+  tm_borders(col = "green") +
+  tm_shape(sub_baobabs_agroforesterie) +
+  tm_borders(col = "brown") +
+  tm_shape(sub_baobabs_habitation) +
+  tm_borders(col = "orange") +
+  tm_shape(sub_baobabs_occupation_controlee) +
+  tm_borders(col = "purple") +
+  tm_shape(sub_baobabs_paturages) +
+  tm_borders(col = "grey") +
+  tm_shape(sub_baobabs_reboisement) +
+  tm_borders(col = "lightgreen") +
+  tm_shape(sub_baobabs_tourisme) +
+  tm_borders(col = "pink") +
+  tm_add_legend(
+    type = "lines",
+    labels = c(
+      "WDPA",
+      "Limite",
+      "Noyau dur",
+      "Agroforesterie",
+      "Habitation",
+      "Occupation controlée",
+      "Paturages",
+      "Reboisement",
+      "Tourisme"
+    ),
+    col = c(
+      "red",
+      "blue",
+      "green",
+      "brown",
+      "orange",
+      "purple",
+      "grey",
+      "lightgreen",
+      "pink"
+    )
+  )
+```
+
+Les données semblent cohérentes. On observe un décalage par rapport aux limites contenues dans WDPA.
+
+## Ambondrobe
+
+```{r}
+wdpa_ambondrobe <- wdpa_mdg |>
+  filter(str_detect(NAME, "Ambondrobe")) |> # détecte l'AP et le site RAMSAR
+  filter(str_detect(DESIG, "Ramsar", negate = TRUE)) # on enlève le site Ramsar
+
+sub_ambondrobe <- st_read(
+  "data/subdivisions/Ambondrobe/shapefile/Lim_AP_Ambondrobe.shp"
+)
+
+tm_shape(wdpa_ambondrobe) +
+  tm_borders(col = "red") +
+  tm_shape(sub_ambondrobe) +
+  tm_borders(col = "blue")
+```
+
+Les deux données semblent très proches l'une de l'autre, il est peu vraisemblable que les données fournies correspondent à une subdivision interne. A moins que l'AP soit considérée comme une subdivision interne du site Ramsar?
+
+\## Ampotaka Ankorabe
+
+```{r}
+list.files(
+  "data/subdivisions/Ampotaka Ankorabe",
+  pattern = "\\.shp"
+) |>
+  cat(sep = "\n")
+```
+
+```{r}
+
+wdpa_ampotaka <- wdpa_mdg |>
+  filter(str_detect(NAME, regex("Ampotaka", ignore_case = TRUE))) |>
+  filter(str_detect(NAME, regex("Ankorabe", ignore_case = TRUE)))
+
+sub_ampotaka_limite <- st_read(
+  "data/subdivisions/Ampotaka Ankorabe/del_zonage_ampotakankorabe.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_ampotaka))
+
+sub_ampotaka_dina30m <- st_read(
+  "data/subdivisions/Ampotaka Ankorabe/Dina30m_AmpotakaAnkorabe.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_ampotaka))
+
+sub_ampotaka_du <- st_read(
+  "data/subdivisions/Ampotaka Ankorabe/DU_AmpotakaAnkorabe.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_ampotaka))
+
+sub_ampotaka_nd <- st_read(
+  "data/subdivisions/Ampotaka Ankorabe/ND_AmpotakaAnkorabe.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_ampotaka))
+
+sub_ampotaka_zuc <- st_read(
+  "data/subdivisions/Ampotaka Ankorabe/ZUC_AmpotakaAnkorabe.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_ampotaka))
+
+tm_shape(wdpa_ampotaka) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(sub_ampotaka_limite) +
+  tm_borders(col = "blue") +
+  tm_shape(sub_ampotaka_nd) +
+  tm_polygons(col = "green", fill = "green") +
+  tm_shape(sub_ampotaka_du) +
+  tm_borders(col = "brown") +
+  tm_shape(sub_ampotaka_dina30m) +
+  tm_borders(col = "purple") +
+  tm_shape(sub_ampotaka_zuc) +
+  tm_borders(col = "orange") +
+  tm_add_legend(
+    type = "lines",
+    labels = c("WDPA", "Limite", "ND", "DU", "Dina 30m", "ZUC"),
+    col = c("red", "blue", "green", "brown", "purple", "orange")
+  ) +
+  tm_add_legend(
+    type = "fill",
+    labels = c("ND"),
+    col = c("lightgreen")
+  )
+```
+
+On observe un décallage entre les frontières externes de l'AP selon les sources (WDPA vs. envoi MEDD). On a bien un noyau dur, mais il dépasse du périmètre extérieur WDPA.
+
+## Analabe Betanantanana
+
+```{r}
+list.files(
+  "data/subdivisions/Analabe Betanantanana",
+  pattern = "\\.shp"
+) |>
+  cat(sep = "\n")
+```
+
+```{r}
+wdpa_analabe <- wdpa_mdg |>
+  filter(str_detect(NAME, regex("Analabe", ignore_case = TRUE)))
+
+sub_analabe_limite <- st_read(
+  "data/subdivisions/Analabe Betanantanana/analabe lim project.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_analabe))
+
+sub_analabe_nd <- st_read(
+  "data/subdivisions/Analabe Betanantanana/Noyau dur Analabe.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_analabe))
+
+tm_shape(wdpa_analabe) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(sub_analabe_limite) +
+  tm_borders(col = "blue") +
+  tm_shape(sub_analabe_nd) +
+  tm_polygons(col = "green", fill = "green") +
+  tm_add_legend(
+    type = "lines",
+    labels = c("WDPA", "Limite", "ND"),
+    col = c("red", "blue", "green")
+  ) +
+  tm_add_legend(
+    type = "fill",
+    labels = c("ND"),
+    col = c("lightgreen")
+  )
+
+```
+
+On observe un décalage important entre la limite de l'AP transmise par le gestionnaire et celle disponible dans WDPA (plus petite) : elles ne se recouvent que partiellement. Le noyau dur fourni ne recoupe que partiellement la limite WDPA.
+
+## Analalava
+
+```{r}
+list.files(
+  "data/subdivisions/Analalava",
+  pattern = "\\.shp"
+) |>
+  cat(sep = "\n")
+```
+
+```{r}
+wdpa_analalava <- wdpa_mdg |>
+  filter(str_detect(NAME, regex("Analalava", ignore_case = TRUE))) |>
+  filter(IUCN_CAT == "VI")
+
+sub_analalava_limite <- st_read(
+  "data/subdivisions/Analalava/analalava limite project.shp",
+  quiet = TRUE
+) |>
+  st_transform(st_crs(wdpa_analalava))
+
+sub_analalava_nd <- st_read(
+  "data/subdivisions/Analalava/ND analalava.shp",
+  quiet = TRUE
+) |>
+  st_transform(st_crs(wdpa_analalava))
+
+
+tm_shape(wdpa_analalava) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(sub_analalava_limite) +
+  tm_borders(col = "blue") +
+  tm_shape(sub_analalava_nd) +
+  tm_polygons(col = "green", fill = "green") +
+  tm_shape(sub_analalava_nd) +
+  tm_borders(col = "purple") +
+  tm_add_legend(
+    type = "lines",
+    labels = c("WDPA", "Limite", "ND"),
+    col = c("red", "blue", "green")
+  ) +
+  tm_add_legend(
+    type = "fill",
+    labels = c("ND"),
+    col = c("lightgreen")
+  )
+
+```
+
+Les périmètres correspondent et les données semblent cohérentes.
+
+## Andrafiamena Andavakoera
+
+Plusieurs fichiers pour les données d'Andrafiamena
+
+```{r}
+list.files(
+  "data/subdivisions/Andrafiamena Andavakoera",
+  pattern = "\\.shp"
+) |>
+  cat(sep = "\n")
+```
+
+```{r}
+wdpa_andraf <- wdpa_mdg |>
+  filter(str_detect(NAME, regex("Andrafiamena", ignore_case = TRUE)))
+
+sub_andraf_limite <- st_read(
+  "data/subdivisions/Andrafiamena Andavakoera/Limite AP Andrafiamena Andavakoera.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_andraf))
+
+sub_andraf_nd <- st_read(
+  "data/subdivisions/Andrafiamena Andavakoera/Noyau dur AP Andrafiamena Andavakoera.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_andraf))
+
+sub_andraf_dev_agri <- st_read(
+  "data/subdivisions/Andrafiamena Andavakoera/Zone de developpement agricole_ADF.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_andraf))
+
+sub_andraf_dev_tour <- st_read(
+  "data/subdivisions/Andrafiamena Andavakoera/Zone de developpement du tourisme.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_andraf))
+
+sub_andraf_paturage <- st_read(
+  "data/subdivisions/Andrafiamena Andavakoera/Zone de paturage_ADF.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_andraf))
+
+sub_andraf_rebois <- st_read(
+  "data/subdivisions/Andrafiamena Andavakoera/Zone de reboisement_ADF.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_andraf))
+
+tm_shape(wdpa_andraf) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(sub_andraf_limite) +
+  tm_borders(col = "blue") +
+  tm_shape(sub_andraf_nd) +
+  tm_polygons(col = "green", fill = "green") +
+  tm_shape(sub_andraf_dev_agri) +
+  tm_borders(col = "brown") +
+  tm_shape(sub_andraf_dev_tour) +
+  tm_borders(col = "orange") +
+  tm_shape(sub_andraf_paturage) +
+  tm_borders(col = "purple") +
+  tm_shape(sub_andraf_rebois) +
+  tm_borders(col = "grey") +
+  tm_add_legend(
+    type = "lines",
+    labels = c(
+      "WDPA",
+      "Limite",
+      "ND",
+      "Dev agricole",
+      "Dev tourisme",
+      "Paturage",
+      "Reboisement"
+    ),
+    col = c("red", "blue", "green", "brown", "orange", "purple", "grey")
+  ) +
+  tm_add_legend(
+    type = "fill",
+    labels = c("ND"),
+    col = c("lightgreen")
+  )
+
+```
+
+Il y a de très légères différences entre les périmètres externes WDPA et transmis MEDD. Les données de périmètres internes semblent riches et relativement cohérentes entre elles.
+
+## Anjozorobe Angavo
+
+```{r}
+list.files(
+  "data/subdivisions/Anjozorobe Angavo",
+  pattern = "\\.shp"
+) |>
+  cat(sep = "\n")
+```
+
+```{r}
+wdpa_anjozorobe <- wdpa_mdg |>
+  filter(str_detect(NAME, regex("Anjozorobe", ignore_case = TRUE))) |>
+  filter(str_detect(NAME, regex("Angavo", ignore_case = TRUE)))
+
+sub_anjo_limite <- st_read(
+  "data/subdivisions/Anjozorobe Angavo/Limite AP Anjozorobe Angavo.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_anjozorobe))
+
+sub_anjo_nd <- st_read(
+  "data/subdivisions/Anjozorobe Angavo/Noyau dur AP Anjozorobe Angavo.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_anjozorobe))
+
+sub_anjo_agro <- st_read(
+  "data/subdivisions/Anjozorobe Angavo/Zone Agroforesterie.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_anjozorobe))
+
+sub_anjo_rebois <- st_read(
+  "data/subdivisions/Anjozorobe Angavo/Zone de reboisement.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_anjozorobe))
+
+sub_anjo_restaur <- st_read(
+  "data/subdivisions/Anjozorobe Angavo/Zone de restauration.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_anjozorobe))
+
+sub_anjo_suivi <- st_read(
+  "data/subdivisions/Anjozorobe Angavo/Zone de suici ecologique.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_anjozorobe))
+
+sub_anjo_dev_agri <- st_read(
+  "data/subdivisions/Anjozorobe Angavo/Zone developpement agricole.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_anjozorobe))
+
+tm_shape(wdpa_anjozorobe) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(sub_anjo_limite) +
+  tm_borders(col = "blue") +
+  tm_shape(sub_anjo_nd) +
+  tm_polygons(col = "green", fill = "green") +
+  tm_shape(sub_anjo_agro) +
+  tm_borders(col = "brown") +
+  tm_shape(sub_anjo_rebois) +
+  tm_borders(col = "orange") +
+  tm_shape(sub_anjo_restaur) +
+  tm_borders(col = "purple") +
+  tm_shape(sub_anjo_suivi) +
+  tm_borders(col = "grey") +
+  tm_shape(sub_anjo_dev_agri) +
+  tm_borders(col = "pink") +
+  tm_add_legend(
+    type = "lines",
+    labels = c(
+      "WDPA",
+      "Limite",
+      "ND",
+      "Agroforesterie",
+      "Reboisement",
+      "Restauration",
+      "Suivi ecologique",
+      "Dev agricole"
+    ),
+    col = c("red", "blue", "green", "brown", "orange", "purple", "grey", "pink")
+  ) +
+  tm_add_legend(
+    type = "fill",
+    labels = c("ND"),
+    col = c("lightgreen")
+  )
+
+```
+
+Les périmètres externes fournis sont très proches de ceux de WDPA et les périmètres internes semblent cohérents.
+
+## Antrema
+
+```{r}
+wdpa_antrema <- wdpa_mdg |>
+  filter(str_detect(NAME, "Antrema")) |> # détecte l'AP et le site RAMSAR
+  filter(str_detect(DESIG, "Ramsar", negate = TRUE)) # on enlève le site Ramsar
+
+sub_antrema_limite <- st_read(
+  "data/subdivisions/Antrema/shapefiles/Zonage/Limite Antrema.shp"
+)
+sub_antrema_agropastorale <- st_read(
+  "data/subdivisions/Antrema/shapefiles/Zonage/Agropastorale.shp"
+)
+sub_antrema_recherche <- st_read(
+  "data/subdivisions/Antrema/shapefiles/Zonage/Recherche.shp"
+)
+sub_antrema_tourisme <- st_read(
+  "data/subdivisions/Antrema/shapefiles/Zonage/Ecotourisme.shp"
+)
+sub_antrema_noyau <- st_read(
+  "data/subdivisions/Antrema/shapefiles/Zonage/Noyau dur.shp"
+)
+sub_antrema_conservation <- st_read(
+  "data/subdivisions/Antrema/shapefiles/Zonage/Conservation.shp"
+)
+sub_antrema_reboisement <- st_read(
+  "data/subdivisions/Antrema/shapefiles/Zonage/Périmètre de reboisement.shp"
+)
+sub_antrema_marine <- st_read(
+  "data/subdivisions/Antrema/shapefiles/Zonage/Reserve marine.shp"
+)
+sub_antrema_utilisation_locale <- st_read(
+  "data/subdivisions/Antrema/shapefiles/Zonage/Utilisation locale.shp"
+)
+
+tm_shape(wdpa_antrema) +
+  tm_borders(col = "red") +
+  tm_shape(sub_antrema_limite) +
+  tm_borders(col = "blue") +
+  tm_shape(sub_antrema_agropastorale) +
+  tm_borders(col = "purple") +
+  tm_shape(sub_antrema_recherche) +
+  tm_borders(col = "brown") +
+  tm_shape(sub_antrema_tourisme) +
+  tm_borders(col = "orange") +
+  tm_shape(sub_antrema_noyau) +
+  tm_polygons(col = "green", fill = "green") +
+  tm_shape(sub_antrema_conservation) +
+  tm_borders(col = "grey") +
+  tm_shape(sub_antrema_reboisement) +
+  tm_borders(col = "lightgreen") +
+  tm_shape(sub_antrema_marine) +
+  tm_borders(col = "darkblue") +
+  tm_shape(sub_antrema_utilisation_locale) +
+  tm_borders(col = "pink") +
+  tm_add_legend(
+    type = "lines",
+    labels = c(
+      "WDPA",
+      "Limite",
+      "Agropastorale",
+      "Recherche",
+      "Tourisme",
+      "Noyau dur",
+      "Conservation",
+      "Reboisement",
+      "Marine",
+      "Utilisation locale"
+    ),
+    col = c(
+      "red",
+      "blue",
+      "purple",
+      "brown",
+      "orange",
+      "green",
+      "grey",
+      "lightgreen",
+      "darkblue",
+      "pink"
+    )
+  ) +
+  tm_add_legend(
+    type = "fill",
+    labels = c("ND"),
+    col = c("lightgreen")
+  )
+```
+
+Le zonage pour Antrema semble particulièrement riche/complexe. On observe des décallages limités.
+
+## Beanka
+
+Les fichiers pour Beanka n'ont pas été remis sous forme de shapefiles, mais sous forme de fichiers textes, avec des points codés en DMS.
+
+```{r}
+list.files(
+  "data/subdivisions/Beanka"
+) |>
+  cat(sep = "\n")
+```
+
+On crée une procedure pour les géoréférencer proprement, on les convertis et on les visualise.
+
+```{r}
+parse_signed_dec <- function(x) {
+  x <- as.character(x)
+  x <- str_replace_all(x, "\\s+", "")
+  sign <- ifelse(str_detect(x, "^[WwSs]"), -1, 1)
+  val <- readr::parse_number(x)
+  sign * val
+}
+
+make_poly <- function(df, lon, lat) {
+  xy <- as.matrix(df[, c(lon, lat)])
+  xy <- xy[stats::complete.cases(xy), , drop = FALSE]
+  if (nrow(xy) < 3) {
+    return(NULL)
+  }
+  if (!all(xy[1, ] == xy[nrow(xy), ])) {
+    xy <- rbind(xy, xy[1, ])
+  }
+  st_polygon(list(xy))
+}
+
+read_txt_polys_grouped <- function(
+  file,
+  name_prefix,
+  lon_col,
+  lat_col,
+  group_col,
+  delim = "\t",
+  encoding = "Windows-1252",
+  decimal_mark = ",",
+  crs_out = 4326
+) {
+  dat <- read_delim(
+    file,
+    delim = delim,
+    trim_ws = TRUE,
+    show_col_types = FALSE,
+    locale = locale(encoding = encoding, decimal_mark = decimal_mark)
+  )
+
+  dat2 <- dat |>
+    mutate(
+      lon = parse_signed_dec(.data[[lon_col]]),
+      lat = parse_signed_dec(.data[[lat_col]])
+    )
+
+  dat2 |>
+    group_by(.data[[group_col]]) |>
+    group_split() |>
+    map(\(df) {
+      p <- make_poly(df, "lon", "lat")
+      if (is.null(p)) {
+        return(NULL)
+      }
+      st_sf(
+        NAME = paste0(name_prefix, " ", as.character(df[[group_col]][1])),
+        Bloc = as.character(df[[group_col]][1]),
+        geometry = st_sfc(p, crs = crs_out)
+      )
+    }) |>
+    compact() |>
+    bind_rows() |>
+    st_make_valid()
+}
+
+parse_dms_simple <- function(x) {
+  hemi <- str_sub(x, 1, 1)
+  body <- str_trim(str_sub(x, 2))
+  parts <- str_split_fixed(body, " ", 2)
+  dm <- parts[, 1]
+  sec <- suppressWarnings(as.numeric(parts[, 2]))
+  dm_split <- str_split_fixed(dm, "[^0-9]+", 2)
+  deg <- suppressWarnings(as.numeric(dm_split[, 1]))
+  min <- suppressWarnings(as.numeric(dm_split[, 2]))
+  dec <- deg + min / 60 + sec / 3600
+  ifelse(hemi %in% c("W", "S"), -dec, dec)
+}
+
+read_txt_poly_dms_cols <- function(
+  file,
+  name,
+  lon_col,
+  lat_col,
+  delim = "\t",
+  encoding = "Windows-1252",
+  decimal_mark = ","
+) {
+  dat <- read_delim(
+    file,
+    delim = delim,
+    trim_ws = TRUE,
+    show_col_types = FALSE,
+    locale = locale(encoding = encoding, decimal_mark = decimal_mark)
+  )
+
+  pts <- dat |>
+    mutate(
+      lon = parse_dms_simple(.data[[lon_col]]),
+      lat = parse_dms_simple(.data[[lat_col]])
+    )
+
+  xy <- as.matrix(pts[, c("lon", "lat")])
+  xy <- xy[stats::complete.cases(xy), , drop = FALSE]
+  if (!all(xy[1, ] == xy[nrow(xy), ])) {
+    xy <- rbind(xy, xy[1, ])
+  }
+  st_sf(NAME = name, geometry = st_sfc(st_polygon(list(xy)), crs = 4326)) |>
+    st_make_valid()
+}
+
+wdpa_beanka <- wdpa_mdg |>
+  filter(str_detect(NAME, regex("Beanka", ignore_case = TRUE))) |>
+  filter(!str_detect(DESIG, "Ramsar"))
+
+sub_beanka_nap <- read_txt_poly_dms_cols(
+  file = "data/subdivisions/Beanka/LimiteNAP_Beanka.txt",
+  name = "Limite NAP",
+  lon_col = "Longitude DMS",
+  lat_col = "Latitude DMS"
+)
+
+sub_beanka_nd <- read_txt_polys_grouped(
+  file = "data/subdivisions/Beanka/NDurBeanka.txt",
+  name_prefix = "Noyau dur",
+  lon_col = "Long Dec",
+  lat_col = "Lat Dec",
+  group_col = "Bloc forestier"
+)
+
+tm_shape(wdpa_beanka) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(sub_beanka_nap) +
+  tm_borders(col = "blue") +
+  tm_shape(sub_beanka_nd) +
+  tm_polygons(col = "green", fill = "green") +
+  tm_add_legend(
+    type = "lines",
+    labels = c("WDPA", "Limite (NAP)"),
+    col = c("red", "blue")
+  ) +
+  tm_add_legend(
+    type = "fill",
+    labels = c("ND"),
+    col = c("lightgreen")
+  )
+
+```
+
+En ce qui concerne les frontières de la NAP, les données fournies en .txt semblent concordantes avec celles de WDPA, hormis 2 points manquants et deux points comportant visiblement une erreur de saisie. Les données du noyau dur sont disponibles et sans anomalie apparente.
+
+## Behasina
+
+```{r}
+list.files(
+  "data/subdivisions/Behasina",
+  pattern = "\\.shp"
+) |>
+  cat(sep = "\n")
+```
+
+```{r}
+wdpa_behasina <- wdpa_mdg |>
+  filter(str_detect(NAME, regex("Behasina", ignore_case = TRUE)))
+
+sub_behasina_nd <- st_read(
+  "data/subdivisions/Behasina/Noyau dur Behasina.shp",
+  quiet = TRUE
+) |>
+  st_set_crs(29702) |>
+  st_transform(st_crs(wdpa_behasina))
+
+sub_behasina_zuc <- st_read(
+  "data/subdivisions/Behasina/zuc behasina.shp",
+  quiet = TRUE
+) |>
+  st_transform(st_crs(wdpa_behasina))
+
+sub_behasina_limite <- st_read(
+  "data/subdivisions/Behasina/Behasina.shp",
+  quiet = TRUE
+) |> # Le SCR est manquant, on suppose que c'est le même que pour le ND
+  st_set_crs(29702) |>
+  st_transform(st_crs(wdpa_behasina))
+
+sub_behasina_100 <- st_read(
+  "data/subdivisions/Behasina/behasina 100.shp",
+  quiet = TRUE
+) |> # Le SCR est manquant, on suppose que c'est le même que pour le ND
+  st_set_crs(st_crs(sub_behasina_nd)) |>
+  st_transform(st_crs(wdpa_behasina))
+
+tm_shape(wdpa_behasina) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(sub_behasina_limite) +
+  tm_borders(col = "blue") +
+  tm_shape(sub_behasina_nd) +
+  tm_polygons(col = "green", fill = "green") +
+  tm_shape(sub_behasina_100) +
+  tm_borders(col = "brown") +
+  tm_shape(sub_behasina_zuc) +
+  tm_borders(col = "orange") +
+  tm_add_legend(
+    type = "lines",
+    labels = c("WDPA", "Limite", "ND", "Behasina 100", "ZUC"),
+    col = c("red", "blue", "green", "brown", "orange")
+  ) +
+  tm_add_legend(
+    type = "fill",
+    labels = c("ND"),
+    col = c("lightgreen")
+  )
+```
+
+Les donnnées sont aberrante. Seule la ZUP semble avoir des données. Les autres sont vides ou aberrants.
+
+## Bemanevika
+
+```{r}
+list.files(
+  "data/subdivisions/Bemanevika",
+  pattern = "\\.shp"
+) |>
+  cat(sep = "\n")
+
+```
+
+Un seul fichier ici.
+
+```{r}
+wdpa_bemanevika <- wdpa_mdg |>
+  filter(str_detect(NAME, regex("Bemanevika", ignore_case = TRUE)))
+
+sub_bemanevika <- st_read(
+  "data/subdivisions/Bemanevika/Bemanevika_ProtectedArea.shp",
+  quiet = TRUE,
+  options = "ENCODING=Windows-1252"
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_bemanevika))
+
+
+tm_shape(wdpa_bemanevika) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(sub_bemanevika) +
+  tm_polygons(
+    fill = "SubZone"
+  ) +
+  tm_borders(col = "black", lwd = 1)
+
+```
+
+Le périmètre externe est proche de celui de WDPA et les périmètres internes semblent cohérents (SubZone == "Noyau Dur").
+
+## Ivohiboro
+
+```{r}
+
+list.files("data/subdivisions/Ivohiboro") |>
+  cat(sep = "\n")
+
+```
+
+Le document fourni n'a pas d'extension et ne contient pas de données lisibles.
+
+## Mahialambo
+
+```{r}
+
+list.files(
+  "data/subdivisions/Mahialambo",
+  pattern = "\\.shp"
+) |>
+  cat(sep = "\n")
+
+```
+
+```{r}
+wdpa_mahialambo <- wdpa_mdg |>
+  filter(str_detect(NAME, regex("Mahialambo", ignore_case = TRUE)))
+
+
+# Assigner le CRS Laborde
+sub_mahialambo_limite <- st_read(
+  "data/subdivisions/Mahialambo/Mahialambo.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_set_crs(29702) |> # LAborde
+  st_transform(st_crs(wdpa_mahialambo)) # Convertir en WGS84 pour affichage
+
+sub_mahialambo_100 <- st_read(
+  "data/subdivisions/Mahialambo/mahialambo 100.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_set_crs(29702) |>
+  st_transform(st_crs(wdpa_mahialambo))
+
+sub_mahialambo_nd <- st_read(
+  "data/subdivisions/Mahialambo/Noyau dur Mahialambo.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_set_crs(29702) |>
+  st_transform(st_crs(wdpa_mahialambo))
+
+
+tm_shape(wdpa_mahialambo) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(sub_mahialambo_limite) +
+  tm_borders(col = "blue") +
+  tm_shape(sub_mahialambo_nd) +
+  tm_polygons(fill = "green", fill_alpha = 0.6, col = "darkgreen") +
+  tm_shape(sub_mahialambo_100) +
+  tm_borders(col = "purple") +
+  tm_add_legend(
+    type = "lines",
+    labels = c("Limite", "ND", "Mahialambo 100"),
+    col = c("blue", "green", "purple")
+  ) +
+  tm_add_legend(
+    type = "polygons",
+    labels = c("ND"),
+    fill = c("green")
+  )
+
+```
+
+Le SCR était manquant. On a pu deviner qu'il s'agissait de la projection laborde (EPSG: 29702). Une fois la bonne projection assignée, les frontières externes sont cohérentes avec celles de l'AP homonyme dans WDPA. Il doit toutefois manquer un point au tracé du Noyau Dur dans la partie Nord, car le ND dépasse de la limite externe du parc.
+
+## Mahimborondro
+
+```{r}
+list.files(
+  "data/subdivisions/Mahimborondro",
+  pattern = "\\.shp"
+) |>
+  cat(sep = "\n")
+```
+
+```{r}
+
+wdpa_mahialambo <- wdpa_mdg |>
+  filter(str_detect(NAME, regex("Mahimborondro", ignore_case = TRUE)))
+
+sub_mahimborondro <- st_read(
+  "data/subdivisions/Mahimborondro/Mahimborondro_ProtectedArea.shp"
+)
+
+
+tm_shape(wdpa_mahialambo) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(sub_mahimborondro) +
+  tm_borders(col = "blue") +
+  tm_add_legend(
+    type = "lines",
+    labels = c("WDPA", "Subdivisions"),
+    col = c("red", "blue")
+  )
+
+```
+
+Les frontières externes correspondent à WDPA. Le fichier semble en effet contenir des subdivisions, mais on ne dispose que des géométries, sans attributs. Impossible de savoir par exemple laquelle (ou lesquelles) de ces subdivisions correspond au noyau dur.
+
+## Manambato
+
+```{r}
+list.files(
+  "data/subdivisions/Manambato",
+  pattern = "\\.shp"
+) |>
+  cat(sep = "\n")
+```
+
+```{r}
+wdpa_manambato <- wdpa_mdg |>
+  filter(str_detect(NAME, regex("Manambato|Loky", ignore_case = TRUE)))
+
+sub_manambato_limite <- st_read(
+  "data/subdivisions/Manambato/Limite NAP Loky Manambato.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_manambato))
+
+sub_manambato_limite_marine <- st_read(
+  "data/subdivisions/Manambato/Limite partie marine.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_manambato))
+
+sub_manambato_nd <- st_read(
+  "data/subdivisions/Manambato/Noyau dur Loky Manambato.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_manambato))
+
+sub_manambato_nd_marine <- st_read(
+  "data/subdivisions/Manambato/Noyau dur partie marine.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_manambato))
+
+sub_manambato_bloc <- st_read(
+  "data/subdivisions/Manambato/Bloc Forestier Loky Manambato.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_manambato))
+
+sub_manambato_agro <- st_read(
+  "data/subdivisions/Manambato/Zone agropastorale.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_manambato))
+
+sub_manambato_restaur <- st_read(
+  "data/subdivisions/Manambato/Zone de restauration.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_manambato))
+
+tm_shape(wdpa_manambato) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(sub_manambato_limite) +
+  tm_borders(col = "blue") +
+  tm_shape(sub_manambato_limite_marine) +
+  tm_borders(col = "blue", lty = "dashed") +
+  tm_shape(sub_manambato_nd) +
+  tm_polygons(fill = "green", fill_alpha = 0.6, col = "darkgreen") +
+  tm_shape(sub_manambato_nd_marine) +
+  tm_polygons(fill = "green", fill_alpha = 0.6, col = "darkgreen") +
+  tm_shape(sub_manambato_bloc) +
+  tm_borders(col = "brown") +
+  tm_shape(sub_manambato_agro) +
+  tm_borders(col = "orange") +
+  tm_shape(sub_manambato_restaur) +
+  tm_borders(col = "purple") +
+  tm_add_legend(
+    type = "lines",
+    labels = c(
+      "WDPA",
+      "Limite NAP (terrestre)",
+      "Limite NAP (marine)",
+      "Bloc forestier",
+      "Agropastorale",
+      "Restauration"
+    ),
+    col = c("red", "blue", "blue", "brown", "orange", "purple")
+  ) +
+  tm_add_legend(
+    type = "polygons",
+    labels = c("Noyau dur"),
+    fill = c("green")
+  )
+
+```
+
+Les données semblent très cohérentes et alignées avec WDPA.
+
+## Mangoky Ihotry
+
+```{r}
+
+list.files(
+  "data/subdivisions/Mangoky Ihotry",
+  pattern = "\\.shp"
+) |>
+  cat(sep = "\n")
+
+```
+
+```{r}
+
+wdpa_mangoky <- wdpa_mdg |>
+  filter(str_detect(NAME, regex("Mangoky|Ihotry|CMI", ignore_case = TRUE)))
+
+sub_mangoky_limite <- st_read(
+  "data/subdivisions/Mangoky Ihotry/LIMITE_CMI_FINAL.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_mangoky))
+
+sub_mangoky_zonage <- st_read(
+  "data/subdivisions/Mangoky Ihotry/ZONAGE_CMI_FINAL.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_mangoky))
+
+
+tm_shape(sub_mangoky_limite) +
+  tm_borders(col = "blue") +
+  tm_shape(sub_mangoky_zonage) +
+  tm_polygons(fill = "TYPE") +
+  tm_shape(wdpa_mangoky) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_add_legend(
+    type = "lines",
+    labels = c(
+      "WDPA"
+    ),
+    col = c("red")
+  )
+
+```
+
+On observe un décalage à plusieurs endroits entre le périmètre de l'AP transmis et les limites WDPA.Le reste des données semble cohérent (les données de noyau dur son codées TYPE == "nd").
+
+## Mandrozo
+
+```{r}
+
+list.files(
+  "data/subdivisions/Mandrozo",
+  pattern = "\\.shp"
+) |>
+  cat(sep = "\n")
+
+```
+
+```{r}
+
+wdpa_mandrozo <- wdpa_mdg |>
+  filter(str_detect(NAME, regex("Mandrozo", ignore_case = TRUE)))
+
+sub_mandrozo <- st_read(
+  "data/subdivisions/Mandrozo/Mandrozo_ProtectedArea.shp",
+  quiet = TRUE,
+  options = "ENCODING=Windows-1252"
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_mandrozo))
+
+tm_shape(sub_mandrozo) +
+  tm_polygons(fill = "ZONAGE") +
+  tm_shape(wdpa_mandrozo) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_add_legend(
+    type = "lines",
+    labels = c("WDPA"),
+    col = c("red")
+  )
+
+```
+
+On observe un léger décallage systématique dans le périmètre externe transmis et la donnée WDPA (problème de projection ?). Les données de noyau dur semblent convenir (codées ZONAGE == "Noyau Dur")
+
+## Mangabe
+
+```{r}
+
+list.files(
+  "data/subdivisions/Mangabe",
+  pattern = "\\.shp"
+) |>
+  cat(sep = "\n")
+
+```
+
+```{r}
+
+wdpa_mangabe <- wdpa_mdg |>
+  filter(str_detect(NAME, regex("Mangabe", ignore_case = TRUE)))
+
+sub_mangabe_limite <- st_read(
+  "data/subdivisions/Mangabe/Limite NAP Mangabe.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_mangabe))
+
+tm_shape(wdpa_mangabe) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(sub_mangabe_limite) +
+  tm_borders(col = "blue") +
+  tm_add_legend(
+    type = "lines",
+    labels = c("WDPA", "Limite NAP"),
+    col = c("red", "blue")
+  )
+
+```
+
+La donnée transmise est cohérente avec WDPA, mais elle ne contient que le périmètre extérieur : pas de subdivisions.
+
+## Menabe Antimena
+
+```{r}
+
+list.files(
+  "data/subdivisions/Menabe Antimena",
+  pattern = "\\.shp"
+) |>
+  cat(sep = "\n")
+
+```
+
+```{r}
+
+wdpa_menabe <- wdpa_mdg |>
+  filter(str_detect(NAME, regex("Menabe|Antimena", ignore_case = TRUE)))
+
+sub_menabe_nd <- st_read(
+  "data/subdivisions/Menabe Antimena/nd_apma.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_menabe))
+
+sub_menabe_zoc <- st_read(
+  "data/subdivisions/Menabe Antimena/zone_d_occupation_controllee.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_menabe))
+
+sub_menabe_zud <- st_read(
+  "data/subdivisions/Menabe Antimena/zone_d_utilisation_durable.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_menabe))
+
+sub_menabe_culture <- st_read(
+  "data/subdivisions/Menabe Antimena/zone_de_culture.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_menabe))
+
+sub_menabe_paturage <- st_read(
+  "data/subdivisions/Menabe Antimena/zone_de_paturage.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_menabe))
+
+sub_menabe_prelev <- st_read(
+  "data/subdivisions/Menabe Antimena/zone_de_prelevement_durable.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_menabe))
+
+sub_menabe_rebois <- st_read(
+  "data/subdivisions/Menabe Antimena/zone_de_reboisement.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_menabe))
+
+sub_menabe_service <- st_read(
+  "data/subdivisions/Menabe Antimena/zone_de_service.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_menabe))
+
+sub_menabe_littorale <- st_read(
+  "data/subdivisions/Menabe Antimena/zone_littorale.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_menabe))
+
+sub_menabe_tampon <- st_read(
+  "data/subdivisions/Menabe Antimena/zone_tampon.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_menabe))
+
+sub_menabe_rest_in_nd <- st_read(
+  "data/subdivisions/Menabe Antimena/zone_de_restauration_dans_noyau_dur.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_menabe))
+
+sub_menabe_rest_hors_nd <- st_read(
+  "data/subdivisions/Menabe Antimena/zone_de_restauration_hors_noyau_dur.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_menabe))
+
+sub_menabe_rest_sols <- st_read(
+  "data/subdivisions/Menabe Antimena/zone_de_restauration_des_sols.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_menabe))
+
+sub_menabe_forest_in_nd <- st_read(
+  "data/subdivisions/Menabe Antimena/zone_forestiere_dans_noyau_dur.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_menabe))
+
+sub_menabe_cv_kimanomby <- st_read(
+  "data/subdivisions/Menabe Antimena/ceinture_verte_kimanomby.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_menabe))
+
+sub_menabe_cv_nd <- st_read(
+  "data/subdivisions/Menabe Antimena/ceinture_verte_noyau_dur.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_menabe))
+
+tm_shape(wdpa_menabe) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(sub_menabe_nd) +
+  tm_polygons(fill = "green", fill_alpha = 0.6, col = "darkgreen") +
+  tm_shape(sub_menabe_zoc) +
+  tm_borders(col = "purple") +
+  tm_shape(sub_menabe_zud) +
+  tm_borders(col = "orange") +
+  tm_shape(sub_menabe_tampon) +
+  tm_borders(col = "blue") +
+  tm_shape(sub_menabe_littorale) +
+  tm_borders(col = "brown") +
+  tm_shape(sub_menabe_culture) +
+  tm_borders(col = "grey") +
+  tm_shape(sub_menabe_paturage) +
+  tm_borders(col = "black") +
+  tm_shape(sub_menabe_prelev) +
+  tm_borders(col = "pink") +
+  tm_shape(sub_menabe_rebois) +
+  tm_borders(col = "lightgreen") +
+  tm_shape(sub_menabe_service) +
+  tm_borders(col = "yellow") +
+  tm_shape(sub_menabe_rest_in_nd) +
+  tm_borders(col = "darkblue") +
+  tm_shape(sub_menabe_rest_hors_nd) +
+  tm_borders(col = "darkred") +
+  tm_shape(sub_menabe_rest_sols) +
+  tm_borders(col = "cyan") +
+  tm_shape(sub_menabe_forest_in_nd) +
+  tm_borders(col = "darkgrey") +
+  tm_shape(sub_menabe_cv_kimanomby) +
+  tm_borders(col = "gold") +
+  tm_shape(sub_menabe_cv_nd) +
+  tm_borders(col = "goldenrod") +
+  tm_add_legend(
+    type = "lines",
+    labels = c(
+      "WDPA",
+      "ZOC",
+      "ZUD",
+      "Zone tampon",
+      "Zone littorale",
+      "Zone de culture",
+      "Zone de pâturage",
+      "Prélèvement durable",
+      "Reboisement",
+      "Zone de service",
+      "Restauration dans ND",
+      "Restauration hors ND",
+      "Restauration des sols",
+      "Zone forestière dans ND",
+      "Ceinture verte Kimanomby",
+      "Ceinture verte ND"
+    ),
+    col = c(
+      "red",
+      "purple",
+      "orange",
+      "blue",
+      "brown",
+      "grey",
+      "black",
+      "pink",
+      "lightgreen",
+      "yellow",
+      "darkblue",
+      "darkred",
+      "cyan",
+      "darkgrey",
+      "gold",
+      "goldenrod"
+    )
+  ) +
+  tm_add_legend(
+    type = "polygons",
+    labels = c("Noyau dur"),
+    fill = c("green")
+  )
+
+```
+
+Le périmètre externe est parfaitement cohérent avec WDPA. La donné est particulièrement détaillée.
+
+## Sahafina
+
+```{r}
+
+list.files(
+  "data/subdivisions/Sahafina"
+) |>
+  cat(sep = "\n")
+
+```
+
+```{r}
+
+wdpa_sahafina <- wdpa_mdg |>
+  filter(str_detect(NAME, regex("Sahafina", ignore_case = TRUE)))
+
+sub_sahafina_limite_shp <- st_read(
+  "data/subdivisions/Sahafina/sahafinashp.shp",
+  quiet = TRUE
+) |>
+  st_set_crs(29702) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_sahafina))
+
+# On essaye de reconstruire le fichier shx manquant "en vol"
+Sys.setenv(SHAPE_RESTORE_SHX = "YES")
+nd_path <- "data/subdivisions/Sahafina/noyaudurpolygoneSahafina.shp"
+
+sub_sahafina_nd <- st_read(nd_path, quiet = TRUE) |>
+  st_set_crs(29702) |>
+  st_make_valid()
+
+tm_shape(wdpa_sahafina) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(sub_sahafina_limite_shp) +
+  tm_borders(col = "blue") +
+  tm_shape(sub_sahafina_nd) +
+  tm_polygons(fill = "green", fill_alpha = 0.6, col = "darkgreen") +
+  tm_add_legend(
+    type = "lines",
+    labels = c("WDPA", "Limite (shp)"),
+    col = c("red", "blue")
+  ) +
+  tm_add_legend(
+    type = "polygons",
+    labels = c("Noyau dur"),
+    fill = c("green")
+  )
+
+```
+
+Les données semblent correct: le périmètre externe est bien aligné avec celui de WDPA et le périmètre interne est cohérent.
+
+## Tsimembo
+
+```{r}
+
+list.files(
+  "data/subdivisions/Tsimembo",
+  pattern = "\\.shp"
+) |>
+  cat(sep = "\n")
+
+```
+
+```{r}
+wdpa_tsimembo <- wdpa_mdg |>
+  filter(str_detect(NAME, regex("Tsimembo|Manambolomaty", ignore_case = TRUE)))
+
+sub_tsimembo <- st_read(
+  "data/subdivisions/Tsimembo/TsimemboManambolomaty_ProtectedArea.shp",
+  quiet = TRUE
+) |>
+  st_set_crs(29702) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_tsimembo))
+
+tm_shape(sub_tsimembo) +
+  tm_polygons(fill = "SubZone") +
+  tm_shape(wdpa_tsimembo) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_add_legend(
+    type = "lines",
+    labels = c("WDPA", "Subdivision"),
+    col = c("red", "blue")
+  )
+```
+
+On observe un léger décallage systématique des données (problème de projection)
+
+Les données semblent cohérentes. Le Noyau dur est codé : SubZone == "Noyau Dur".
+
+# Synthèse
+
+**17 AP avec un noyau dur exploitable à ce stade** : • Allée des Baobabs • Ambatofotsy • Ampotaka Ankorabe • Analabe Betanantanana • Analalava • Andrafiamena Andavakoera • Anjozorobe Angavo • Antrema • Beanka • Bemanevika • Mahialambo • Mangoky Ihotry • Mandrozo • Manambato • Menabe Antimena • Sahafina • Tsimembo
+
+Parmi ces 17, **5 AP ont encore des données à corriger et fiabiliser** : • Analabe Betanantanana (fort décalage WDPA vs limite transmise, recouvrement partiel) • Ampotaka Ankorabe (ND dépasse du périmètre WDPA) • Mangoky Ihotry (décalage notable limite transmise vs WDPA) • Mandrozo (décalage systématique, suspicion de projection) • Tsimembo (décalage systématique, suspicion de projection)
+
+**7 AP dont les données sont manquantes ou inexploitables à ce stade** : • Alaotra (pas de subdivision interne exploitable, seulement une limite proche de WDPA) • Ambondrobe (idem) • Ambohidray (script actuel ne charge pas les objets affichés, donc pas de conclusion ni ND exploitable dans l’état) • Behasina (géométries vides ou aberrantes pour plusieurs couches, seule la ZUC semble exploitable) • Mangabe (seulement limite externe) • Mahimborondro (subdivisions sans attributs, ND non identifiable) • Ivohiboro (fichier illisible)
+
+## On exporte finalement les noyaux durs exploitables pour utilisation ultérieure
+
+```{r}
+library(lwgeom)
+
+extract_wdpa_id_name <- function(wdpa_sf) {
+  x <- wdpa_sf |>
+    st_drop_geometry() |>
+    select(WDPAID, NAME)
+
+  tibble(
+    WDPAID = suppressWarnings(as.numeric(x$WDPAID[1])),
+    NAME = as.character(x$NAME[1])
+  )
+}
+
+nd_to_multipolygon <- function(
+  nd_sf,
+  crs_target,
+  crs_work = 29702,   # Laborde Madagascar, adapté pour l'union
+  snap = 1e-3         # en mètres dans crs_work, ajuste si besoin
+) {
+  x <- nd_sf |>
+    st_transform(crs_target) |>
+    sf::st_make_valid()
+
+  # Union en CRS projeté, plus robuste
+  x <- x |>
+    st_transform(crs_work) |>
+    sf::st_make_valid()
+
+  # Option "snap to grid" pour casser certaines auto-intersections numériques
+  # (snap en mètres, ici 1 mm)
+  x <- st_set_precision(x, 1 / snap) |>
+    st_snap_to_grid(snap)
+
+  u <- tryCatch(
+    st_union(x),
+    error = function(e) NULL
+  )
+
+  # Secours: buffer 0 (en CRS projeté) puis union
+  if (is.null(u)) {
+    x2 <- tryCatch(st_buffer(x, 0), error = function(e) x)
+    u <- st_union(x2)
+  }
+
+  u <- u |>
+    sf::st_make_valid() |>
+    st_collection_extract("POLYGON", warn = FALSE) |>
+    st_cast("MULTIPOLYGON", warn = FALSE) |>
+    st_transform(crs_target) |>
+    sf::st_make_valid()
+
+  u
+}
+
+
+make_nd_row <- function(pa_label, wdpa_sf, nd_sf) {
+  idn <- extract_wdpa_id_name(wdpa_sf)
+  geom <- nd_to_multipolygon(nd_sf, crs_target = st_crs(wdpa_sf))
+
+  st_sf(
+    pa_label = pa_label,
+    WDPAID = idn$WDPAID,
+    NAME = idn$NAME,
+    geometry = geom,
+    crs = st_crs(wdpa_sf)
+  )
+}
+
+nd_rows <- list(
+  make_nd_row("Allée des Baobabs", wdpa_baobabs, sub_baobabs_noyau_dur),
+  make_nd_row("Ambatofotsy", wdpa_ambatofotsy, sub_ambatofotsy_nd),
+  make_nd_row("Ampotaka Ankorabe", wdpa_ampotaka, sub_ampotaka_nd),
+  make_nd_row("Analabe Betanantanana", wdpa_analabe, sub_analabe_nd),
+  make_nd_row("Analalava", wdpa_analalava, sub_analalava_nd),
+  make_nd_row("Andrafiamena Andavakoera", wdpa_andraf, sub_andraf_nd),
+  make_nd_row("Anjozorobe Angavo", wdpa_anjozorobe, sub_anjo_nd),
+  make_nd_row("Antrema", wdpa_antrema, sub_antrema_noyau),
+
+  make_nd_row("Beanka", wdpa_beanka, sub_beanka_nd),
+
+  make_nd_row(
+    "Bemanevika",
+    wdpa_bemanevika,
+    sub_bemanevika |>
+      filter(str_detect(
+        SubZone,
+        regex("^\\s*Noyau\\s*Dur\\s*$", ignore_case = TRUE)
+      ))
+  ),
+
+  make_nd_row("Mahialambo", wdpa_mahialambo, sub_mahialambo_nd),
+
+  make_nd_row(
+    "Mangoky Ihotry",
+    wdpa_mangoky,
+    sub_mangoky_zonage |>
+      filter(str_detect(TYPE, regex("^\\s*nd\\s*$", ignore_case = TRUE)))
+  ),
+
+  make_nd_row(
+    "Mandrozo",
+    wdpa_mandrozo,
+    sub_mandrozo |>
+      filter(str_detect(ZONAGE, regex("Noyau\\s*Dur", ignore_case = TRUE)))
+  ),
+
+  make_nd_row(
+    "Manambato",
+    wdpa_manambato,
+    bind_rows(sub_manambato_nd, sub_manambato_nd_marine)
+  ),
+
+  make_nd_row("Menabe Antimena", wdpa_menabe, sub_menabe_nd),
+
+  make_nd_row("Sahafina", wdpa_sahafina, sub_sahafina_nd),
+
+  make_nd_row(
+    "Tsimembo",
+    wdpa_tsimembo,
+    sub_tsimembo |>
+      filter(str_detect(SubZone, regex("Noyau\\s*Dur", ignore_case = TRUE)))
+  )
+)
+
+nd_sf <- nd_rows |>
+  bind_rows() |>
+  st_make_valid() |>
+  mutate(
+    WDPAID = as.numeric(WDPAID),
+    NAME = as.character(NAME)
+  )
+
+st_write(
+  nd_sf,
+  "data/noyaux_durs_exploitables.geojson",
+  driver = "GeoJSON",
+  delete_dsn = TRUE,
+  quiet = TRUE
+)
+
+```
+
+Les données contenant les périmètres internes des 17 AP exploitables sont maintenant enregistrées.

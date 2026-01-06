@@ -459,6 +459,7 @@ decision_pa <- split_class_clean %>%
   )
 
 write_rds(decision_pa, "data/id/legal_texts.rds")
+write_tsv(decision_pa, "data/id/legal_texts.tsv")
 ```
 
 La base ainsi consolidée peut servir de référence pour des travaux d’analyse juridique, historique ou spatiale sur la dynamique des aires protégées à Madagascar. Elle constitue aussi une base d’appui pour la production d’indicateurs ou la vérification des statuts réglementaires.

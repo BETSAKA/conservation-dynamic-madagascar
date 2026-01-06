@@ -27,7 +27,7 @@ library(sf) # Pour traiter des données spatiales (vectorielles)
 library(tmap) # Pour faire de jolies cartes
 library(gt) # Pour faire de jolis tableaux
 
-# Specify the source repository 
+# Specify the source repository
 data_dir <- "sources/"
 # Specify CRS
 my_crs <- 29702
@@ -39,9 +39,9 @@ clean_pa_names_cols <- function(df, name_cols) {
     mutate(across(
       all_of(name_cols),
       ~ .x %>%
-        str_replace_all("[\r\n\t]", " ") %>%  # replace line breaks, carriage returns, tabs with space
-        str_squish() %>%                      # collapse multiple spaces into one
-        str_trim()                           # remove leading/trailing whitespace
+        str_replace_all("[\r\n\t]", " ") %>% # replace line breaks, carriage returns, tabs with space
+        str_squish() %>% # collapse multiple spaces into one
+        str_trim() # remove leading/trailing whitespace
     ))
 }
 
@@ -54,16 +54,24 @@ Avant la création du SAPM, l'ANGAP était la seule entité chargée de gérer l
 
 ```{r}
 # Load and preprocess the shapefile
-angap_2002 <- st_read(paste0(data_dir, "ap_angap BD 500/ap_angap.shp"), 
-quiet = TRUE) %>%
-  st_set_crs(my_crs) %>%  # Laborde Magasiaraka CRS
+angap_2002 <- st_read(
+  paste0(data_dir, "ap_angap BD 500/ap_angap.shp"),
+  quiet = TRUE
+) %>%
+  st_set_crs(my_crs) %>% # Laborde Magasiaraka CRS
   clean_pa_names_cols(name_cols = "NOM") %>%
-  mutate(has_info = ifelse(is.na(CLASSEMENT), 
-                           "Attributs absents", 
-                           "Attributs présents"),
-         has_name = case_when(is.na(NOM) ~ "Pas de nom",
-                              NOM == "Hors AP" ~ "Hors AP",
-                              .default = "Nommé"))
+  mutate(
+    has_info = ifelse(
+      is.na(CLASSEMENT),
+      "Attributs absents",
+      "Attributs présents"
+    ),
+    has_name = case_when(
+      is.na(NOM) ~ "Pas de nom",
+      NOM == "Hors AP" ~ "Hors AP",
+      .default = "Nommé"
+    )
+  )
 
 # Separate datasets: "Pas de nom", "Hors AP", and "Nommé"
 angap_pas_de_nom <- angap_2002 %>% filter(has_name == "Pas de nom")
@@ -75,28 +83,35 @@ tmap_mode("view")
 
 # Create the map with three layers
 tm_shape(angap_named) +
-  tm_fill(col = "has_info", 
-          id = "NOM",
-          popup.vars = names(st_drop_geometry(angap_named))) +
-  tm_borders(col = "black", lwd = 0.5) +  # Default borders for named features
-tm_shape(angap_pas_de_nom) +
-  tm_fill(col = "has_info", 
-          id = "NOM",
-          popup.vars = names(st_drop_geometry(angap_pas_de_nom)),
-          legend.show = FALSE) +
-  tm_borders(col = "red", lwd = 3) +  # Thick red borders for "Pas de nom"
-tm_shape(angap_hors_ap) +
-  tm_fill(col = "has_info", 
-          id = "NOM",
-          popup.vars = names(st_drop_geometry(angap_hors_ap)),
-          legend.show = FALSE) +
+  tm_fill(
+    col = "has_info",
+    id = "NOM",
+    popup.vars = names(st_drop_geometry(angap_named))
+  ) +
+  tm_borders(col = "black", lwd = 0.5) + # Default borders for named features
+  tm_shape(angap_pas_de_nom) +
+  tm_fill(
+    col = "has_info",
+    id = "NOM",
+    popup.vars = names(st_drop_geometry(angap_pas_de_nom)),
+    legend.show = FALSE
+  ) +
+  tm_borders(col = "red", lwd = 3) + # Thick red borders for "Pas de nom"
+  tm_shape(angap_hors_ap) +
+  tm_fill(
+    col = "has_info",
+    id = "NOM",
+    popup.vars = names(st_drop_geometry(angap_hors_ap)),
+    legend.show = FALSE
+  ) +
   tm_borders(col = "blue", lwd = 3) + # Thick blue borders for "Hors AP"
-  tm_add_legend(type = "fill", 
-                labels = c("Pas de nom", "Hors AP"), 
-                col = c("red", "blue"), 
-                lwd = c(3, 3, 0.5), 
-                title = "Contour")
-
+  tm_add_legend(
+    type = "fill",
+    labels = c("Pas de nom", "Hors AP"),
+    col = c("red", "blue"),
+    lwd = c(3, 3, 0.5),
+    title = "Contour"
+  )
 
 
 ```
@@ -116,11 +131,15 @@ On effectue donc les opération suivantes : identification des polygones sans no
 ```{r}
 angap_2002 <- angap_2002 %>%
   select(APBON = APBON_, APBON_ID, NOM, TYPE_AP, CLASSEMENT, IUCN) %>%
-  mutate(NOM = case_when( # Rename the patches visibly included in PAs
-    APBON_ID %in% c(100006, 100005) ~ "Ranomafana",
-    APBON_ID %in% c(100002, 100003, 100004) ~ "Masoala",
-    APBON == 27 ~ "Baie de Baly",
-    .default = NOM)) %>%
+  mutate(
+    NOM = case_when(
+      # Rename the patches visibly included in PAs
+      APBON_ID %in% c(100006, 100005) ~ "Ranomafana",
+      APBON_ID %in% c(100002, 100003, 100004) ~ "Masoala",
+      APBON == 27 ~ "Baie de Baly",
+      .default = NOM
+    )
+  ) %>%
   group_by(across(NOM:IUCN)) %>%
   summarize(geometry = st_union(geometry)) %>%
   ungroup() %>%
@@ -139,16 +158,18 @@ Le résultat est présenté dans la carte ci-dessus.
 Le site REBIOMA qui mettait en ligne les données du SAPM ne fonctionne plus depuis 2019 d'après les sauvegardes régulières effectuées par Internet Archive. Fort heureusement, une copie des données datées du 10/12/2010 a été sauvegardée par Ghislain Vieilledent et publié en accompagnement d'une publication [@vieilledent2020s].
 
 ```{r}
-sapm_2010 <- st_read(paste0(data_dir,"Vieilledent_sapm_20101220/AP-NAP_38s.shp"), 
-                     quiet = TRUE, options = "ENCODING=WINDOWS-1252") %>% 
-    st_transform(my_crs) %>% 
-    clean_pa_names_cols(name_cols = "NOM")
+sapm_2010 <- st_read(
+  paste0(data_dir, "Vieilledent_sapm_20101220/AP-NAP_38s.shp"),
+  quiet = TRUE,
+  options = "ENCODING=WINDOWS-1252"
+) %>%
+  st_transform(my_crs) %>%
+  clean_pa_names_cols(name_cols = "NOM")
 
 write_rds(sapm_2010, "data/no_id/sapm_2010.rds")
 
 tm_shape(sapm_2010) +
-  tm_borders(col = "purple") +
-  tmap_options(check.and.fix = TRUE)
+  tm_borders(col = "purple")
 ```
 
 ## Evolution du SAPM 2002-2011
@@ -162,10 +183,12 @@ It is provided as a .mpk, which is in fact a zip including shapefiles. We conver
 dir_path <- paste0(data_dir, "sapm_evolution_2012/commondata/data1")
 
 # List all .shp files in the directory
-shapefile_paths <- list.files(path = dir_path, 
-                              pattern = "\\.shp$", 
-                              full.names = TRUE, 
-                              recursive = TRUE)
+shapefile_paths <- list.files(
+  path = dir_path,
+  pattern = "\\.shp$",
+  full.names = TRUE,
+  recursive = TRUE
+)
 
 # Extract the filenames without the full path
 shapefile_names <- basename(shapefile_paths)
@@ -175,8 +198,10 @@ date_shapefiles <- shapefile_paths[str_detect(shapefile_names, "20[0-9]{2}")]
 
 # Load and bind the shapefiles
 sapm_evol_2001_2011 <- date_shapefiles %>%
-  map(~ st_read(.x, quiet = TRUE) %>% # Read each shapefile
-        clean_pa_names_cols(name_cols = "NOM")) %>% # and clean PA name
+  map(
+    ~ st_read(.x, quiet = TRUE) %>% # Read each shapefile
+      clean_pa_names_cols(name_cols = "NOM")
+  ) %>% # and clean PA name
   reduce(bind_rows) %>%
   mutate(YEAR = str_extract(YEAR, "\\d{4}")) %>% # Extract the 4-digit year
   st_transform(crs = my_crs) # On passe les données en laborde malgache
@@ -184,10 +209,9 @@ sapm_evol_2001_2011 <- date_shapefiles %>%
 sapm_evol_2001_2011 %>%
   filter(YEAR == 2002) %>%
   tm_shape() +
-  tm_borders(col = "blue") + 
+  tm_borders(col = "blue") +
   tm_shape(angap_2002) +
-  tm_fill(col = "red", alpha = 0.5) + 
-  tmap_options(check.and.fix = TRUE)
+  tm_fill(col = "red", alpha = 0.5)
 
 # Save the data to a specified path
 write_rds(sapm_evol_2001_2011, "data/no_id/sapm_evol_2001_2011.rds")
@@ -203,8 +227,11 @@ L'un des points du périmètre de l'aire protégée Andrafiamena Andavakoera (in
 
 ```{r}
 # Load and transform data
-sapm_2017 <- st_read(paste0(data_dir, "sapm_201703017_om_surface/sapm_201703017_om_surface.shp"),
-                     options = "ENCODING=WINDOWS-1252") %>%
+sapm_2017 <- st_read(
+  paste0(data_dir, "sapm_201703017_om_surface/sapm_201703017_om_surface.shp"),
+  options = "ENCODING=WINDOWS-1252",
+  quiet = TRUE
+) %>%
   st_transform(my_crs) %>%
   st_make_valid() %>%
   clean_pa_names_cols(name_cols = c("SHORT_NAME", "FULL_NAME"))
@@ -234,12 +261,14 @@ Ce jeu de données constitue l’état le plus récent de la base SAPM. Il inclu
 
 ```{r}
 # Load shapefile
-sapm_2024 <- st_read(paste0(data_dir, "Shape AP mai2023/dernier version shape_ap_28042023.shp"), 
-                   quiet = TRUE)
+sapm_2024 <- st_read(
+  paste0(data_dir, "Shape AP mai2023/dernier version shape_ap_28042023.shp"),
+  quiet = TRUE
+)
 
 # Check for invalid geometries
 invalid_geometries <- sapm_2024 %>%
-  st_zm(drop = TRUE, what = "ZM") %>%   # <- remove Z and M before anything else
+  st_zm(drop = TRUE, what = "ZM") %>% # <- remove Z and M before anything else
   rownames_to_column(var = "index") %>%
   rowwise() %>%
   mutate(is_valid = st_is_valid(geometry)) %>%
@@ -253,10 +282,13 @@ dir.create(output_dir, showWarnings = FALSE)
 # Loop through invalid geometries and save the plots
 for (i in seq_len(nrow(invalid_geometries))) {
   geometry_index <- invalid_geometries$Index[i]
-  
+
   # Generate a file name
-  plot_file <- file.path(output_dir, paste0("geometry_", geometry_index, ".png"))
-  
+  plot_file <- file.path(
+    output_dir,
+    paste0("geometry_", geometry_index, ".png")
+  )
+
   # Save the plot
   png(plot_file)
   plot(st_geometry(sapm_2024[geometry_index, ]))
@@ -279,7 +311,7 @@ if (nrow(invalid_geometries) == 0) {
     text_transform(
       locations = cells_body(columns = Geometrie),
       fn = function(x) {
-        local_image(filename = x, height = 100)  # Embed local image with specified height
+        local_image(filename = x, height = 100) # Embed local image with specified height
       }
     ) %>%
     tab_header(
@@ -301,7 +333,7 @@ invalid_geometries <- sapm_2024_valid %>%
 # Replace 'NOM' with the actual column containing the name or identifier
 if (nrow(invalid_geometries) > 0) {
   cat("Invalid geometries found:\n")
-  print(invalid_geometries$SHORT_NAME)  # Adjust this to match your column name
+  print(invalid_geometries$SHORT_NAME) # Adjust this to match your column name
 } else {
   cat("All geometries are valid.\n")
 }
@@ -316,7 +348,7 @@ write_rds(sapm_2024_valid_clean, "data/no_id/sapm_2024.rds")
 
 # Step 6: Plot the valid geometries using tmap
 tm_shape(sapm_2024_valid_clean) +
-  tm_fill(col = "blue", alpha = 0.5) + 
+  tm_fill(col = "blue", alpha = 0.5) +
   tm_shape(sapm_2017) +
   tm_fill(col = "red", alpha = 0.5)
 

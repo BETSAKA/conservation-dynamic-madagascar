@@ -354,13 +354,6 @@ library(fuzzyjoin)
 
 wdpa_mdg_2025 <- wdpa_read("sources/WDPA_WDOECM_mar2025_Public_MDG.zip")
 
-
-wdpa_mdg_2025 %>%
-  pluck("NAME")
-
-class_results %>%
-  pluck("pa")
-
 # Harmonization for comparison (without modifying original data)
 wdpa_clean <- wdpa_mdg_2025 %>%
   mutate(cleaned_NAME = str_trim(str_to_lower(NAME)))

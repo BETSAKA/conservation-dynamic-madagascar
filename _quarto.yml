@@ -17,6 +17,7 @@ book:
     - 05_visual_verif.qmd
     - 06_use_cases.qmd
     - 07_subdivisions.qmd
+    - 08_border_changes.qmd
     - 10_references.qmd
 
 bibliography: references.bib

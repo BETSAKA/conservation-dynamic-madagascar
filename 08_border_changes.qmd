@@ -8,6 +8,7 @@ library(tidyverse)
 library(sf)
 library(tmap)
 library(wdpar)
+library(gt)
 
 # Chargement des données WDPA
 wdpa_mdg <- wdpa_read("data/WDPA_WDOECM_Nov2025_Public_MDG.zip")

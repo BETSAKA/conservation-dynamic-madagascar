@@ -354,13 +354,6 @@ library(fuzzyjoin)
 
 wdpa_mdg_2025 <- wdpa_read("sources/WDPA_WDOECM_mar2025_Public_MDG.zip")
 
-
-wdpa_mdg_2025 %>%
-  pluck("NAME")
-
-class_results %>%
-  pluck("pa")
-
 # Harmonization for comparison (without modifying original data)
 wdpa_clean <- wdpa_mdg_2025 %>%
   mutate(cleaned_NAME = str_trim(str_to_lower(NAME)))
@@ -466,6 +459,11 @@ decision_pa <- split_class_clean %>%
   )
 
 write_rds(decision_pa, "data/id/legal_texts.rds")
+zip::zip(
+  "data/id/legal_texts.zip",
+  files = "data/id/legal_texts.rds",
+  mode = "cherry-pick"
+)
 ```
 
 La base ainsi consolidée peut servir de référence pour des travaux d’analyse juridique, historique ou spatiale sur la dynamique des aires protégées à Madagascar. Elle constitue aussi une base d’appui pour la production d’indicateurs ou la vérification des statuts réglementaires.

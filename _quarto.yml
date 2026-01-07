@@ -18,6 +18,8 @@ book:
     - 06_use_cases.qmd
     - 07_subdivisions.qmd
     - 08_border_changes.qmd
+    - 09fr_technical_proposal.qmd
+    - 09en_technical_proposal.qmd
     - 10_references.qmd
 
 bibliography: references.bib

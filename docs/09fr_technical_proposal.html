@@ -6,10 +6,8 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="author" content="Florent Bédécarrats, Seheno Ramanantsoa">
-<meta name="dcterms.date" content="2024-09-12">
 
-<title>Données des aires protégées à Madagascar</title>
+<title>10&nbsp; Proposition technique – Données des aires protégées à Madagascar</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -32,7 +30,8 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./01_sapm_data.html" rel="next">
+<link href="./09en_technical_proposal.html" rel="next">
+<link href="./08_border_changes.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
@@ -84,7 +83,7 @@ ul.task-list li input[type="checkbox"] {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./index.html"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Conserver l’histoire des aires protégées à Madagascar : un modèle de données dynamique (2000-2024)</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./09fr_technical_proposal.html"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Proposition technique</span></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -116,7 +115,7 @@ ul.task-list li input[type="checkbox"] {
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./index.html" class="sidebar-item-text sidebar-link active">
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Conserver l’histoire des aires protégées à Madagascar : un modèle de données dynamique (2000-2024)</span></span></a>
   </div>
 </li>
@@ -170,7 +169,7 @@ ul.task-list li input[type="checkbox"] {
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./09fr_technical_proposal.html" class="sidebar-item-text sidebar-link">
+  <a href="./09fr_technical_proposal.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Proposition technique</span></span></a>
   </div>
 </li>
@@ -191,52 +190,22 @@ ul.task-list li input[type="checkbox"] {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active">
-    <h2 id="toc-title">Table of contents</h2>
-   
-  <ul>
-  <li><a href="#conserver-lhistoire-des-aires-protégées-à-madagascar-un-modèle-de-données-dynamique-2000-2024" id="toc-conserver-lhistoire-des-aires-protégées-à-madagascar-un-modèle-de-données-dynamique-2000-2024" class="nav-link active" data-scroll-target="#conserver-lhistoire-des-aires-protégées-à-madagascar-un-modèle-de-données-dynamique-2000-2024"><span class="header-section-number">1</span> Conserver l’histoire des aires protégées à Madagascar : un modèle de données dynamique (2000-2024)</a>
-  <ul class="collapse">
-  <li><a href="#résumé" id="toc-résumé" class="nav-link" data-scroll-target="#résumé"><span class="header-section-number">1.1</span> Résumé</a></li>
-  <li><a href="#contexte-et-enjeux" id="toc-contexte-et-enjeux" class="nav-link" data-scroll-target="#contexte-et-enjeux"><span class="header-section-number">1.2</span> Contexte et enjeux</a>
-  <ul class="collapse">
-  <li><a href="#importance-des-données-ouvertes" id="toc-importance-des-données-ouvertes" class="nav-link" data-scroll-target="#importance-des-données-ouvertes"><span class="header-section-number">1.2.1</span> Importance des données ouvertes</a></li>
-  <li><a href="#limites-des-approches-actuelles" id="toc-limites-des-approches-actuelles" class="nav-link" data-scroll-target="#limites-des-approches-actuelles"><span class="header-section-number">1.2.2</span> Limites des approches actuelles</a></li>
-  </ul></li>
-  <li><a href="#originalité-de-la-solution" id="toc-originalité-de-la-solution" class="nav-link" data-scroll-target="#originalité-de-la-solution"><span class="header-section-number">1.3</span> Originalité de la solution</a></li>
-  <li><a href="#méthodologie" id="toc-méthodologie" class="nav-link" data-scroll-target="#méthodologie"><span class="header-section-number">1.4</span> Méthodologie</a></li>
-  <li><a href="#résultats-attendus" id="toc-résultats-attendus" class="nav-link" data-scroll-target="#résultats-attendus"><span class="header-section-number">1.5</span> Résultats attendus</a></li>
-  <li><a href="#perspectives" id="toc-perspectives" class="nav-link" data-scroll-target="#perspectives"><span class="header-section-number">1.6</span> Perspectives</a></li>
-  </ul></li>
-  </ul>
-</nav>
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+        
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Données des aires protégées à Madagascar</h1>
+<h1 class="title"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Proposition technique</span></h1>
 </div>
 
 
 
 <div class="quarto-title-meta">
 
-    <div>
-    <div class="quarto-title-meta-heading">Author</div>
-    <div class="quarto-title-meta-contents">
-             <p>Florent Bédécarrats, Seheno Ramanantsoa </p>
-          </div>
-  </div>
     
-    <div>
-    <div class="quarto-title-meta-heading">Published</div>
-    <div class="quarto-title-meta-contents">
-      <p class="date">September 12, 2024</p>
-    </div>
-  </div>
   
     
   </div>
@@ -246,54 +215,22 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<section id="conserver-lhistoire-des-aires-protégées-à-madagascar-un-modèle-de-données-dynamique-2000-2024" class="level1" data-number="1">
-<h1 data-number="1"><span class="header-section-number">1</span> Conserver l’histoire des aires protégées à Madagascar : un modèle de données dynamique (2000-2024)</h1>
-<section id="résumé" class="level2" data-number="1.1">
-<h2 data-number="1.1" class="anchored" data-anchor-id="résumé"><span class="header-section-number">1.1</span> Résumé</h2>
-<p>Les données spatiales sur les aires protégées sont essentielles pour les études de conservation. Cependant, les bases existantes se limitent souvent aux frontières actuelles, ignorant les évolutions historiques. Cette lacune engendre des biais dans l’analyse de leur impact environnemental et social. Dans ce projet, nous proposons un modèle de données dynamique documentant l’évolution des aires protégées à Madagascar de 2000 à 2024. Ce modèle inclut chaque état successif avec ses périodes de validité, fournissant une base analytique plus robuste. Les données seront publiées en accès libre pour favoriser leur utilisation par la communauté scientifique et les praticiens.</p>
-</section>
-<section id="contexte-et-enjeux" class="level2" data-number="1.2">
-<h2 data-number="1.2" class="anchored" data-anchor-id="contexte-et-enjeux"><span class="header-section-number">1.2</span> Contexte et enjeux</h2>
-<section id="importance-des-données-ouvertes" class="level3" data-number="1.2.1">
-<h3 data-number="1.2.1" class="anchored" data-anchor-id="importance-des-données-ouvertes"><span class="header-section-number">1.2.1</span> Importance des données ouvertes</h3>
-<p>Madagascar, confronté à une extrême pauvreté, dispose de ressources limitées pour gérer ses données administratives, notamment dans le domaine de la conservation. Par exemple, les données relatives à la conservation à Madagascar ont longtemps été rendues accessibles sur le portail “Redbioma”, mais ce dernier aujourd’hui hors ligne et les jeux de données qu’il contenait sont introuvables. La mise à disposition de données sur un portail open data pérenne adossé à des procédures d’archivage renforce leur accessibilité, transparence, reproductibilité, et surtout leur persistance.</p>
-</section>
-<section id="limites-des-approches-actuelles" class="level3" data-number="1.2.2">
-<h3 data-number="1.2.2" class="anchored" data-anchor-id="limites-des-approches-actuelles"><span class="header-section-number">1.2.2</span> Limites des approches actuelles</h3>
-<p>Les bases de données nationales et internationales incluent généralement les caractéristiques actuelles des aires protégées sans tenir compte des modifications passées. Cette approche statique entraîne des pertes d’informations et des biais dans l’évaluation des impacts ou l’étude des dynamiques historiques, notamment dans le contexte des changements de limites (“degazetting”).</p>
-</section>
-</section>
-<section id="originalité-de-la-solution" class="level2" data-number="1.3">
-<h2 data-number="1.3" class="anchored" data-anchor-id="originalité-de-la-solution"><span class="header-section-number">1.3</span> Originalité de la solution</h2>
-<p>Notre méthodologie repose sur :</p>
-<ul>
-<li><strong>Une documentation exhaustive</strong> : Compilation de données issues de cartographies historiques, décrets, gestionnaires d’aires protégées, et autres sources.</li>
-<li><strong>Traçabilité et contrôle de version</strong> : Chaque modification est documentée dans un système de gestion de version pour garantir une transparence totale.</li>
-<li><strong>Formats adaptés</strong> : Les données sont proposées au format GeoParquet pour les analyses standard et en GML ou OGC Moving Features pour des besoins avancés.</li>
-<li><strong>Construction rétrospective</strong> : La base est reconstruite à partir des états récents vers les états passés.</li>
-</ul>
-</section>
-<section id="méthodologie" class="level2" data-number="1.4">
-<h2 data-number="1.4" class="anchored" data-anchor-id="méthodologie"><span class="header-section-number">1.4</span> Méthodologie</h2>
-<ol type="1">
-<li><strong>Harmonisation des données SAPM</strong> : Consolidation des versions successives, notamment entre 2002 et 2011.</li>
-<li><strong>Harmonisation des données WDPA</strong> : Intégration des données internationales selon la même approche.</li>
-<li><strong>Création d’une base réglementaire</strong> : Extraction et structuration des textes juridiques via la base CNLEGIS.</li>
-<li><strong>Analyse et consolidation</strong> : Croisement des sources pour produire un ensemble cohérent.</li>
-<li><strong>Outil de vérification visuelle</strong> : Développement d’un outil interactif pour valider la qualité et la traçabilité des données consolidées.</li>
-</ol>
-</section>
-<section id="résultats-attendus" class="level2" data-number="1.5">
-<h2 data-number="1.5" class="anchored" data-anchor-id="résultats-attendus"><span class="header-section-number">1.5</span> Résultats attendus</h2>
-<p>Nous publions un jeu de données couvrant Madagascar entre 2000 et 2024, accessible via un portail pérenne. Ce modèle permettra de corriger des biais observés dans des études emblématiques, offrant des conclusions plus fiables sur l’impact de la conservation.</p>
-</section>
-<section id="perspectives" class="level2" data-number="1.6">
-<h2 data-number="1.6" class="anchored" data-anchor-id="perspectives"><span class="header-section-number">1.6</span> Perspectives</h2>
-<p>Ce projet contribue à une meilleure compréhension des dynamiques de conservation et propose un cadre méthodologique réplicable dans d’autres contextes. En intégrant des pratiques ouvertes et transparentes, il répond aux défis de la gestion des données dans les pays en développement tout en offrant des outils adaptés aux besoins des chercheurs et gestionnaires.</p>
+<p>Le jeu de données est conçu comme une extension explicitement temporelle des polygones de la WDPA, intégrant, lorsque ces informations sont disponibles, l’historique juridique, les évolutions spatiales et le zonage interne des aires protégées. La WDPA fournit l’état courant par défaut de chaque aire protégée, mais cet état est considéré comme un seul segment au sein d’une trajectoire plus longue, marquée par des changements de statut juridique, de périmètre et d’organisation interne. Pour chaque WDPAID, le jeu de données reconstruit ainsi des états successifs de l’aire protégée, chacun défini par une période de validité explicite, en mobilisant des informations juridiques et spatiales datées lorsqu’elles existent, tout en restant pleinement compatible avec la WDPA en l’absence de telles informations.</p>
+<p>Le principe central repose sur un remplissage par défaut combiné à des règles de priorité explicites et déterministes. En l’absence d’informations alternatives, les attributs et la géométrie de la WDPA définissent un état unique, dont la période de validité débute à partir de STATUS_YR, interprétée selon une convention de datation documentée, et s’étend jusqu’à la date de référence de la version de la WDPA utilisée. Lorsque des décisions juridiques antérieures, des périmètres plus anciens ou des dispositifs de zonage interne sont identifiés à partir de sources complémentaires, la chronologie est découpée en plusieurs intervalles de validité non chevauchants. Les états antérieurs héritent par défaut des attributs de la WDPA, sauf lorsque les textes juridiques, les périmètres datés ou les documents de zonage indiquent explicitement des différences, telles qu’un statut de protection temporaire, des limites alternatives, des changements de gestion ou une organisation interne spécifique.</p>
+<p>L’historique juridique, l’évolution des périmètres et la mise en place du zonage interne sont traités comme des sources indépendantes de segmentation temporelle. Les dates issues des textes juridiques, des instruments de zonage ou des modifications de limites structurent conjointement la chronologie. Chaque intervalle ainsi défini est ensuite renseigné avec l’information la plus précise disponible pour la période considérée, tant au niveau de l’aire protégée que, le cas échéant, de ses zones internes. Les limites externes sont traitées comme un type spécifique de zone, ce qui permet d’appliquer une logique spatiale unifiée aux périmètres et au zonage interne.</p>
+<p>Concrètement, le jeu de données ne remplace pas la WDPA. Il est construit à partir de quatre composantes complémentaires, chacune ayant un rôle clairement défini :</p>
+<p><strong>WDPA</strong><br>
+Le jeu de données mondial de polygones de la WDPA, utilisé comme référence de base décrivant l’état courant des aires protégées.</p>
+<p><strong>SAT – Spatial Amendment Table</strong><br>
+Une table d’amendements spatiaux contenant des périmètres historiques datés et des géométries de zonage interne qui diffèrent de la représentation actuelle de la WDPA.</p>
+<p><strong>FAT – Feature Amendment Table</strong><br>
+Une table d’amendements attributaires contenant des modifications juridiques et administratives datées, telles que des changements de statut de protection, des délégations de gestion, des désignations ou des modalités de gouvernance.</p>
+<p><strong>CAR – Consolidation and Auditing Rules</strong><br>
+Un ensemble stable et transparent de règles de consolidation, exprimées sous forme de code lisible par des humains et reproductible, qui précisent comment la WDPA, la SAT et la FAT sont combinées, comment la segmentation temporelle est effectuée, et comment les règles de priorité entre sources sont appliquées et rendues auditables.</p>
+<p>Pris ensemble, ces éléments permettent de produire une table d’états dynamiques dérivée, dans laquelle chaque aire protégée de la WDPA est représentée par une succession d’états délimités dans le temps. La WDPA fournit l’état courant par défaut, tandis que la SAT et la FAT n’interviennent que lorsque des informations datées explicites sont disponibles, entraînant un découpage de la chronologie et, le cas échéant, une modification de la géométrie, du statut juridique ou du zonage interne, conformément aux règles définies par la CAR. En l’absence de telles informations, les données de la WDPA sont simplement prolongées vers le passé ou vers le présent sans modification, selon des conventions documentées.</p>
+<p>Le jeu de données résultant demeure pleinement compatible avec les identifiants et la structure de la WDPA, tout en rendant explicites, reproductibles et vérifiables les hypothèses temporelles sous-jacentes. La contribution réside ainsi à la fois dans la publication de données complémentaires soigneusement construites sur les trajectoires juridiques et spatiales (SAT et FAT), et dans les procédures transparentes de consolidation et d’audit (CAR) qui permettent de transformer la WDPA en un jeu de données de conservation explicitement temporel, adapté aux analyses longitudinales et aux évaluations d’impact.</p>
 
 
-</section>
-</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -698,10 +635,13 @@ ul.task-list li input[type="checkbox"] {
   </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
+      <a href="./08_border_changes.html" class="pagination-link" aria-label="Changement de frontières">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Changement de frontières</span></span>
+      </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./01_sapm_data.html" class="pagination-link" aria-label="Harmonisation des données SAPM">
-        <span class="nav-page-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Harmonisation des données SAPM</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./09en_technical_proposal.html" class="pagination-link" aria-label="Technical proposal (English)">
+        <span class="nav-page-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Technical proposal (English)</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

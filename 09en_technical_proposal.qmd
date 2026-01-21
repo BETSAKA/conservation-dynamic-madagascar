@@ -23,3 +23,268 @@ A stable and transparent set of consolidation rules, expressed as human readable
 Together, these components generate a derived dynamic state table in which each WDPA protected area is represented by a sequence of time bounded states. WDPA provides the default current state, while SAT and FAT only intervene when explicit dated information is available, triggering a segmentation of the timeline and, when relevant, a modification of geometry, legal status, or internal zoning as specified by CAR. In the absence of such information, WDPA data are simply extended backward or forward unchanged according to documented conventions.
 
 The resulting dataset remains fully compatible with WDPA identifiers and structure, while making temporal assumptions explicit, reproducible, and testable. The contribution therefore lies both in the publication of curated supplementary data on legal and spatial histories (SAT and FAT), and in the transparent consolidation and auditing procedures (CAR) that allow WDPA to be transformed into a time explicit conservation dataset suitable for longitudinal and impact analyses.
+
+## Composition of SAT
+
+
+```{r}
+library(tidyverse)
+library(sf)
+
+# Load the consolidated data
+all_PAs_conso <- read_rds("data/id/all_PAs_conso.rds")
+
+# Identify PAs with same WDPAID but different geometries/overlaps
+border_discrepancies <- all_PAs_conso %>%
+  # Filter to records that have both a WDPAID and overlap info
+  filter(!is.na(WDPAID), !is.na(overlap_WDPA)) %>%
+  # Exclude the WDPA source itself to avoid self-comparison
+  filter(dataset_id != "WDPA_2025") %>%
+  # Group by WDPAID to find multiple representations
+  group_by(WDPAID) %>%
+  mutate(
+    n_representations = n(),
+    min_overlap = min(overlap_WDPA, na.rm = TRUE),
+    max_overlap = max(overlap_WDPA, na.rm = TRUE),
+    overlap_range = max_overlap - min_overlap,
+    mean_overlap = mean(overlap_WDPA, na.rm = TRUE)
+  ) %>%
+  ungroup() %>%
+  # Flag significant discrepancies
+  mutate(
+    has_discrepancy = case_when(
+      n_representations == 1 ~ "Single source",
+      overlap_range > 0.3 ~ "High discrepancy (>30%)",
+      overlap_range > 0.15 ~ "Moderate discrepancy (15-30%)",
+      max_overlap < 0.7 ~ "Low overall overlap",
+      TRUE ~ "Good consistency"
+    )
+  ) %>%
+  # Focus on problematic cases
+  filter(
+    has_discrepancy %in%
+      c(
+        "High discrepancy (>30%)",
+        "Moderate discrepancy (15-30%)",
+        "Low overall overlap"
+      )
+  )
+
+# Summary by PA
+discrepancy_summary <- border_discrepancies %>%
+  st_drop_geometry() %>%
+  select(
+    WDPAID,
+    WDPA_NAME,
+    NAME,
+    dataset_id,
+    overlap_WDPA,
+    n_representations,
+    overlap_range,
+    has_discrepancy
+  ) %>%
+  arrange(desc(overlap_range), WDPAID)
+
+# View PA names with substantial discrepancies
+diff_WDPA_name <- unique(discrepancy_summary$WDPA_NAME)
+diff_WDPA_id <- unique(discrepancy_summary$WDPAID)
+```
+
+So we have `r length(diff_WDPA_name)` PAs with spatial discrepancies > 15%.
+
+```{r}
+print(diff_WDPA_name)
+```
+
+Now see in ou legal modifications which ones we have corresponding decrees
+
+```{r}
+pa_decisions <- read_rds("data/id/legal_texts.rds")
+
+modification_decisions <- pa_decisions |>
+  filter(str_detect("modifiant", type_decision))
+
+modification_decision_names <- unique(modification_decisions$WDPA_NAME) |>
+  sort()
+modification_decision_names
+```
+
+We have `r length(modification_decision_names)` border modification decisions registered.
+
+```{r}
+library(tmap)
+
+# Function to visualize all representations of a PA by WDPA name
+visualize_pa_by_name <- function(wdpa_name, data = all_PAs_conso) {
+  # Filter all observations matching this WDPA name
+  pa_subset <- data %>%
+    filter(WDPA_NAME == wdpa_name | NAME == wdpa_name)
+
+  # Check if any results found
+  if (nrow(pa_subset) == 0) {
+    message("No protected area found with name: ", wdpa_name)
+    return(NULL)
+  }
+
+  # Get summary information
+  n_obs <- nrow(pa_subset)
+  datasets <- unique(pa_subset$dataset_id)
+  wdpaid <- unique(pa_subset$WDPAID)[1]
+
+  # Print summary
+  cat("\n=== ", wdpa_name, " ===\n")
+  cat("WDPAID:", wdpaid, "\n")
+  cat("Number of representations:", n_obs, "\n")
+  cat("Datasets:", paste(datasets, collapse = ", "), "\n\n")
+
+  # Create interactive map
+  tmap_mode("view")
+
+  map <- tm_shape(pa_subset) +
+    tm_polygons(
+      col = "dataset_id",
+      alpha = 0.4,
+      id = "dataset_id",
+      popup.vars = c(
+        "NAME",
+        "WDPA_NAME",
+        "dataset_id",
+        "overlap_WDPA",
+        "STATUS_YR",
+        "DESIG",
+        "IUCN_CAT",
+        "date_texte",
+        "type_texte",
+        "num_texte"
+      ),
+      palette = "Set3",
+      title = "Data Source"
+    ) +
+    tm_layout(
+      title = paste(wdpa_name, "- All representations"),
+      frame = FALSE
+    )
+
+  return(map)
+}
+```
+
+## Ambatovaky
+
+```{r}
+visualize_pa_by_name("Ambatovaky")
+```
+
+## Analamazaotra 
+
+```{r}
+visualize_pa_by_name("Analamazaotra")
+```
+
+## Andohahela 
+
+```{r}
+visualize_pa_by_name("Andohahela")
+```
+
+## Andringitra
+
+```{r}
+visualize_pa_by_name("Andringitra")
+```
+
+## Anjanaharibe_sud
+
+```{r}
+visualize_pa_by_name("Anjanaharibe-Sud")
+```
+
+## Ankarafantsika
+
+```{r}
+visualize_pa_by_name("Ankarafantsika")
+```
+
+## Bemaraha 
+
+```{r}
+visualize_pa_by_name("Bemaraha")
+```
+
+## Beza Mahafaly
+
+```{r}
+visualize_pa_by_name("Beza Mahafaly")
+```
+
+## Cap Sainte Marie
+
+```{r}
+visualize_pa_by_name("Cap Sainte Marie")
+```
+
+## Kirindy Mite
+
+```{r}
+visualize_pa_by_name("Kirindy Mite")
+```
+
+## Mangerivola
+
+```{r}
+visualize_pa_by_name("Mangerivola")
+```
+
+## Manombo
+
+```{r}
+visualize_pa_by_name("Manombo")
+```
+
+## Manongarivo
+
+```{r}
+visualize_pa_by_name("Manongarivo")
+```
+
+## Mantadia
+
+```{r}
+visualize_pa_by_name("Mantadia")
+```
+
+## Marojejy
+
+```{r}
+visualize_pa_by_name("Marojejy")
+```
+
+## Montagne d'Ambre
+
+```{r}
+visualize_pa_by_name("Montagne d'Ambre")
+```
+
+## Namoroka
+
+```{r}
+visualize_pa_by_name("Namoroka")
+```
+
+## Nosy Mangabe
+
+```{r}
+visualize_pa_by_name("Nosy Mangabe")
+```
+
+## Tsimanampesotse
+
+```{r}
+visualize_pa_by_name("Tsimanampesotse")
+```
+
+## Zahamena
+
+```{r}
+visualize_pa_by_name("Zahamena")
+```

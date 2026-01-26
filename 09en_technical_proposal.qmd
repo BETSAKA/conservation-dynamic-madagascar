@@ -30,6 +30,9 @@ The resulting dataset remains fully compatible with WDPA identifiers and structu
 ```{r}
 library(tidyverse)
 library(sf)
+library(tmap)
+library(arrow)
+library(geoarrow)
 
 # Load the consolidated data
 all_PAs_conso <- read_rds("data/id/all_PAs_conso.rds")
@@ -112,24 +115,68 @@ modification_decision_names
 We have `r length(modification_decision_names)` border modification decisions registered.
 
 ```{r}
-library(tmap)
+# 2 functions: 1 for exploratory data analysis, the other to display identified
+# datasets
 
 # Function to visualize all representations of a PA by WDPA name
-visualize_pa_by_name <- function(wdpa_name, data = all_PAs_conso) {
-  # Filter all observations matching this WDPA name
+# Looks up the WDPAID from pa_decisions, then filters all_PAs_conso by that ID
+# Each row becomes a separately controllable layer
+visualize_pa_by_name <- function(
+  wdpa_name,
+  data = all_PAs_conso,
+  decisions = pa_decisions,
+  wdpa_historical_path = "data/MDG_WDPA_Consolidated.parquet",
+  sources = NULL
+) {
+  # Check if input is a WDPAID (integer) or name (string)
+  if (is.numeric(wdpa_name)) {
+    wdpaid <- wdpa_name
+  } else {
+    # Look up the WDPAID from pa_decisions
+    wdpaid <- decisions %>%
+      filter(WDPA_NAME == wdpa_name) %>%
+      pull(WDPAID) %>%
+      first()
+
+    # Check if WDPAID was found
+    if (is.na(wdpaid)) {
+      message("No WDPAID found in pa_decisions for: ", wdpa_name)
+      return(NULL)
+    }
+  }
+
+  # Filter all observations matching this WDPAID from all_PAs_conso
   pa_subset <- data %>%
-    filter(WDPA_NAME == wdpa_name | NAME == wdpa_name)
+    filter(WDPAID == wdpaid)
+
+  # Load and filter WDPA historical data
+  wdpa_historical <- read_parquet(wdpa_historical_path) %>%
+    mutate(geometry = st_as_sfc(geometry)) %>%
+    st_as_sf() %>%
+    filter(WDPAID == wdpaid) %>%
+    mutate(dataset_id = paste0("WDPA_", data_year)) %>%
+    st_transform(st_crs(pa_subset))
+
+  # Combine both datasets
+  pa_subset <- bind_rows(pa_subset, wdpa_historical)
+
+  # Filter by specified sources if provided
+  if (!is.null(sources) && length(sources) > 0) {
+    pa_subset <- pa_subset %>%
+      filter(dataset_id %in% sources) %>%
+      # Convert to factor with levels in the order specified by sources
+      mutate(dataset_id = factor(dataset_id, levels = sources))
+  }
 
   # Check if any results found
   if (nrow(pa_subset) == 0) {
-    message("No protected area found with name: ", wdpa_name)
+    message("No protected area found with WDPAID: ", wdpaid)
     return(NULL)
   }
 
   # Get summary information
   n_obs <- nrow(pa_subset)
   datasets <- unique(pa_subset$dataset_id)
-  wdpaid <- unique(pa_subset$WDPAID)[1]
 
   # Print summary
   cat("\n=== ", wdpa_name, " ===\n")
@@ -137,33 +184,105 @@ visualize_pa_by_name <- function(wdpa_name, data = all_PAs_conso) {
   cat("Number of representations:", n_obs, "\n")
   cat("Datasets:", paste(datasets, collapse = ", "), "\n\n")
 
-  # Create interactive map
+  # Create static plot map with all geometries in one layer (tmap v4 syntax)
   tmap_mode("view")
 
   map <- tm_shape(pa_subset) +
     tm_polygons(
-      col = "dataset_id",
-      alpha = 0.4,
-      id = "dataset_id",
-      popup.vars = c(
-        "NAME",
-        "WDPA_NAME",
-        "dataset_id",
-        "overlap_WDPA",
-        "STATUS_YR",
-        "DESIG",
-        "IUCN_CAT",
-        "date_texte",
-        "type_texte",
-        "num_texte"
-      ),
-      palette = "Set3",
-      title = "Data Source"
+      fill = "dataset_id",
+      fill_alpha = 0.5,
+      col = "black",
+      lwd = 1,
+      fill.scale = tm_scale(values = "brewer.set2"),
+      fill.legend = tm_legend(
+        title = "Data Source",
+        position = tm_pos_out("right")
+      )
     ) +
-    tm_layout(
-      title = paste(wdpa_name, "- All representations"),
-      frame = FALSE
-    )
+    tm_title(wdpa_name)
+
+  return(map)
+}
+
+plot_pa_by_name <- function(
+  wdpa_name,
+  data = all_PAs_conso,
+  decisions = pa_decisions,
+  wdpa_historical_path = "data/MDG_WDPA_Consolidated.parquet",
+  sources = NULL
+) {
+  # Check if input is a WDPAID (integer) or name (string)
+  if (is.numeric(wdpa_name)) {
+    wdpaid <- wdpa_name
+  } else {
+    # Look up the WDPAID from pa_decisions
+    wdpaid <- decisions %>%
+      filter(WDPA_NAME == wdpa_name) %>%
+      pull(WDPAID) %>%
+      first()
+
+    # Check if WDPAID was found
+    if (is.na(wdpaid)) {
+      message("No WDPAID found in pa_decisions for: ", wdpa_name)
+      return(NULL)
+    }
+  }
+
+  # Filter all observations matching this WDPAID from all_PAs_conso
+  pa_subset <- data %>%
+    filter(WDPAID == wdpaid)
+
+  # Load and filter WDPA historical data
+  wdpa_historical <- read_parquet(wdpa_historical_path) %>%
+    mutate(geometry = st_as_sfc(geometry)) %>%
+    st_as_sf() %>%
+    filter(WDPAID == wdpaid) %>%
+    mutate(dataset_id = paste0("WDPA_", data_year)) %>%
+    st_transform(st_crs(pa_subset))
+
+  # Combine both datasets
+  pa_subset <- bind_rows(pa_subset, wdpa_historical)
+
+  # Filter by specified sources if provided
+  if (!is.null(sources) && length(sources) > 0) {
+    pa_subset <- pa_subset %>%
+      filter(dataset_id %in% sources) %>%
+      # Convert to factor with levels in the order specified by sources
+      mutate(dataset_id = factor(dataset_id, levels = sources))
+  }
+
+  # Check if any results found
+  if (nrow(pa_subset) == 0) {
+    message("No protected area found with WDPAID: ", wdpaid)
+    return(NULL)
+  }
+
+  # Get summary information
+  n_obs <- nrow(pa_subset)
+  datasets <- unique(pa_subset$dataset_id)
+
+  # Print summary
+  cat("\n=== ", wdpa_name, " ===\n")
+  cat("WDPAID:", wdpaid, "\n")
+  cat("Number of representations:", n_obs, "\n")
+  cat("Datasets:", paste(datasets, collapse = ", "), "\n\n")
+
+  # Create static plot map with all geometries in one layer (tmap v4 syntax)
+  tmap_mode("plot")
+
+  map <- tm_shape(pa_subset) +
+    tm_polygons(
+      fill = "dataset_id",
+      fill_alpha = 0.5,
+      col = "black",
+      lwd = 1,
+      fill.scale = tm_scale(values = "brewer.set2"),
+      fill.legend = tm_legend(
+        title = "Data Source",
+        position = tm_pos_out("right")
+      )
+    ) +
+    tm_title(wdpa_name)
 
   return(map)
 }
@@ -172,119 +291,310 @@ visualize_pa_by_name <- function(wdpa_name, data = all_PAs_conso) {
 ## Ambatovaky
 
 ```{r}
-visualize_pa_by_name("Ambatovaky")
+ambatovaky_decision_2015 <- pa_decisions %>%
+  filter(WDPAID == 5037, year(date_texte) == 2015) %>%
+  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
+print(list(
+  select(ambatovaky_decision_2015, -objet_texte),
+  ambatovaky_decision_2015$objet_texte
+))
 ```
+
+
+```{r}
+#| echo: false
+#| eval: false
+visualize_pa_by_name(
+  "Ambatovaky",
+  sources = c("WDPA_2025", "WDPA_2024", "ANGAP_2002")
+)
+```
+
+
+```{r}
+plot_pa_by_name(
+  "Ambatovaky",
+  sources = c("ANGAP_2002", "WDPA_2025", "WDPA_2024")
+)
+```
+
+3 different perimeters: 
+- WDPA 2025
+- WDPA 2024 : much larger than WDPA 2025 (includes protection zone?)
+- WDPA < 2020 | ANGAP 2002: smaller than WPDA 2025
+
+> To be added to SAT: ANGAP_2002
 
 ## Analamazaotra 
 
 ```{r}
+analamazotra_decision_2015 <- pa_decisions %>%
+  filter(WDPAID == 5021) %>%
+  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
+print(list(
+  select(analamazotra_decision_2015, -objet_texte),
+  analamazotra_decision_2015$objet_texte
+))
+```
+
+```{r}
+#| echo: false
+#| eval: false
 visualize_pa_by_name("Analamazaotra")
 ```
+
+```{r}
+plot_pa_by_name(
+  "Analamazaotra",
+  sources = c("WDPA_2025", "SAPM_2010", "WDPA_2024")
+)
+```
+
+different peremetrs
+- WDPA 2025
+- WDPA 2020:2024: larger (includes protection zone?)
+- SAPM 2010 (and others) smaller and clearer borders
+
+> To be added to SAT: SAPM 2010
 
 ## Andohahela 
 
 ```{r}
+andohahela_decision_2015 <- pa_decisions %>%
+  filter(WDPAID == 2303) %>%
+  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
+print(list(
+  select(andohahela_decision_2015, -objet_texte),
+  andohahela_decision_2015$objet_texte
+))
+```
+
+```{r}
+#| echo: false
+#| eval: false
 visualize_pa_by_name("Andohahela")
 ```
+
+Three different versions
+- WDPA 2025 = SAPM 2024 = SAPM 2017
+- WDPA 2024 = 
+- ANGAP 2002 = WDPA <= 2016
+
+```{r}
+plot_pa_by_name(
+  "Andohahela",
+  sources = c("WDPA_2025", "ANGAP_2002", "WDPA_2024")
+)
+```
+
 
 ## Andringitra
 
 ```{r}
+andringitra_decision_2015 <- pa_decisions %>%
+  filter(WDPAID == 2308) %>%
+  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
+print(list(
+  select(andringitra_decision_2015, -objet_texte),
+  andringitra_decision_2015$objet_texte
+))
+```
+
+```{r}
+#| echo: false
+#| eval: false
 visualize_pa_by_name("Andringitra")
 ```
+
+- WDPA 2025 = SAPM 2017 = SAPM 2025 = Vahatra
+- WDPA 2020:2024 = trop large (inclut la zone de protection probablement)
+- WDPA 2010:2019: frontières plus simples qu'on ne retrouve avec des différences modérées avec la plupart des autres sources
+- ANGAP 2002 = SAPM 2010 = SAPM evol 2001-2011 (avec year = 2002)
+
+```{r}
+plot_pa_by_name(
+  "Andringitra",
+  sources = c("WDPA_2025", "ANGAP_2002")
+)
+```
+
+> Garder ANGAP_2002
 
 ## Anjanaharibe_sud
 
 ```{r}
-visualize_pa_by_name("Anjanaharibe-Sud")
+anjanaharibe_decision_2015 <- pa_decisions %>%
+  filter(WDPAID == 5023) %>%
+  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
+print(list(
+  select(anjanaharibe_decision_2015, -objet_texte),
+  anjanaharibe_decision_2015$objet_texte
+))
 ```
+
+```{r}
+#| echo: false
+#| eval: false
+visualize_pa_by_name("Anjanaharibe_sud")
+```
+
+- WDPA 2025 = WPDA 2024 = WDPA 2017 = Vahatra
+- WDPA 2010:2019 = ANGAP 2002
+- WDPA 2024 semble très faux.
+- SAPM 2010 = SAPM 2001-2011 très différent
+
+```{r}
+plot_pa_by_name(
+  "Anjanaharibe_sud",
+  sources = c("WDPA_2025", "ANGAP_2002")
+)
+```
+
+> Ajouter ANGAP 2002
 
 ## Ankarafantsika
 
 ```{r}
+ankarafantsika_decision_2015 <- pa_decisions %>%
+  filter(WDPAID == 1299) %>%
+  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
+print(list(
+  select(ankarafantsika_decision_2015, -objet_texte),
+  ankarafantsika_decision_2015$objet_texte
+))
+```
+
+```{r}
+#| echo: false
+#| eval: false
 visualize_pa_by_name("Ankarafantsika")
 ```
+
+- ANGAP 2002 = SAPM 2010:2019
+- WDPA 2025 = SAPM 2010, 2017, 2024
+- WDPA 2024 inclut la zone de protection
+
+```{r}
+plot_pa_by_name(
+  "AnjS",
+  sources = c("WDPA_2025", "ANGAP_2002")
+)
+```
+
+> Ajout de ANGAP 2002
+
+The extension of the protected area in 2002 was mapped as follows in 2002 by experts from the NGO Conservation International, which spearheaded the initiative.
+
+![Ankarafantsika 2002 expansion](data/Alonso_Shuldenberg_2002.png)
 
 ## Bemaraha 
 
 ```{r}
-visualize_pa_by_name("Bemaraha")
+#| echo: false
+#| eval: false
+visualize_pa_by_name(303702)
 ```
 
 ## Beza Mahafaly
 
 ```{r}
+#| echo: false
+#| eval: false
 visualize_pa_by_name("Beza Mahafaly")
 ```
 
 ## Cap Sainte Marie
 
 ```{r}
+#| echo: false
+#| eval: false
 visualize_pa_by_name("Cap Sainte Marie")
 ```
 
 ## Kirindy Mite
 
 ```{r}
+#| echo: false
+#| eval: false
 visualize_pa_by_name("Kirindy Mite")
 ```
 
 ## Mangerivola
 
 ```{r}
+#| echo: false
+#| eval: false
 visualize_pa_by_name("Mangerivola")
 ```
 
 ## Manombo
 
 ```{r}
+#| echo: false
+#| eval: false
 visualize_pa_by_name("Manombo")
 ```
 
 ## Manongarivo
 
 ```{r}
+#| echo: false
+#| eval: false
 visualize_pa_by_name("Manongarivo")
 ```
 
 ## Mantadia
 
 ```{r}
+#| echo: false
+#| eval: false
 visualize_pa_by_name("Mantadia")
 ```
 
 ## Marojejy
 
 ```{r}
+#| echo: false
+#| eval: false
 visualize_pa_by_name("Marojejy")
 ```
 
 ## Montagne d'Ambre
 
 ```{r}
+#| echo: false
+#| eval: false
 visualize_pa_by_name("Montagne d'Ambre")
 ```
 
 ## Namoroka
 
 ```{r}
+#| echo: false
+#| eval: false
 visualize_pa_by_name("Namoroka")
 ```
 
 ## Nosy Mangabe
 
 ```{r}
+#| echo: false
+#| eval: false
 visualize_pa_by_name("Nosy Mangabe")
 ```
 
 ## Tsimanampesotse
 
 ```{r}
+#| echo: false
+#| eval: false
 visualize_pa_by_name("Tsimanampesotse")
 ```
 
 ## Zahamena
 
 ```{r}
+#| echo: false
+#| eval: false
 visualize_pa_by_name("Zahamena")
 ```

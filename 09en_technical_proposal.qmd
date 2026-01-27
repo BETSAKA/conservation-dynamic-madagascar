@@ -538,12 +538,40 @@ The extension of the protected area in 2002 was mapped as follows in 2002 by exp
 ## Bemaraha 
 
 ```{r}
+bemaraha_decision <- pa_decisions %>%
+  filter(WDPAID == 303702) %>%
+  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
+print(list(
+  select(bemaraha_decision, -objet_texte),
+  bemaraha_decision$objet_texte
+))
+```
+
+```{r}
 #| echo: false
 #| eval: false
 visualize_pa_by_name(303702)
 ```
 
+
+```{r}
+plot_pa_by_name(
+  303702,
+  sources = c("WDPA_2025") # Update after visual inspection
+)
+```
+
 ## Beza Mahafaly
+
+```{r}
+beza_decision <- pa_decisions %>%
+  filter(WDPAID == 10634) %>%
+  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
+print(list(
+  select(beza_decision, -objet_texte),
+  beza_decision$objet_texte
+))
+```
 
 ```{r}
 #| echo: false
@@ -551,7 +579,24 @@ visualize_pa_by_name(303702)
 visualize_pa_by_name("Beza Mahafaly")
 ```
 
+```{r}
+plot_pa_by_name(
+  10634,
+  sources = c("WDPA_2025") # Update after visual inspection
+)
+```
+
 ## Cap Sainte Marie
+
+```{r}
+cap_decision <- pa_decisions %>%
+  filter(WDPAID == 5041) %>%
+  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
+print(list(
+  select(cap_decision, -objet_texte),
+  cap_decision$objet_texte
+))
+```
 
 ```{r}
 #| echo: false
@@ -559,7 +604,24 @@ visualize_pa_by_name("Beza Mahafaly")
 visualize_pa_by_name("Cap Sainte Marie")
 ```
 
+```{r}
+plot_pa_by_name(
+  5041,
+  sources = c("WDPA_2025") # Update after visual inspection
+)
+```
+
 ## Kirindy Mite
+
+```{r}
+kirindy_decision <- pa_decisions %>%
+  filter(WDPAID == 303700) %>%
+  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
+print(list(
+  select(kirindy_decision, -objet_texte),
+  kirindy_decision$objet_texte
+))
+```
 
 ```{r}
 #| echo: false
@@ -567,7 +629,24 @@ visualize_pa_by_name("Cap Sainte Marie")
 visualize_pa_by_name("Kirindy Mite")
 ```
 
+```{r}
+plot_pa_by_name(
+  303700,
+  sources = c("WDPA_2025") # Update after visual inspection
+)
+```
+
 ## Mangerivola
+
+```{r}
+mangerivola_decision <- pa_decisions %>%
+  filter(WDPAID == 5038) %>%
+  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
+print(list(
+  select(mangerivola_decision, -objet_texte),
+  mangerivola_decision$objet_texte
+))
+```
 
 ```{r}
 #| echo: false
@@ -575,7 +654,24 @@ visualize_pa_by_name("Kirindy Mite")
 visualize_pa_by_name("Mangerivola")
 ```
 
+```{r}
+plot_pa_by_name(
+  5038,
+  sources = c("WDPA_2025") # Update after visual inspection
+)
+```
+
 ## Manombo
+
+```{r}
+manombo_decision <- pa_decisions %>%
+  filter(WDPAID == 5028) %>%
+  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
+print(list(
+  select(manombo_decision, -objet_texte),
+  manombo_decision$objet_texte
+))
+```
 
 ```{r}
 #| echo: false
@@ -583,7 +679,24 @@ visualize_pa_by_name("Mangerivola")
 visualize_pa_by_name("Manombo")
 ```
 
+```{r}
+plot_pa_by_name(
+  5028,
+  sources = c("WDPA_2025") # Update after visual inspection
+)
+```
+
 ## Manongarivo
+
+```{r}
+manongarivo_decision <- pa_decisions %>%
+  filter(WDPAID == 5026) %>%
+  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
+print(list(
+  select(manongarivo_decision, -objet_texte),
+  manongarivo_decision$objet_texte
+))
+```
 
 ```{r}
 #| echo: false
@@ -591,7 +704,24 @@ visualize_pa_by_name("Manombo")
 visualize_pa_by_name("Manongarivo")
 ```
 
+```{r}
+plot_pa_by_name(
+  5026,
+  sources = c("WDPA_2025") # Update after visual inspection
+)
+```
+
 ## Mantadia
+
+```{r}
+mantadia_decision <- pa_decisions %>%
+  filter(WDPAID == 26070) %>%
+  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
+print(list(
+  select(mantadia_decision, -objet_texte),
+  mantadia_decision$objet_texte
+))
+```
 
 ```{r}
 #| echo: false
@@ -599,7 +729,24 @@ visualize_pa_by_name("Manongarivo")
 visualize_pa_by_name("Mantadia")
 ```
 
+```{r}
+plot_pa_by_name(
+  26070,
+  sources = c("WDPA_2025") # Update after visual inspection
+)
+```
+
 ## Marojejy
+
+```{r}
+marojejy_decision <- pa_decisions %>%
+  filter(WDPAID == 2305) %>%
+  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
+print(list(
+  select(marojejy_decision, -objet_texte),
+  marojejy_decision$objet_texte
+))
+```
 
 ```{r}
 #| echo: false
@@ -607,7 +754,24 @@ visualize_pa_by_name("Mantadia")
 visualize_pa_by_name("Marojejy")
 ```
 
+```{r}
+plot_pa_by_name(
+  2305,
+  sources = c("WDPA_2025") # Update after visual inspection
+)
+```
+
 ## Montagne d'Ambre
+
+```{r}
+montagne_decision <- pa_decisions %>%
+  filter(WDPAID == 2314) %>%
+  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
+print(list(
+  select(montagne_decision, -objet_texte),
+  montagne_decision$objet_texte
+))
+```
 
 ```{r}
 #| echo: false
@@ -615,7 +779,24 @@ visualize_pa_by_name("Marojejy")
 visualize_pa_by_name("Montagne d'Ambre")
 ```
 
+```{r}
+plot_pa_by_name(
+  2314,
+  sources = c("WDPA_2025") # Update after visual inspection
+)
+```
+
 ## Namoroka
+
+```{r}
+namoroka_decision <- pa_decisions %>%
+  filter(WDPAID == 2309) %>%
+  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
+print(list(
+  select(namoroka_decision, -objet_texte),
+  namoroka_decision$objet_texte
+))
+```
 
 ```{r}
 #| echo: false
@@ -623,7 +804,24 @@ visualize_pa_by_name("Montagne d'Ambre")
 visualize_pa_by_name("Namoroka")
 ```
 
+```{r}
+plot_pa_by_name(
+  2309,
+  sources = c("WDPA_2025") # Update after visual inspection
+)
+```
+
 ## Nosy Mangabe
+
+```{r}
+nosy_decision <- pa_decisions %>%
+  filter(WDPAID == 5039) %>%
+  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
+print(list(
+  select(nosy_decision, -objet_texte),
+  nosy_decision$objet_texte
+))
+```
 
 ```{r}
 #| echo: false
@@ -631,7 +829,24 @@ visualize_pa_by_name("Namoroka")
 visualize_pa_by_name("Nosy Mangabe")
 ```
 
+```{r}
+plot_pa_by_name(
+  5039,
+  sources = c("WDPA_2025") # Update after visual inspection
+)
+```
+
 ## Tsimanampesotse
+
+```{r}
+tsimanampesotse_decision <- pa_decisions %>%
+  filter(WDPAID == 2307) %>%
+  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
+print(list(
+  select(tsimanampesotse_decision, -objet_texte),
+  tsimanampesotse_decision$objet_texte
+))
+```
 
 ```{r}
 #| echo: false
@@ -639,10 +854,35 @@ visualize_pa_by_name("Nosy Mangabe")
 visualize_pa_by_name("Tsimanampesotse")
 ```
 
+```{r}
+plot_pa_by_name(
+  2307,
+  sources = c("WDPA_2025") # Update after visual inspection
+)
+```
+
 ## Zahamena
+
+```{r}
+zahamena_decision <- pa_decisions %>%
+  filter(WDPAID == 354013) %>%
+  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
+print(list(
+  select(zahamena_decision, -objet_texte),
+  zahamena_decision$objet_texte
+))
+```
 
 ```{r}
 #| echo: false
 #| eval: false
 visualize_pa_by_name("Zahamena")
+```
+
+
+```{r}
+plot_pa_by_name(
+  354013,
+  sources = c("WDPA_2025") # Update after visual inspection
+)
 ```

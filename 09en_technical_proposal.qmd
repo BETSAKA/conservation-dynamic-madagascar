@@ -147,7 +147,8 @@ visualize_pa_by_name <- function(
 
   # Filter all observations matching this WDPAID from all_PAs_conso
   pa_subset <- data %>%
-    filter(WDPAID == wdpaid)
+    filter(WDPAID == wdpaid) %>%
+    mutate(layer_id = paste0(dataset_id, " - ", row_number()))
 
   # Load and filter WDPA historical data
   wdpa_historical <- read_parquet(wdpa_historical_path) %>%
@@ -187,19 +188,66 @@ visualize_pa_by_name <- function(
   # Create static plot map with all geometries in one layer (tmap v4 syntax)
   tmap_mode("view")
 
-  map <- tm_shape(pa_subset) +
-    tm_polygons(
-      fill = "dataset_id",
-      fill_alpha = 0.5,
-      col = "black",
-      lwd = 1,
-      fill.scale = tm_scale(values = "brewer.set2"),
-      fill.legend = tm_legend(
-        title = "Data Source",
-        position = tm_pos_out("right")
-      )
-    ) +
-    tm_title(wdpa_name)
+  map <- NULL
+
+  # Add each row as a separate shape layer
+  for (i in seq_len(nrow(pa_subset))) {
+    row_data <- pa_subset[i, ]
+    layer_name <- paste0(row_data$dataset_id, " (", i, ")")
+
+    if (is.null(map)) {
+      map <- tm_shape(row_data, name = layer_name) +
+        tm_polygons(
+          col = "dataset_id",
+          alpha = 0.4,
+          id = "layer_id",
+          popup.vars = c(
+            "NAME",
+            "WDPA_NAME",
+            "dataset_id",
+            "overlap_WDPA",
+            "STATUS_YR",
+            "DESIG",
+            "IUCN_CAT",
+            "date_texte",
+            "type_texte",
+            "num_texte"
+          ),
+          palette = "Set3",
+          title = "Data Source",
+          group = layer_name
+        )
+    } else {
+      map <- map +
+        tm_shape(row_data, name = layer_name) +
+        tm_polygons(
+          col = "dataset_id",
+          alpha = 0.4,
+          id = "layer_id",
+          popup.vars = c(
+            "NAME",
+            "WDPA_NAME",
+            "dataset_id",
+            "overlap_WDPA",
+            "STATUS_YR",
+            "DESIG",
+            "IUCN_CAT",
+            "date_texte",
+            "type_texte",
+            "num_texte"
+          ),
+          palette = "Set3",
+          title = "Data Source",
+          group = layer_name
+        )
+    }
+  }
+
+  map <- map +
+    tm_layout(
+      title = paste(wdpa_name, "- All representations"),
+      frame = FALSE
+    )
 
   return(map)
 }
@@ -476,7 +524,7 @@ visualize_pa_by_name("Ankarafantsika")
 
 ```{r}
 plot_pa_by_name(
-  "AnjS",
+  "Ankarafantsika",
   sources = c("WDPA_2025", "ANGAP_2002")
 )
 ```

@@ -8,6 +8,6 @@ data/*
 test_*
 /.quarto/
 *.Rproj
-Backlog.txt
+Backlog*
 .vscode*
 **/*.quarto_ipynb

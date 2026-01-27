@@ -317,10 +317,6 @@ plot_comp_facets(
 
 ```
 
-```{r}
-legal_texts.rds <- read_rds("data/id/legal_texts.rds")
-```
-
 ## Questions en suspens
 
 - Validation de ces différences

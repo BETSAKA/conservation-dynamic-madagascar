@@ -1,4 +1,24 @@
-          56 , "1997-12-18" , "Décret"   , "97-1454"es différents jeux de données spatiaux provenant de sources hétérogènes (ANGAP, SAPM, WDPA, Vahatra) ainsi que les données légales extraites manuellement. Ils seront harmonisés et fusionnés dans un jeu unique de référence.
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+# Harmonisation des données SAPM
+
+Dans cette section, nous passons en revue plusieurs jeux de données ayant documenté les aires protégées à Madagascar à différentes périodes. Ces données, issues de sources officielles, ont été produites et mises à jour par différentes institutions. Nous les harmonisons en appliquant un ensemble de traitements standardisés :
+
+-   Correction des erreurs topologiques.
+
+-   Homogénéisation des formats de fichiers et des projections.
+
+-   Consolidation et validation des attributs descriptifs.
+
+-   Construction d’une série temporelle cohérente des aires protégées de 2002 à 2024.
+
+Ces opérations visent à rendre comparables des jeux de données produits à des moments différents et selon des logiques institutionnelles variées. Elles permettent la construction d’une série temporelle cohérente, indispensable à toute analyse historique ou comparative sur les dynamiques de conservation à Madagascar.
+
+Ces opérations sont réalisées avec R, avec une série de package appropriés.
 
 ```{r}
 # Load required libraries

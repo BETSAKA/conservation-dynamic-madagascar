@@ -1,12 +1,4 @@
----
-output: html_document
-editor_options: 
-  chunk_output_type: console
----
-
-## Consolidation des noms 
-
-Nous chargeons les différents jeux de données spatiaux provenant de sources hétérogènes (ANGAP, SAPM, WDPA, Vahatra) ainsi que les données légales extraites manuellement. Ils seront harmonisés et fusionnés dans un jeu unique de référence.
+          56 , "1997-12-18" , "Décret"   , "97-1454"es différents jeux de données spatiaux provenant de sources hétérogènes (ANGAP, SAPM, WDPA, Vahatra) ainsi que les données légales extraites manuellement. Ils seront harmonisés et fusionnés dans un jeu unique de référence.
 
 ```{r}
 # Load required libraries
@@ -50,7 +42,7 @@ angap_2002 <- angap_2002 |>
 
 legal_txt_content <- tribble(
   ~num_ligne , ~date_texte  , ~type_texte , ~num_texte             ,
-           1 , "1958-10-28" , "Décret"    , "58.10"                ,
+           1 , "1958-10-28" , "Décret"   , "58.10"                ,
            2 , "1997-03-02" , "Décret"    , "97-141"               ,
            3 , "1958-10-28" , "Décret"    , "58.08"                ,
            4 , "1982-02-12" , "Décret"    , "82.078"               ,
@@ -106,6 +98,63 @@ legal_txt_content <- tribble(
           54 , "1997-08-07" , "Décret"    , "97.1044"              ,
           55 , "1966-06-01" , "Décret"    , "66.242"               ,
           56 , "1997-12-18" , "Décret"    , "97-1454"
+=======
+           1 , "1958-10-28" , "Décret"   , "58.10"                ,
+           2 , "1997-03-02" , "Décret"   , "97-141"               ,
+           3 , "1958-10-28" , "Décret"   , "58.08"                ,
+           4 , "1982-02-12" , "Décret"   , "82.078"               ,
+           5 , "1970-07-21" , "Décret"   , "2778-MAER/SEGREF/FOR" ,
+           6 , "1956-02-20" , "Décret"   , "56.208"               ,
+           7 , "1997-08-07" , "Décret"   , "97.1043"              ,
+           8 , "1958-10-28" , "Décret"   , "58.13"                ,
+           9 , "1998-10-19" , "Décret"   , "98.376"               ,
+          10 , "1958-10-28" , "Décret"   , "58.12"                ,
+          11 , NA           , NA          , NA                     ,
+          12 , "1956-02-20" , "Décret"   , "56.208"               ,
+          13 , "1997-12-18" , "Décret"   , "97-1452"              ,
+          14 , NA           , NA          , NA                     ,
+          15 , "1956-09-10" , "Décret"   , NA                     ,
+          16 , "1966-06-01" , "Décret"   , "66.242"               ,
+          17 , "1986-06-04" , "Décret"   , "86.168"               ,
+          18 , "1966-04-22" , "Décret"   , "64-159"               ,
+          19 , "1962-10-24" , "Décret"   , "62.527"               ,
+          20 , "1958-10-28" , "Décret"   , "58.15"                ,
+          21 , "1997-03-02" , "Décret"   , "97-141"               ,
+          22 , "1962-07-19" , "Décret"   , "62.371"               ,
+          23 , "1959-04-24" , "Décret"   , "58.59"                ,
+          24 , "1956-09-10" , "Décret"   , NA                     ,
+          25 , "1997-12-18" , "Décret"   , "97.1453"              ,
+          26 , "1966-06-01" , "Décret"   , "66.242"               ,
+          27 , "1989-07-25" , "Décret"   , "89-216"               ,
+          28 , "1989-07-25" , "Décret"   , "89-216"               ,
+          29 , "1958-10-28" , "Décret"   , "58.10"                ,
+          30 , "1956-02-20" , "Décret"   , "56.208"               ,
+          31 , "1962-12-05" , "Décret"   , "62.637"               ,
+          32 , "1956-02-20" , "Décret"   , "56.208"               ,
+          33 , NA           , NA          , NA                     ,
+          34 , "1998-05-19" , "Décret"   , "98.375"               ,
+          35 , "1956-02-20" , "Décret"   , "56.208"               ,
+          36 , "1997-03-02" , "Décret"   , "97-141"               ,
+          37 , NA           , NA          , NA                     ,
+          38 , "1997-12-18" , "Décret"   , "97.1451"              ,
+          39 , "1958-10-28" , "Décret"   , "58.07"                ,
+          40 , "1965-12-14" , "Décret"   , "95.795"               ,
+          41 , "1954-09-16" , "Décret"   , "64.380"               ,
+          42 , "1989-07-25" , "Décret"   , "89-216"               ,
+          43 , NA           , NA          , NA                     ,
+          44 , "1958-10-28" , "Décret"   , "58.14"                ,
+          45 , "1997-03-02" , "Décret"   , "97-141"               ,
+          46 , "1966-06-01" , "Décret"   , "66.242"               ,
+          47 , "1966-06-01" , "Décret"   , "66.242"               ,
+          48 , "1997-08-07" , "Décret"   , "97-1045"              ,
+          49 , "1966-06-01" , "Décret"   , "66.242"               ,
+          50 , "1966-06-01" , "Décret"   , "66.242"               ,
+          51 , "1997-08-07" , "Décret"   , "97-1045"              ,
+          52 , NA           , NA          , NA                     ,
+          53 , "1997-12-18" , "Décret"   , "97-1454"              ,
+          54 , "1997-08-07" , "Décret"   , "97.1044"              ,
+          55 , "1966-06-01" , "Décret"   , "66.242"               ,
+
 ) %>%
   mutate(
     STATUS_YR = case_when(
@@ -128,11 +177,11 @@ angap_2002 <- angap_2002 %>%
 Les autres jeux de données sont également harmonisés avec un sous-ensemble de variables cibles. On applique des transformations simples et un renommage standardisé pour assurer l’interopérabilité.
 
 ```{r}
-
 mnp_2010 <- mnp_2010 |>
   rename(NAME = NOM) |>
   mutate(dataset_id = "MNP_2010") |>
   select(NAME, dataset_id, geometry)
+
 
 sapm_2010 <- sapm_2010 |>
   select(NAME = NOM, DESIG = DESCRIPTIO, MANG_AUTH = DATAADMIN) |>
@@ -140,7 +189,6 @@ sapm_2010 <- sapm_2010 |>
     DESIG = str_replace(DESIG, "Protge", "Protégée"),
     dataset_id = "SAPM_2010"
   )
-
 sapm_evol_2001_2011 <- sapm_evol_2001_2011 |>
   mutate(YEAR = as.numeric(YEAR)) |>
   select(
@@ -476,7 +524,7 @@ all_PAs_matched <- pa_match_fallback_name(
   y = wdpa_mdg_2025,
   remove_terms = words_to_exlcude
 ) %>%
-  rename(WDPA_NAME = name_y, WDPAID = id_y, overlap_WPDA = overlap_y)
+  rename(WDPA_NAME = name_y, WDPAID = id_y, overlap_WDPA = overlap_y)
 
 ```
 

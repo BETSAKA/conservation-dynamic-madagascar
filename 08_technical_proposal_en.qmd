@@ -23,3 +23,6 @@ A stable and transparent set of consolidation rules, expressed as human readable
 Together, these components generate a derived dynamic state table in which each WDPA protected area is represented by a sequence of time bounded states. WDPA provides the default current state, while SAT and FAT only intervene when explicit dated information is available, triggering a segmentation of the timeline and, when relevant, a modification of geometry, legal status, or internal zoning as specified by CAR. In the absence of such information, WDPA data are simply extended backward or forward unchanged according to documented conventions.
 
 The resulting dataset remains fully compatible with WDPA identifiers and structure, while making temporal assumptions explicit, reproducible, and testable. The contribution therefore lies both in the publication of curated supplementary data on legal and spatial histories (SAT and FAT), and in the transparent consolidation and auditing procedures (CAR) that allow WDPA to be transformed into a time explicit conservation dataset suitable for longitudinal and impact analyses.
+
+## Composition of SAT
+

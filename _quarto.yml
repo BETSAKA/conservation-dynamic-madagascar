@@ -15,11 +15,10 @@ book:
     - 03_legal_docs.qmd
     - 04_combination.qmd
     - 05_visual_verif.qmd
-    - 06_use_cases.qmd
-    - 07_subdivisions.qmd
-    - 08_border_changes.qmd
-    - 09fr_technical_proposal.qmd
-    - 09en_technical_proposal.qmd
+    - 06_subdivisions.qmd
+    - 07_curation.qmd
+    - 08_technical_proposal_en.qmd
+    - 09_technical_proposal_fr.qmd
     - 10_references.qmd
 
 bibliography: references.bib

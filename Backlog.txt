@@ -1,28 +1,6 @@
-# AP
-Enrichir décrets
-Ajouter lidte ap 0ôur décrets collectifs
 
+Verif avec données existantes
 
-## Séquence.
-Wdpa parquets dans source et en rds dans data
-ajout vahatra
-
-
-Fonction agglo
-Table géo attributs: nom + liste valeur nommé + geom + centroide + hash geom
-Verif identiques Hash + centroide
-
-### Créé dict
-Base SAPM 2024
-Verif id : nom unique
-Jointure Vahatra
-Jointure wdpa : nom long et court
-Jointure décret
-Recherche dans base geom littéral ou proche 90%
-Recherche spatial base geom retour nom id match
-Nouveau dico par pivot
-Diagnostic des restants
-Verif manuelle sur tmap
 
 
 Verif sur restant

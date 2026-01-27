@@ -553,6 +553,13 @@ print(list(
 visualize_pa_by_name(303702)
 ```
 
+- ANGAP 2002 (périmètre Sud) = WDPA 2010:2019
+- ANGAP 2002 (périmètre Nord) 
+- ANGAP 2002 (très petit périmètre centre) dans aucun autre
+
+
+> Ajouter SAPM 2010 ou version MNP
+
 
 ```{r}
 plot_pa_by_name(

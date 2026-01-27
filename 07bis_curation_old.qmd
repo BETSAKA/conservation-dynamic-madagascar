@@ -1,108 +1,167 @@
----
-title: "Untitled"
-format: html
----
 
-# Curation
+## Composition of SAT
 
-## Construction de la Spatial Amendment Table (SAT)
-
-On documente ici la construction de la SAT, c’est à dire l’identification et la formalisation des géométries qui constituent des amendements spatiaux explicites par rapport à l’état courant décrit dans la WDPA.
-
-La SAT ne vise pas à reconstituer exhaustivement l’historique spatial de toutes les aires protégées, mais à documenter de manière traçable et reproductible les cas où l’information spatiale disponible diverge de la WDPA, sur la base de sources légales, institutionnelles ou techniques identifiées.
-
-Le principe général est le suivant: La WDPA est considérée comme l’état courant par défaut. Un amendement spatial est introduit uniquement lorsqu’une source indépendante, datée et justifiée indique une modification pertinente du périmètre ou de l’organisation spatiale d’une aire protégée.
-
-### Identification des décisions légales impliquant une modification spatiale potentielle
-
-La première porte d’entrée pour identifier des amendements spatiaux est constituée par les textes légaux recensés dans CNLEGIS. Certains types de décisions, en particulier celles qualifiées de modifiant, peuvent signaler une modification des limites ou du statut spatial d’une aire protégée.
-
-Dans cette section, nous identifions les décisions légales qui mentionnent explicitement une modification, et les aires protégées concernées.
 
 ```{r}
 library(tidyverse)
 library(sf)
-library(lubridate)
-library(stringr)
 library(tmap)
 library(arrow)
 library(geoarrow)
-# Load legal decisions (FAT source)
-pa_decisions <- read_rds("data/id/legal_texts.rds") |>
-  mutate(
-    cnlegis_url = ifelse(
-      is.na(num_texte) | num_texte == "",
-      NA_character_,
-      paste0(
-        "https://cnlegis.gov.mg/page_num_find_direct/?",
-        utils::URLencode(num_texte, reserved = TRUE)
-      )
-    )
-  )
 
-# Filter decisions indicating a modification
+# Load the consolidated data
+all_PAs_conso <- read_rds("data/id/all_PAs_conso.rds")
+
+pa_decisions <- read_rds("data/id/legal_texts.rds")
+
 modification_decisions <- pa_decisions |>
-  filter(str_detect(type_decision, "modifiant"))
+  filter(str_detect("modifiant", type_decision))
 
-# List concerned protected areas
-modification_decision_names <- modification_decisions |>
-  distinct(WDPA_NAME) |>
-  arrange(WDPA_NAME) |>
-  pull(WDPA_NAME)
-
+modification_decision_names <- unique(modification_decisions$WDPA_NAME) |>
+  sort()
 modification_decision_names
 ```
 
-Nous identifions ainsi `r length(modification_decision_names)`  aires protégées pour lesquelles au moins une décision légale mentionne explicitement une modification.
-
-Pour chaque décision légale identifiée comme potentiellement modificative, nous adoptons la logique suivante. Nous utilisons l'application interactive (Shiny) disponible dans le chapitre @sec-visual-verif. Nous observons la date et le contenu des décisions qui la concernent. Si les textes légaux indiquent bien une modification de périmètre, on passe en revue les données disponibles, afin d'identifier la source la plus crédible qui représente le périmètre précédent.
+We have `r length(modification_decision_names)` border modification decisions registered.
 
 ```{r}
-tmap_mode("plot")
-all_PAs_conso <- read_rds("data/id/all_PAs_conso.rds")
+# 2 functions: 1 for exploratory data analysis, the other to display identified
+# datasets
 
-resolve_wdpaid <- function(wdpa_name_or_id, decisions) {
-  # English: accept WDPAID (numeric) or WDPA_NAME (character) and return a single WDPAID
-  if (is.numeric(wdpa_name_or_id)) {
-    return(wdpa_name_or_id[1])
+# Function to visualize all representations of a PA by WDPA name
+# Looks up the WDPAID from pa_decisions, then filters all_PAs_conso by that ID
+# Each row becomes a separately controllable layer
+visualize_pa_by_name <- function(
+  wdpa_name,
+  data = all_PAs_conso,
+  decisions = pa_decisions,
+  wdpa_historical_path = "data/MDG_WDPA_Consolidated.parquet",
+  sources = NULL
+) {
+  # Check if input is a WDPAID (integer) or name (string)
+  if (is.numeric(wdpa_name)) {
+    wdpaid <- wdpa_name
+  } else {
+    # Look up the WDPAID from pa_decisions
+    wdpaid <- decisions %>%
+      filter(WDPA_NAME == wdpa_name) %>%
+      pull(WDPAID) %>%
+      first()
+
+    # Check if WDPAID was found
+    if (is.na(wdpaid)) {
+      message("No WDPAID found in pa_decisions for: ", wdpa_name)
+      return(NULL)
+    }
   }
-  wdpaid <- decisions %>%
-    filter(WDPA_NAME == wdpa_name_or_id) %>%
-    pull(WDPAID) %>%
-    first()
-  if (is.na(wdpaid)) {
-    stop("WDPAID introuvable pour: ", wdpa_name_or_id)
-  }
-  wdpaid
-}
 
-show_cnlegis_for_pa <- function(wdpa_name_or_id, decisions, pattern = NULL) {
-  # English: show all CNLEGIS decisions for a PA, optionally filter by a pattern on type_decision
-  wdpaid <- resolve_wdpaid(wdpa_name_or_id, decisions)
-
-  out <- decisions %>%
+  # Filter all observations matching this WDPAID from all_PAs_conso
+  pa_subset <- data %>%
     filter(WDPAID == wdpaid) %>%
-    select(
-      WDPA_NAME,
-      WDPAID,
-      date_texte,
-      type_texte,
-      num_texte,
-      type_decision,
-      id_texte,
-      objet_texte,
-      cnlegis_url
-    ) %>%
-    arrange(date_texte)
+    mutate(layer_id = paste0(dataset_id, " - ", row_number()))
 
-  if (!is.null(pattern)) {
-    out <- out %>% filter(str_detect(type_decision, pattern))
+  # Load and filter WDPA historical data
+  wdpa_historical <- read_parquet(wdpa_historical_path) %>%
+    mutate(geometry = st_as_sfc(geometry)) %>%
+    st_as_sf() %>%
+    filter(WDPAID == wdpaid) %>%
+    mutate(dataset_id = paste0("WDPA_", data_year)) %>%
+    st_transform(st_crs(pa_subset))
+
+  # Combine both datasets
+  pa_subset <- bind_rows(pa_subset, wdpa_historical)
+
+  # Filter by specified sources if provided
+  if (!is.null(sources) && length(sources) > 0) {
+    pa_subset <- pa_subset %>%
+      filter(dataset_id %in% sources) %>%
+      # Convert to factor with levels in the order specified by sources
+      mutate(dataset_id = factor(dataset_id, levels = sources))
   }
 
-  out
+  # Check if any results found
+  if (nrow(pa_subset) == 0) {
+    message("No protected area found with WDPAID: ", wdpaid)
+    return(NULL)
+  }
+
+  # Get summary information
+  n_obs <- nrow(pa_subset)
+  datasets <- unique(pa_subset$dataset_id)
+
+  # Print summary
+  cat("\n=== ", wdpa_name, " ===\n")
+  cat("WDPAID:", wdpaid, "\n")
+  cat("Number of representations:", n_obs, "\n")
+  cat("Datasets:", paste(datasets, collapse = ", "), "\n\n")
+
+  # Create static plot map with all geometries in one layer (tmap v4 syntax)
+  tmap_mode("view")
+
+  map <- NULL
+
+  # Add each row as a separate shape layer
+  for (i in seq_len(nrow(pa_subset))) {
+    row_data <- pa_subset[i, ]
+    layer_name <- paste0(row_data$dataset_id, " (", i, ")")
+
+    if (is.null(map)) {
+      map <- tm_shape(row_data, name = layer_name) +
+        tm_polygons(
+          col = "dataset_id",
+          alpha = 0.4,
+          id = "layer_id",
+          popup.vars = c(
+            "NAME",
+            "WDPA_NAME",
+            "dataset_id",
+            "overlap_WDPA",
+            "STATUS_YR",
+            "DESIG",
+            "IUCN_CAT",
+            "date_texte",
+            "type_texte",
+            "num_texte"
+          ),
+          palette = "Set3",
+          title = "Data Source",
+          group = layer_name
+        )
+    } else {
+      map <- map +
+        tm_shape(row_data, name = layer_name) +
+        tm_polygons(
+          col = "dataset_id",
+          alpha = 0.4,
+          id = "layer_id",
+          popup.vars = c(
+            "NAME",
+            "WDPA_NAME",
+            "dataset_id",
+            "STATUS_YR",
+            "DESIG",
+            "IUCN_CAT",
+            "date_texte",
+            "type_texte",
+            "num_texte"
+          ),
+          palette = "Set3",
+          title = "Data Source",
+          group = layer_name
+        )
+    }
+  }
+
+  map <- map +
+    tm_layout(
+      title = paste(wdpa_name, "- All representations"),
+      frame = FALSE
+    )
+
+  return(map)
 }
 
-plot_pa_sources <- function(
+plot_pa_by_name <- function(
   wdpa_name,
   data = all_PAs_conso,
   decisions = pa_decisions,
@@ -184,192 +243,44 @@ plot_pa_sources <- function(
 
   return(map)
 }
-
-add_modif_cnlegis <- function(
-  sat,
-  data,
-  decisions,
-  wdpa_name_or_id,
-  decision_filter,
-  source_dataset_id,
-  amendment_type = "boundary_modification",
-  confidence = "medium",
-  verification_method = "visual_verification_shiny",
-  verified_by = "project_team",
-  notes = NULL
-) {
-  # English: accept WDPAID (numeric) or WDPA_NAME (character) and return a single WDPAID
-  resolve_wdpaid <- function(wdpa_name_or_id, decisions) {
-    if (is.numeric(wdpa_name_or_id)) {
-      return(wdpa_name_or_id[1])
-    }
-    wdpaid <- decisions %>%
-      filter(WDPA_NAME == wdpa_name_or_id) %>%
-      pull(WDPAID) %>%
-      first()
-    if (is.na(wdpaid)) {
-      stop("WDPAID introuvable pour: ", wdpa_name_or_id)
-    }
-    wdpaid
-  }
-
-  if (!is.list(decision_filter)) {
-    stop("decision_filter doit être une liste.")
-  }
-
-  wdpaid <- resolve_wdpaid(wdpa_name_or_id, decisions)
-
-  # Select exactly one CNLEGIS decision
-  dec <- decisions %>%
-    filter(WDPAID == wdpaid)
-
-  if (!is.null(decision_filter$year)) {
-    dec <- dec %>% filter(lubridate::year(date_texte) == decision_filter$year)
-  }
-  if (!is.null(decision_filter$type_decision_pattern)) {
-    dec <- dec %>%
-      filter(str_detect(type_decision, decision_filter$type_decision_pattern))
-  }
-  if (!is.null(decision_filter$num_texte)) {
-    dec <- dec %>% filter(num_texte == decision_filter$num_texte)
-  }
-  if (!is.null(decision_filter$id_texte)) {
-    dec <- dec %>% filter(id_texte == decision_filter$id_texte)
-  }
-
-  dec <- dec %>% arrange(date_texte)
-
-  if (nrow(dec) == 0) {
-    stop("Aucune décision CNLEGIS ne correspond au filtre pour WDPAID=", wdpaid)
-  }
-  if (nrow(dec) > 1) {
-    stop(
-      "Filtre CNLEGIS ambigu: plusieurs décisions correspondent. Raffiner decision_filter."
-    )
-  }
-
-  # Extract "before" geometry from all_PAs_conso
-  geom_before <- data %>%
-    filter(WDPAID == wdpaid, dataset_id == source_dataset_id) %>%
-    filter(dataset_id != "CNLEGIS_2024") %>%
-    st_zm(drop = TRUE, what = "ZM") %>%
-    st_make_valid()
-
-  if (nrow(geom_before) == 0) {
-    stop(
-      "Aucune géométrie trouvée pour source_dataset_id=",
-      source_dataset_id,
-      " et WDPAID=",
-      wdpaid
-    )
-  }
-
-  # Build SAT entry
-  sat_entry <- geom_before %>%
-    mutate(
-      WDPAID = wdpaid,
-      amendment_type = amendment_type,
-      valid_from = as.Date(NA),
-      valid_to = dec$date_texte[1],
-      date_precision = "day",
-      data_source = source_dataset_id,
-      legal_source = dec$num_texte[1],
-      cnlegis_url = if ("cnlegis_url" %in% names(dec)) {
-        dec$cnlegis_url[1]
-      } else {
-        NA_character_
-      },
-      verification_method = verification_method,
-      verified_by = verified_by,
-      verification_date = Sys.Date(),
-      notes = ifelse(is.null(notes), dec$objet_texte[1], notes),
-      confidence = confidence
-    ) %>%
-    select(
-      WDPAID,
-      geometry,
-      amendment_type,
-      valid_from,
-      valid_to,
-      date_precision,
-      data_source,
-      legal_source,
-      cnlegis_url,
-      verification_method,
-      verified_by,
-      verification_date,
-      notes,
-      confidence
-    )
-
-  # Initialize sat if needed
-  if (is.null(sat)) {
-    sat_new <- sat_entry
-  } else {
-    sat_new <- bind_rows(sat, sat_entry)
-  }
-
-  # Assign stable amendment_id (sequential)
-  sat_new <- sat_new %>%
-    mutate(amendment_id = row_number()) %>%
-    relocate(amendment_id, .before = WDPAID)
-
-  # Duplicate guard on key tuple
-  dups <- sat_new %>%
-    st_drop_geometry() %>%
-    count(WDPAID, valid_to, data_source, legal_source) %>%
-    filter(n > 1)
-
-  if (nrow(dups) > 0) {
-    stop("Doublon SAT détecté (WDPAID, valid_to, data_source, legal_source).")
-  }
-
-  sat_new
-}
-
 ```
 
-#### Ambatovaky
-
-Les métadonnées d'Ambatovaky indiquent qu'elle a été créée en 1958, mais deux décisions ont modifié son statut depuis : 
+## Ambatovaky
 
 ```{r}
-show_cnlegis_for_pa("Ambatovaky", pa_decisions, pattern = "modifiant") %>%
-  select(
-    date_texte,
-    type_texte,
-    num_texte,
-    type_decision,
-    id_texte,
-    objet_texte
-  )
+ambatovaky_decision_2015 <- pa_decisions %>%
+  filter(WDPAID == 5037, year(date_texte) == 2015) %>%
+  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
+print(list(
+  select(ambatovaky_decision_2015, -objet_texte),
+  ambatovaky_decision_2015$objet_texte
+))
 ```
 
-Le périmètre correspondant à l'étendue de l'AP avant 2015 est celui de MNP.
 
 ```{r}
-plot_pa_sources(
+#| echo: false
+#| eval: false
+visualize_pa_by_name(
+  "Ambatovaky",
+  sources = c("WDPA_2025", "MNP_2010", "ANGAP_2002")
+)
+```
+
+
+```{r}
+plot_pa_by_name(
   "Ambatovaky",
   sources = c("ANGAP_2002", "MNP_2010", "WDPA_2025")
 )
 ```
 
-On ajoute donc cette donnée à SAT.
+3 different perimeters: 
+- WDPA 2025
+- WDPA 2024 : much larger than WDPA 2025 (includes protection zone?)
+- WDPA < 2020 | ANGAP 2002: smaller than WPDA 2025
 
-```{r}
-sat <- NULL |>
-  add_modif_cnlegis(
-    data = all_PAs_conso,
-    decisions = pa_decisions,
-    wdpa_name_or_id = "Ambatovaky",
-    decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
-    source_dataset_id = "MNP_2010",
-    notes = "Périmètre antérieur au décret modifiant (géométrie MNP_2010 retenue après vérification visuelle)."
-  )
-
-```
-
-
+> To be added to SAT: ANGAP_2002
 
 ## Analamazaotra 
 

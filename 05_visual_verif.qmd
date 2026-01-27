@@ -2,7 +2,7 @@
 page-layout: full
 ---
 
-## Visualisation interactive
+## Visualisation interactive {#sec-visual-verif}
 
 ::: {.iframe-container}
 <iframe src="https://workbench.shinyapps.io/conservation-madascar-dashboard/"

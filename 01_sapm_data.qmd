@@ -204,7 +204,7 @@ tm_shape(mnp_2010) +
 
 ## SAPM 2010
 
-Le site REBIOMA qui mettait en ligne les données du SAPM ne fonctionne plus depuis 2019 d'après les sauvegardes régulières effectuées par Internet Archive. Fort heureusement, une copie des données datées du 10/12/2010 a été sauvegardée par Ghislain Vieilledent et publié en accompagnement d'une publication [@vieilledent2020s].
+Le site REBIOMA qui mettait en ligne les données du SAPM ne fonctionne plus depuis 2019 d'après les sauvegardes régulières effectuées par Internet Archive. Heureusement, une copie des données datées du 10/12/2010 a été sauvegardée par Ghislain Vieilledent et publié en accompagnement d'une publication [@vieilledent2020s].
 
 ```{r}
 sapm_2010 <- st_read(

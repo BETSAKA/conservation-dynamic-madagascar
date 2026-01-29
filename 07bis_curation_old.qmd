@@ -444,6 +444,10 @@ The extension of the protected area in 2002 was mapped as follows in 2002 by exp
 
 ![Ankarafantsika 2002 expansion](data/Alonso_Shuldenberg_2002.png)
 
+```{r}
+
+```
+
 ## Bemaraha 
 
 ```{r}

@@ -193,6 +193,7 @@ add_modif_cnlegis <- function(
   decision_filter,
   source_dataset_id,
   amendment_type = "boundary_modification",
+  valid_from = NULL,
   confidence = "medium",
   verification_method = "visual_verification_shiny",
   verified_by = "project_team",
@@ -269,7 +270,11 @@ add_modif_cnlegis <- function(
     mutate(
       WDPAID = wdpaid,
       amendment_type = amendment_type,
-      valid_from = as.Date(NA),
+      valid_from = if (!is.null(valid_from)) {
+        as.Date(valid_from)
+      } else {
+        as.Date(NA)
+      },
       valid_to = dec$date_texte[1],
       date_precision = "day",
       data_source = source_dataset_id,
@@ -433,6 +438,7 @@ sat <- sat |>
     wdpa_name_or_id = "Analamazaotra",
     decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
     source_dataset_id = "SAPM_2010",
+    valid_from = "1970-07-21",
     notes = "Périmètre antérieur au décret modifiant (géométrie SAPM_2010 retenue après vérification visuelle)."
   )
 ```
@@ -481,7 +487,7 @@ On trouve plusieurs périmètres distincts dans les données. D'après les carte
 ```{r}
 plot_pa_sources(
   "Andohahela",
-  sources = c("WDPA_2025", "SAPM_2010")
+  sources = c("WDPA_2025", "SAPM_evol_2001-2011")
 )
 ```
 
@@ -492,14 +498,14 @@ sat <- sat |>
   add_modif_cnlegis(
     data = all_PAs_conso,
     decisions = pa_decisions,
-    wdpa_name_or_id = "Andohahela",
+    wdpa_name_or_id = "SAPM_evol_2001-2011",
     decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
     source_dataset_id = "SAPM_2010",
     notes = "Périmètre antérieur au décret modifiant (géométrie SAPM_2010 retenue après vérification visuelle)."
   )
 ```
 
-## Andringitra
+### Andringitra
 
 ```{r}
 andringitra_decision_2015 <- pa_decisions %>%

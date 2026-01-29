@@ -363,7 +363,7 @@ Le périmètre correspondant à l'étendue de l'AP avant 2015 est celui de MNP.
 ```{r}
 plot_pa_sources(
   "Ambatovaky",
-  sources = c("ANGAP_2002", "MNP_2010", "WDPA_2025")
+  sources = c("WDPA_2025", "MNP_2010")
 )
 ```
 

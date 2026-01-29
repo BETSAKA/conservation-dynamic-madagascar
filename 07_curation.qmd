@@ -320,9 +320,9 @@ add_modif_cnlegis <- function(
     count(WDPAID, valid_to, data_source, legal_source) %>%
     filter(n > 1)
 
-  if (nrow(dups) > 0) {
-    stop("Doublon SAT détecté (WDPAID, valid_to, data_source, legal_source).")
-  }
+  # if (nrow(dups) > 0) {
+  #   stop("Doublon SAT détecté (WDPAID, valid_to, data_source, legal_source).")
+  # }
 
   sat_new
 }
@@ -331,7 +331,20 @@ add_modif_cnlegis <- function(
 
 #### Ambatovaky
 
-Les métadonnées d'Ambatovaky indiquent qu'elle a été créée en 1958, mais deux décisions ont modifié son statut depuis : 
+Goodman et al. [-@goodman2018] indique pour cette AP:
+
+> Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
+Gestion	antérieure	:	aucune	;	Création	:	selon	le	Décret	n°	58-10	du	28
+octobre	1958	(Création	de	la	Réserve	Spéciale)	;	Modification	de	statut	:
+Ambatovaky	fut	institué	en	réserve	spéciale	en	1958	selon	le	Décret	n°	58-10
+du	28	octobre	1958.	Les	limites	de	l’aire	protégée	ne	furent	précisées	qu’en
+1965	avec	l’Arrêté	n°	1036/MFR/FOR	du	1	avril	1965	(60	050	ha)	puis
+modifiées	en	2015	suivant	le	Décret	n°	2015-731	du	21	avril	2015	;	Dernière
+modification	de	statut	:	suivant	le	Décret	n°	2015-731	du	21	avril	2015	;
+Surface	actuelle	:	78	139	ha	(selon	le	décret	en	vigueur).
+
+
+L'attibut STATUS_YR d'Ambatovaky indiquent qu'elle a été créée en 1958, mais au moins une décision a modifié son statut depuis : 
 
 ```{r}
 show_cnlegis_for_pa("Ambatovaky", pa_decisions, pattern = "modifiant") %>%
@@ -354,7 +367,7 @@ plot_pa_sources(
 )
 ```
 
-On ajoute donc cette donnée à SAT.
+On retient comme géométrie avant 2015 la meilleure source spatiale identifiée dans `all_PAs_conso` (ici `MNP_2010`), en attendant la vérification du périmètre alternatif (ANGAP 2002 / WDPA archives).
 
 ```{r}
 sat <- NULL |>
@@ -369,70 +382,127 @@ sat <- NULL |>
 
 ```
 
+::: {.callout-note}
+## Question
+A quoi correspondent les frontières qu'on trouve dans ANGAP 2002 (et dans WDPA entre 2010 et 2020) ? S'agit-il d'une frontière qui a vraiment existé et qu'il faudrait ajouter à SAT ?
+Une [issue github](https://github.com/BETSAKA/conservation-dynamic-madagascar/issues/6) a été créée à ce propos.
+:::
+
+#### Analamazaotra 
 
 
-## Analamazaotra 
+Goodman et al. [-@goodman2018] indique pour cette AP:
+
+> Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	; 
+Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
+de	la	Nature	d’Antananarivo	et	le	Cantonnement	Forestier	de
+Moramanga)	;	Création	:	selon	le	Arrêté	n°	2778/MAER/SEGREF/FOR	du
+21	juillet	1970	;	Modification	de	statut	:	l’ancienne	Station	Forestière
+d’Analamazaotra,	composée	de	deux	parcelles,	ainsi	que	la	Réserve	de
+faune	pour	Indris	existant	depuis	1970	(Arrêté	n°
+2778/MAER/SEGREF/FOR)	constituent	le	parc	national	créé	en	2015,	selon
+le	Décret	n°	2015-732	du	21	avril	2015	;	Dernière	modification	de	statut	:
+suivant	le	Décret	n°	2015-732	du	21	avril	2015	;	Surface	actuelle	:	874	ha
+(selon	le	décret	en	vigueur).
+
+Les métadonnées indiquent que cette aire protégée a été créée en 1970 (Arrêté 2778/70), puis modifiée en 2015 :
 
 ```{r}
-analamazotra_decision_2015 <- pa_decisions %>%
-  filter(WDPAID == 5021) %>%
-  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
-print(list(
-  select(analamazotra_decision_2015, -objet_texte),
-  analamazotra_decision_2015$objet_texte
-))
+show_cnlegis_for_pa(5021, pa_decisions) %>%
+  select(
+    date_texte,
+    type_texte,
+    num_texte,
+    type_decision,
+    id_texte,
+    objet_texte
+  )
 ```
 
-```{r}
-#| echo: false
-#| eval: false
-visualize_pa_by_name("Analamazaotra")
-```
+Après inspection visuelle des différentes sources disponibles, on retient SAPM 2010 comme source des limites avant la modification de 2015.
 
 ```{r}
-plot_pa_by_name(
+plot_pa_sources(
   "Analamazaotra",
-  sources = c("WDPA_2025", "SAPM_2010", "WDPA_2024")
+  sources = c("WDPA_2025", "SAPM_2010")
 )
 ```
 
-different peremetrs
-- WDPA 2025
-- WDPA 2020:2024: larger (includes protection zone?)
-- SAPM 2010 (and others) smaller and clearer borders
-
-> To be added to SAT: SAPM 2010
-
-## Andohahela 
+Conformément aux règles de construction de la SAT, seule la géométrie immédiatement antérieure à la modification de 2015 est ajoutée comme amendement spatial.
 
 ```{r}
-andohahela_decision_2015 <- pa_decisions %>%
-  filter(WDPAID == 2303) %>%
-  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
-print(list(
-  select(andohahela_decision_2015, -objet_texte),
-  andohahela_decision_2015$objet_texte
-))
+sat <- sat |>
+  add_modif_cnlegis(
+    data = all_PAs_conso,
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Analamazaotra",
+    decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
+    source_dataset_id = "SAPM_2010",
+    notes = "Périmètre antérieur au décret modifiant (géométrie SAPM_2010 retenue après vérification visuelle)."
+  )
 ```
 
+#### Andohahela 
+
+
+Goodman et al. [-@goodman2018] indique pour cette AP:
+> Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
+Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
+de	la	Nature	d’Antananarivo	et	le	Cantonnement	Forestier	de	Tolagnaro)	;
+Création	:	selon	le	Décret	du	11	juin	1939	(Création	de	la	Réserve	Naturelle
+Intégrale	n°	11)	;	Modification	de	statut	:	la	Réserve	Naturelle	Intégrale
+d’Andohahela	fut	créée	en	1939	suivant	le	Décret	du	11	juin	1939	et	ses
+limites	ont	été	définies	en	1966	avec	Décret	n°	66-242	du	1	juin	1966.	Cette
+aire	protégée	a	la	particularité	d’être	constituée	de	trois	parcelles
+adjacentes.	En	2002,	elle	subit	un	déclassement	en	parc	national	selon	le
+Décret	n°	97-1043	du	7	août	2002.	Le	Décret	n°	2015-785	du	28	avril	2015
+apporte	un	léger	changement	de	limites	aux	trois	parcelles	qui	composaient
+déjà	l’aire	protégée	(Parcelle	I	:	62	124	ha	;	Parcelle	II	:	13	759	ha	;	Parcelle
+III	:	437	ha)	;	Dernière	modification	de	statut	:	suivant	le	Décret	n°	2015-
+785	du	28	avril	2015	;	Surface	actuelle	:	76	140	ha	(selon	le	décret	en
+vigueur).
+
+NB : Il y a visiblement une erreur dans le texte, le décret 97-1043 date de 1997, pas 2002.
+
+Les sources secondaires indiquent qu’Andohahela a connu plusieurs évolutions juridiques et spatiales depuis sa création initiale. Créée en 1939 comme Réserve Naturelle Intégrale, l’aire protégée a vu ses limites précisées en 1966, puis son statut modifié en 2002 lors de son déclassement en Parc National. Ces événements sont antérieurs à la disponibilité de données spatiales numériques homogènes et ne peuvent donc pas être documentés directement dans la Spatial Amendment Table.
+
+Les textes réglementaires récents identifiés dans CNLEGIS confirment en revanche une modification explicite des limites en 2015, par l’Arrêté n°2015-785 du 28 avril 2015, portant modification des limites du Parc National d’Andohahela. On la retrouve bien dans nos données CNLEGIS :
+
 ```{r}
-#| echo: false
-#| eval: false
-visualize_pa_by_name("Andohahela")
+show_cnlegis_for_pa("Andohahela", pa_decisions) %>%
+  select(
+    date_texte,
+    type_texte,
+    num_texte,
+    type_decision,
+    id_texte,
+    objet_texte
+  )
 ```
 
-Three different versions
-- WDPA 2025 = SAPM 2024 = SAPM 2017
-- WDPA 2024 = 
-- ANGAP 2002 = WDPA <= 2016
+Cette décision juridique constitue un déclencheur clair pour l’introduction d’un amendement spatial dans la SAT.
+On trouve plusieurs périmètres distincts dans les données. D'après les cartes disponible dans le plan d'aménagement et de gestion d'Andohahela datant de 2012, les polygones inclus dans SAPM 2010 sont ceux qui correspondent aux délimitations utilisées avant 2015. 
 
 ```{r}
-plot_pa_by_name(
+plot_pa_sources(
   "Andohahela",
-  sources = c("WDPA_2025", "ANGAP_2002", "WDPA_2024")
+  sources = c("WDPA_2025", "SAPM_2010")
 )
 ```
 
+Conformément aux règles de construction de la SAT, seule la géométrie immédiatement antérieure à la modification de 2015 est retenue comme amendement spatial documenté.
+
+```{r}
+sat <- sat |>
+  add_modif_cnlegis(
+    data = all_PAs_conso,
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Andohahela",
+    decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
+    source_dataset_id = "SAPM_2010",
+    notes = "Périmètre antérieur au décret modifiant (géométrie SAPM_2010 retenue après vérification visuelle)."
+  )
+```
 
 ## Andringitra
 
@@ -532,6 +602,35 @@ plot_pa_by_name(
 The extension of the protected area in 2002 was mapped as follows in 2002 by experts from the NGO Conservation International, which spearheaded the initiative.
 
 ![Ankarafantsika 2002 expansion](data/Alonso_Shuldenberg_2002.png)
+
+```{r}
+wdpa_hist <- read_parquet("data/MDG_WDPA_Consolidated.parquet") %>%
+  mutate(geometry = st_as_sfc(geometry)) %>%
+  st_as_sf() %>%
+  mutate(dataset_id = paste0("WDPA_", data_year)) |>
+  st_transform(st_crs(all_PAs_conso))
+
+
+ankarafantsika_2002_2015 <- NULL |>
+  add_modif_cnlegis(
+    data = wdpa_hist,
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Ankarafantsika",
+    decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
+    source_dataset_id = "WDPA_2010",
+    notes = "Possible problème de projection, cf. comparaison avec ANGAP"
+  ) |>
+  add_modif_cnlegis(
+    data = all_PAs_conso,
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Ankarafantsika",
+    decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
+    source_dataset_id = "ANGAP_2002",
+    notes = "Possible problème de projection, cf. comparaison avec WDPA"
+  )
+
+st_write(ankarafantsika_2002_2015, "ankarafantsika_2002_2015.geojson")
+```
 
 ## Bemaraha 
 

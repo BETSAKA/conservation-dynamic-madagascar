@@ -358,7 +358,7 @@ show_cnlegis_for_pa("Ambatovaky", pa_decisions, pattern = "modifiant") %>%
   )
 ```
 
-Le périmètre correspondant à l'étendue de l'AP avant 2015 est celui de MNP.
+Le périmètre correspondant à l'étendue de l'AP avant 2015 est celui fourni par de MNP.
 
 ```{r}
 plot_pa_sources(
@@ -382,11 +382,6 @@ sat <- NULL |>
 
 ```
 
-::: {.callout-note}
-## Question
-A quoi correspondent les frontières qu'on trouve dans ANGAP 2002 (et dans WDPA entre 2010 et 2020) ? S'agit-il d'une frontière qui a vraiment existé et qu'il faudrait ajouter à SAT ?
-Une [issue github](https://github.com/BETSAKA/conservation-dynamic-madagascar/issues/6) a été créée à ce propos.
-:::
 
 #### Analamazaotra 
 

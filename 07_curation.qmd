@@ -443,8 +443,11 @@ sat <- sat |>
   )
 ```
 
-#### Andohahela 
+::: {.callout-note}
+L'année de création de cette AP est 1970 (pas 2015 comme indiqué dans la WDPA 2025). A refléter dans FAT, ou s'assurer que CAR accorde la primauté à valid_from dans SAT si disponible.
+:::
 
+#### Andohahela 
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -498,14 +501,16 @@ sat <- sat |>
   add_modif_cnlegis(
     data = all_PAs_conso,
     decisions = pa_decisions,
-    wdpa_name_or_id = "SAPM_evol_2001-2011",
+    wdpa_name_or_id = "Andohahela",
     decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
-    source_dataset_id = "SAPM_2010",
+    source_dataset_id = "SAPM_evol_2001-2011",
     notes = "Périmètre antérieur au décret modifiant (géométrie SAPM_2010 retenue après vérification visuelle)."
   )
 ```
 
-### Andringitra
+#### Andringitra
+
+Vérification de la nature des modifications pour Andringitra
 
 ```{r}
 andringitra_decision_2015 <- pa_decisions %>%
@@ -517,27 +522,13 @@ print(list(
 ))
 ```
 
-```{r}
-#| echo: false
-#| eval: false
-visualize_pa_by_name("Andringitra")
-```
+La modification survenue en 1998 ne porte pas sur un changement de frontière. Elle porte sur un chanement de statut juridique, de RNI à PN. 
 
-- WDPA 2025 = SAPM 2017 = SAPM 2025 = Vahatra
-- WDPA 2020:2024 = trop large (inclut la zone de protection probablement)
-- WDPA 2010:2019: frontières plus simples qu'on ne retrouve avec des différences modérées avec la plupart des autres sources
-- ANGAP 2002 = SAPM 2010 = SAPM evol 2001-2011 (avec year = 2002)
+::: {.callout-note}
+La modification introduite en 1998 transforme la RNI en PN. Si cela a une implication substantielle (cf. [issue #8](https://github.com/BETSAKA/conservation-dynamic-madagascar/issues/8)) alors il faudra l'inclure dans FAT.
+:::
 
-```{r}
-plot_pa_by_name(
-  "Andringitra",
-  sources = c("WDPA_2025", "ANGAP_2002")
-)
-```
-
-> Garder ANGAP_2002
-
-## Anjanaharibe_sud
+#### Anjanaharibe_sud
 
 ```{r}
 anjanaharibe_decision_2015 <- pa_decisions %>%

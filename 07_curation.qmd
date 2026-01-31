@@ -450,6 +450,7 @@ L'année de création de cette AP est 1970 (pas 2015 comme indiqué dans la WDPA
 #### Andohahela 
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
+
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d’Antananarivo	et	le	Cantonnement	Forestier	de	Tolagnaro)	;
@@ -510,6 +511,20 @@ sat <- sat |>
 
 #### Andringitra
 
+Goodman et al. [-@goodman2018] indique pour cette AP:
+
+> Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
+Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
+de	la	Nature	d’Antananarivo	et	le	Cantonnement	Forestier	d’Ambalavao)	;
+Création	:	selon	le	Décret	du	31	décembre	1927	(Création	de	la	Réserve
+Naturelle	Intégrale	n°	5)	;	Modification	de	statut	:	la	Réserve	Naturelle
+Intégrale	d’Andringitra	fut	mise	en	place	en	1927	suivant	le	Décret	du	31
+décembre	1927	et	ses	limites	ont	été	fixées	en	1966	avec	le	Décret	n°	66-242
+du	1	juin	1966.	L’aire	protégée	subit	un	changement	de	statut	en	1998	avec
+le	Décret	n°	98-376	du	19	août	1998	et	devient	un	parc	national	;	Dernière
+modification	de	statut	:	suivant	le	Décret	n°	98-376	du	19	août	1998	;
+Surface	actuelle	:	31	160	ha	(selon	le	décret	en	vigueur).
+
 Vérification de la nature des modifications pour Andringitra
 
 ```{r}
@@ -529,6 +544,23 @@ La modification introduite en 1998 transforme la RNI en PN. Si cela a une implic
 :::
 
 #### Anjanaharibe_sud
+
+Goodman et al. [-@goodman2018] indique pour cette AP:
+> Aspect	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
+Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
+de	la	Nature	d’Antananarivo	et	le	Cantonnement	Forestier	d’Andapa).	Le
+PCDI	Marojejy	/	Anjanaharibe-Sud	était	installé	en	1993	et	la	gestion	de	ces
+deux	sites	a	connu	des	phases	successives	:	au	cours	de	la	première,	elle	a	été
+gérée	conjointement	par	la	Direction	des	Eaux	et	Forêts	et	le	WWF	et
+durant	la	deuxième,	l’opérateur	principal	pour	sa	gestion	était	le	WWF,
+sous	la	coordination	de	l’Association	Nationale	pour	la	Gestion	des	Aires
+Protégées.	;	Création	:	selon	le	Décret	n°	58-12	du	28	octobre	1958	(Création
+de	la	Réserve	Spéciale)	;	Modification	de	statut	:	créée	en	1958	suivant	le
+Décret	n°	58-12	du	28	octobre	1958,	la	Réserve	Spéciale	d’Anjanaharibe-
+Sud	subit	un	changement	de	limites	sous	le	Décret	n°	2015-729	du	21	avril
+2015	;	Dernière	modification	de	statut	:	suivant	le	Décret	n°	2015-729	du	21
+avril	2015	;	Surface	actuelle	:	26	903	ha	(selon	le	décret	en	vigueur).
+
 
 ```{r}
 anjanaharibe_decision_2015 <- pa_decisions %>%
@@ -561,6 +593,28 @@ plot_pa_by_name(
 > Ajouter ANGAP 2002
 
 ## Ankarafantsika
+
+Goodman et al. [-@goodman2018] indique pour cette AP:
+Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
+Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
+de	la	Nature	d’Antananarivo	et	le	Service	Provincial	des	Eaux	et	Forêts	de
+Mahajanga)	;	Création	:	selon	le	Décret	du	31	décembre	1927	(Création	de
+la	Réserve	Naturelle	Intégrale	n°	7)	;	Modification	de	statut	:	la	Réserve
+Naturelle	Intégrale	d’Ankarafantsika	fut	créée	en	1927	et	ses	limites	ont	été
+précisées	en	1966	avec	le	Décret	n°	66-242	du	1	juin	1966	(60	520	ha).
+Parallèlement,	des	territoires	de	la	Forêt	d’Ankarafantsika	sur	les	districts
+de	Marovoay	et	Ambato	Boeny	ont	été	classés	réserves	forestières	avec
+l’Arrêté	du	24	décembre	1929	(75	000	ha).	De	plus,	le	Jardin	botanique
+d’Ampijoroa	(district	d’Ambato	Boeny,	91	ha),	recensé	en	1969	par	le
+Domaine	Forestier	National	est	devenu	la	Station	Forestière	d’Ampijoroa
+(4974	ha)	en	1999	par	l’Arrêté	interministériel	n°	13-056/99	du	7	décembre
+1999.	En	2002,	la	réserve	naturelle	intégrale	créée	en	1927	et	reclassée	en
+1966,	les	réserves	forestières	instituées	en	1929	ainsi	que	la	Station
+Forestière	d’Ampijoroa	sont	toutes	instituées	en	un	seul	parc	national
+(Décret	n°	2002-798	du	7	août	2002,	130	000	ha).	Ce	dernier	subit	un
+changement	de	limites	en	2015	sous	le	Décret	n°	2015-730	du	21	avril	2015	;
+Dernière	modification	de	statut	:	suivant	le	Décret	n°	2015-730	du	21	avril
+2015	;	Surface	actuelle	:	136	513	ha	(selon	le	décret	en	vigueur).
 
 ```{r}
 ankarafantsika_decision_2015 <- pa_decisions %>%

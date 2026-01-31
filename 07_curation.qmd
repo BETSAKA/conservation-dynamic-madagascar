@@ -1,4 +1,4 @@
----
+﻿---
 title: "Untitled"
 format: html
 ---
@@ -27,6 +27,11 @@ library(stringr)
 library(tmap)
 library(arrow)
 library(geoarrow)
+library(wdpar)
+
+# Load WDPA for reference
+wdpa_mdg <- wdpa_read("data/WDPA_WDOECM_Nov2025_Public_MDG.zip")
+
 # Load legal decisions (FAT source)
 pa_decisions <- read_rds("data/id/legal_texts.rds") |>
   mutate(
@@ -379,11 +384,17 @@ add_modif_sat <- function(
 #   fat: Existing FAT table (tibble) or NULL to initialize
 #   decisions: Legal decisions table with WDPAID linkage (e.g., pa_decisions)
 #   wdpa_name_or_id: Either WDPAID (numeric) or WDPA_NAME (character)
-#   decision_filter: Named list to identify the legal decision, can include:
+#   decision_filter: Named list to identify the legal decision (optional if using manual_decision), can include:
 #                    - year: numeric year of decision
 #                    - type_decision_pattern: regex pattern for type_decision
 #                    - num_texte: exact legal instrument number
 #                    - id_texte: exact decision ID
+#                    Set to NULL when using manual_decision.
+#   manual_decision: Optional named list for decisions not in CNLEGIS. Must include:
+#                    - date_texte: Date of the legal instrument (Date or character)
+#                    - type_texte: Type of legal instrument (e.g., "décret", "arrêté")
+#                    - num_texte: Legal instrument number
+#                    Optionally: id_texte, objet_texte
 #   attributes: Named list of attribute changes, e.g.:
 #               list(DESIG = "Réserve Naturelle Intégrale", IUCN_CAT = "Ia")
 #               Only attributes that differ from WDPA should be provided.
@@ -395,7 +406,7 @@ add_modif_sat <- function(
 #   confidence: Confidence level ("high", "medium", "low")
 #   verification_method: Method used to verify the attributes
 #   verified_by: Who performed verification
-#   secondary_reference: Optional citation (e.g., "Goodman et al. 2018")
+#   secondary_reference: Optional citation (e.g., "Goodman et al. 2018" or URL)
 #   notes: Optional notes (defaults to decision object text)
 #
 # Returns:
@@ -406,7 +417,8 @@ add_modif_fat <- function(
   fat,
   decisions,
   wdpa_name_or_id,
-  decision_filter,
+  decision_filter = NULL,
+  manual_decision = NULL,
   attributes,
   amendment_type = "status_change",
   valid_from = NULL,
@@ -430,37 +442,77 @@ add_modif_fat <- function(
     wdpaid
   }
 
-  if (!is.list(decision_filter)) {
-    stop("decision_filter doit être une liste.")
+  # Validate that either decision_filter or manual_decision is provided
+  if (is.null(decision_filter) && is.null(manual_decision)) {
+    stop("Either decision_filter or manual_decision must be provided.")
+  }
+  if (!is.null(decision_filter) && !is.null(manual_decision)) {
+    stop("Cannot use both decision_filter and manual_decision. Choose one.")
+  }
+
+  # Validate amendment_type for FAT
+  allowed_types_fat <- c("status_change", "governance_change", "correction")
+  if (!amendment_type %in% allowed_types_fat) {
+    stop(
+      "amendment_type must be one of: ",
+      paste(allowed_types_fat, collapse = ", "),
+      ". Got: ",
+      amendment_type
+    )
   }
 
   wdpaid <- resolve_wdpaid(wdpa_name_or_id, decisions)
 
-  # Select exactly one legal decision based on filters
-  dec <- decisions %>%
-    filter(WDPAID == wdpaid)
+  # Handle manual decision (not in CNLEGIS)
+  if (!is.null(manual_decision)) {
+    if (!is.list(manual_decision)) {
+      stop("manual_decision must be a list.")
+    }
+    required_fields <- c("date_texte", "type_texte", "num_texte")
+    missing <- setdiff(required_fields, names(manual_decision))
+    if (length(missing) > 0) {
+      stop("manual_decision missing required fields: ", paste(missing, collapse = ", "))
+    }
+    
+    dec <- tibble(
+      date_texte = as.Date(manual_decision$date_texte),
+      type_texte = manual_decision$type_texte,
+      num_texte = manual_decision$num_texte,
+      id_texte = manual_decision$id_texte %||% NA_character_,
+      objet_texte = manual_decision$objet_texte %||% NA_character_
+    )
+  } else {
+    # Handle CNLEGIS decision
+    if (!is.list(decision_filter)) {
+      stop("decision_filter doit être une liste.")
+    }
+    
+    # Select exactly one legal decision based on filters
+    dec <- decisions %>%
+      filter(WDPAID == wdpaid)
 
-  if (!is.null(decision_filter$year)) {
-    dec <- dec %>% filter(lubridate::year(date_texte) == decision_filter$year)
-  }
-  if (!is.null(decision_filter$type_decision_pattern)) {
-    dec <- dec %>%
-      filter(str_detect(type_decision, decision_filter$type_decision_pattern))
-  }
-  if (!is.null(decision_filter$num_texte)) {
-    dec <- dec %>% filter(num_texte == decision_filter$num_texte)
-  }
-  if (!is.null(decision_filter$id_texte)) {
-    dec <- dec %>% filter(id_texte == decision_filter$id_texte)
-  }
+    if (!is.null(decision_filter$year)) {
+      dec <- dec %>% filter(lubridate::year(date_texte) == decision_filter$year)
+    }
+    if (!is.null(decision_filter$type_decision_pattern)) {
+      dec <- dec %>%
+        filter(str_detect(type_decision, decision_filter$type_decision_pattern))
+    }
+    if (!is.null(decision_filter$num_texte)) {
+      dec <- dec %>% filter(num_texte == decision_filter$num_texte)
+    }
+    if (!is.null(decision_filter$id_texte)) {
+      dec <- dec %>% filter(id_texte == decision_filter$id_texte)
+    }
 
-  dec <- dec %>% arrange(date_texte)
+    dec <- dec %>% arrange(date_texte)
 
-  if (nrow(dec) == 0) {
-    stop("Aucune décision CNLEGIS ne correspond au filtre pour WDPAID=", wdpaid)
-  }
-  if (nrow(dec) > 1) {
-    stop("Filtre CNLEGIS ambigu: plusieurs décisions correspondent.")
+    if (nrow(dec) == 0) {
+      stop("Aucune décision CNLEGIS ne correspond au filtre pour WDPAID=", wdpaid)
+    }
+    if (nrow(dec) > 1) {
+      stop("Filtre CNLEGIS ambigu: plusieurs décisions correspondent.")
+    }
   }
 
   # Determine date precision
@@ -503,6 +555,13 @@ add_modif_fat <- function(
     "CONS_OBJ"
   )
 
+  # Determine legal instrument source
+  legal_source <- if (!is.null(manual_decision)) {
+    "manual"
+  } else {
+    "CNLEGIS"
+  }
+
   # Create base FAT entry with metadata
   fat_entry <- tibble(
     WDPAID = wdpaid,
@@ -516,9 +575,17 @@ add_modif_fat <- function(
     legal_instrument_type = tolower(dec$type_texte[1]),
     legal_instrument_number = dec$num_texte[1],
     legal_instrument_date = dec$date_texte[1],
-    legal_instrument_source = "CNLEGIS",
-    legal_instrument_id = dec$id_texte[1],
-    legal_instrument_url = if ("cnlegis_url" %in% names(dec)) {
+    legal_instrument_source = legal_source,
+    legal_instrument_id = if (!is.null(manual_decision)) {
+      dec$id_texte[1]
+    } else if ("cnlegis_url" %in% names(dec)) {
+      dec$id_texte[1]
+    } else {
+      NA_character_
+    },
+    legal_instrument_url = if (!is.null(manual_decision)) {
+      NA_character_
+    } else if ("cnlegis_url" %in% names(dec)) {
       dec$cnlegis_url[1]
     } else {
       NA_character_
@@ -535,7 +602,10 @@ add_modif_fat <- function(
     confidence = confidence,
     notes = ifelse(
       is.null(notes),
-      dec$objet_texte[1],
+      if (!is.na(dec$objet_texte[1])) dec$objet_texte[1] else NA_character_,
+      notes
+    )
+  )
       notes
     )
   )
@@ -744,9 +814,9 @@ III	:	437	ha)	;	Dernière	modification	de	statut	:	suivant	le	Décret	n°	2015-
 785	du	28	avril	2015	;	Surface	actuelle	:	76	140	ha	(selon	le	décret	en
 vigueur).
 
-NB : Il y a visiblement une erreur dans le texte, le décret 97-1043 date de 1997, pas 2002.
+NB : Il y a visiblement une erreur dans le texte, le décret 97-1043 date de 1997, pas 2002. Ce décret n'était pas disponible dans CNLEGIS, mais a été retrouvé et archivé à l'adresse : https://archive.org/details/decret-n-97-1043-du-07-aout-1997-pn-andoahahela
 
-Les sources secondaires indiquent qu’Andohahela a connu plusieurs évolutions juridiques et spatiales depuis sa création initiale. Créée en 1939 comme Réserve Naturelle Intégrale, l’aire protégée a vu ses limites précisées en 1966, puis son statut modifié en 2002 lors de son déclassement en Parc National. Ces événements sont antérieurs à la disponibilité de données spatiales numériques homogènes et ne peuvent donc pas être documentés directement dans la Spatial Amendment Table.
+Les sources secondaires indiquent qu’Andohahela a connu plusieurs évolutions juridiques et spatiales depuis sa création initiale. Créée en 1939 comme Réserve Naturelle Intégrale, l’aire protégée a vu ses limites précisées en 1966, puis son statut modifié en 1997 (Décret n° 97-1043) lors de son déclassement en Parc National. Ces événements sont antérieurs à la disponibilité de données spatiales numériques homogènes et ne peuvent donc pas être documentés directement dans la Spatial Amendment Table.
 
 Les textes réglementaires récents identifiés dans CNLEGIS confirment en revanche une modification explicite des limites en 2015, par l’Arrêté n°2015-785 du 28 avril 2015, portant modification des limites du Parc National d’Andohahela. On la retrouve bien dans nos données CNLEGIS :
 
@@ -783,6 +853,43 @@ sat <- sat |>
     decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
     source_dataset_id = "SAPM_evol_2001-2011",
     notes = "Périmètre antérieur au décret modifiant (géométrie SAPM_2010 retenue après vérification visuelle)."
+  )
+```
+
+Le changement de statut de 1997 (RNI → PN) constitue un changement d'attributs à documenter dans FAT. Bien que ce décret ne soit pas référencé dans CNLEGIS, il a été retrouvé et archivé.
+
+```{r}
+fat <- fat %>%
+  add_modif_fat(
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Andohahela",
+    manual_decision = list(
+      date_texte = "1997-08-07",
+      type_texte = "Décret",
+      num_texte = "97-1043",
+      objet_texte = "Portant déclassement	en	parc	national"
+    ),
+    attributes = list(
+      DESIG = "Réserve Naturelle Intégrale",
+      DESIG_ENG = "Strict Nature Reserve",
+      DESIG_TYPE = "National",
+      IUCN_CAT = "Ia"
+    ),
+    amendment_type = "status_change",
+    valid_from = "1966-06-01",
+    secondary_reference = "https://archive.org/details/decret-n-97-1043-du-07-aout-1997-pn-andoahahela",
+    notes = "RNI #11 transformed to PN in 1997 (Décret 97-1043 du 7 août 1997). Three-parcel structure maintained. Decree not in CNLEGIS but archived independently."
+  ) %>%
+  add_modif_fat(
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Andohahela",
+    decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
+    attributes = list(
+      STATUS_YR = "1939"
+    ),
+    amendment_type = "correction",
+    valid_from = "1939-06-11",
+    notes = "WDPA incorrectly shows STATUS_YR=2015 (date of PN creation). Actual creation was 1939 as RNI #11 (Décret du 11 juin 1939)."
   )
 ```
 

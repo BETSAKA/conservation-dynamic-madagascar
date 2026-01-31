@@ -204,7 +204,10 @@ plot_pa_sources <- function(
 #                    - num_texte: exact legal instrument number
 #                    - id_texte: exact decision ID
 #   source_dataset_id: The dataset_id in 'data' containing the historical geometry
-#   amendment_type: Type of spatial amendment (default: "boundary_modification")
+#   amendment_type: Type of spatial amendment. Allowed values:
+#                   - "boundary_modification": Legal change to external boundaries
+#                   - "internal_zoning": Addition/modification of internal zones
+#                   - "correction": Data correction (wrong geometry in WDPA)
 #   valid_from: Optional start date (Date or character). If NULL, remains NA
 #   confidence: Confidence level ("high", "medium", "low")
 #   verification_method: Method used to verify the geometry
@@ -244,6 +247,21 @@ add_modif_sat <- function(
 
   if (!is.list(decision_filter)) {
     stop("decision_filter doit être une liste.")
+  }
+
+  # Validate amendment_type for SAT
+  allowed_types_sat <- c(
+    "boundary_modification",
+    "internal_zoning",
+    "correction"
+  )
+  if (!amendment_type %in% allowed_types_sat) {
+    stop(
+      "amendment_type must be one of: ",
+      paste(allowed_types_sat, collapse = ", "),
+      ". Got: ",
+      amendment_type
+    )
   }
 
   wdpaid <- resolve_wdpaid(wdpa_name_or_id, decisions)
@@ -369,8 +387,10 @@ add_modif_sat <- function(
 #   attributes: Named list of attribute changes, e.g.:
 #               list(DESIG = "Réserve Naturelle Intégrale", IUCN_CAT = "Ia")
 #               Only attributes that differ from WDPA should be provided.
-#   amendment_type: Type of attribute amendment (e.g., "status_change",
-#                   "governance_change", "designation_change")
+#   amendment_type: Type of attribute amendment. Allowed values:
+#                   - "status_change": Change in designation type (RNI → PN, etc.)
+#                   - "governance_change": Change in management authority
+#                   - "correction": Data correction (wrong attribute in WDPA)
 #   valid_from: Optional start date (Date or character). If NULL, remains NA
 #   confidence: Confidence level ("high", "medium", "low")
 #   verification_method: Method used to verify the attributes
@@ -687,9 +707,22 @@ sat <- sat |>
   )
 ```
 
-::: {.callout-note}
-L'année de création de cette AP est 1970 (pas 2015 comme indiqué dans la WDPA 2025). A refléter dans FAT, ou s'assurer que CAR accorde la primauté à valid_from dans SAT si disponible.
-:::
+L'année de création de cette AP est 1970 (pas 2015 comme indiqué dans la WDPA 2025). On corrige STATUS_YR dans FAT.
+
+```{r}
+fat <- fat %>%
+  add_modif_fat(
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Analamazaotra",
+    decision_filter = list(year = 1970, num_texte = "2778/70"),
+    attributes = list(
+      STATUS_YR = "1970"
+    ),
+    amendment_type = "correction",
+    valid_from = "1970-07-21",
+    notes = "WDPA incorrectly shows STATUS_YR=2015 (date of upgrade to PN). Actual creation was 1970 as wildlife reserve for Indris."
+  )
+```
 
 #### Andohahela 
 
@@ -781,15 +814,7 @@ print(list(
 ))
 ```
 
-La modification survenue en 1998 ne porte pas sur un changement de frontière. Elle porte sur un changement de statut juridique, de RNI à PN. 
-
-```{r}
-wdpa_mdg %>%
-  filter(WDPAID == 2308) %>%
-  glimpse()
-```
-
-Le changement de statut implique une modification de la désignation et de la catégorie IUCN. On documente ces changements d'attributs dans FAT.
+La modification survenue en 1998 ne porte pas sur un changement de frontière. Elle porte sur un changement de statut juridique, de RNI à PN. Le changement de statut implique une modification de la désignation et de la catégorie IUCN. On documente ces changements d'attributs dans FAT.
 
 ```{r}
 fat <- NULL %>%

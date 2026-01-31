@@ -185,7 +185,35 @@ plot_pa_sources <- function(
   return(map)
 }
 
-add_modif_cnlegis <- function(
+# Add a spatial amendment to SAT based on a legal decision
+#
+# This function creates a SAT entry documenting a historical boundary or
+# internal zone that differs from the current WDPA representation. It links
+# a geometry from curated spatial sources to a legal decision that marks
+# when this geometry ceased to be valid.
+#
+# Parameters:
+#   sat: Existing SAT table (sf object) or NULL to initialize
+#   data: Consolidated spatial dataset (e.g., all_PAs_conso) containing
+#         multiple representations of PAs from different sources
+#   decisions: Legal decisions table with WDPAID linkage (e.g., pa_decisions)
+#   wdpa_name_or_id: Either WDPAID (numeric) or WDPA_NAME (character)
+#   decision_filter: Named list to identify the legal decision, can include:
+#                    - year: numeric year of decision
+#                    - type_decision_pattern: regex pattern for type_decision
+#                    - num_texte: exact legal instrument number
+#                    - id_texte: exact decision ID
+#   source_dataset_id: The dataset_id in 'data' containing the historical geometry
+#   amendment_type: Type of spatial amendment (default: "boundary_modification")
+#   valid_from: Optional start date (Date or character). If NULL, remains NA
+#   confidence: Confidence level ("high", "medium", "low")
+#   verification_method: Method used to verify the geometry
+#   verified_by: Who performed verification
+#   notes: Optional notes (defaults to decision object text)
+#
+# Returns:
+#   Updated SAT table (sf object) with new amendment(s) appended
+add_modif_sat <- function(
   sat,
   data,
   decisions,
@@ -199,7 +227,7 @@ add_modif_cnlegis <- function(
   verified_by = "project_team",
   notes = NULL
 ) {
-  # English: accept WDPAID (numeric) or WDPA_NAME (character) and return a single WDPAID
+  # Helper: accept WDPAID (numeric) or WDPA_NAME (character) and return a single WDPAID
   resolve_wdpaid <- function(wdpa_name_or_id, decisions) {
     if (is.numeric(wdpa_name_or_id)) {
       return(wdpa_name_or_id[1])
@@ -220,7 +248,7 @@ add_modif_cnlegis <- function(
 
   wdpaid <- resolve_wdpaid(wdpa_name_or_id, decisions)
 
-  # Select exactly one CNLEGIS decision
+  # Select exactly one legal decision based on filters
   dec <- decisions %>%
     filter(WDPAID == wdpaid)
 
@@ -249,7 +277,7 @@ add_modif_cnlegis <- function(
     )
   }
 
-  # Extract "before" geometry from all_PAs_conso
+  # Extract historical geometry from consolidated spatial data
   geom_before <- data %>%
     filter(WDPAID == wdpaid, dataset_id == source_dataset_id) %>%
     filter(dataset_id != "CNLEGIS_2024") %>%
@@ -265,7 +293,7 @@ add_modif_cnlegis <- function(
     )
   }
 
-  # Build SAT entry
+  # Build SAT entry with geometry and metadata
   sat_entry <- geom_before %>%
     mutate(
       WDPAID = wdpaid,
@@ -307,29 +335,204 @@ add_modif_cnlegis <- function(
       confidence
     )
 
-  # Initialize sat if needed
+  # Initialize or append to SAT
   if (is.null(sat)) {
     sat_new <- sat_entry
   } else {
     sat_new <- bind_rows(sat, sat_entry)
   }
 
-  # Assign stable amendment_id (sequential)
+  # Assign stable sequential amendment_id
   sat_new <- sat_new %>%
     mutate(amendment_id = row_number()) %>%
     relocate(amendment_id, .before = WDPAID)
 
-  # Duplicate guard on key tuple
-  dups <- sat_new %>%
-    st_drop_geometry() %>%
-    count(WDPAID, valid_to, data_source, legal_source) %>%
-    filter(n > 1)
-
-  # if (nrow(dups) > 0) {
-  #   stop("Doublon SAT détecté (WDPAID, valid_to, data_source, legal_source).")
-  # }
-
   sat_new
+}
+
+# Add attribute amendments to FAT based on a legal decision
+#
+# This function creates FAT entries documenting historical attribute states
+# that differ from current WDPA representation. It uses a long format where
+# each changed attribute becomes its own row, all linked to the same legal
+# decision.
+#
+# Parameters:
+#   fat: Existing FAT table (tibble) or NULL to initialize
+#   decisions: Legal decisions table with WDPAID linkage (e.g., pa_decisions)
+#   wdpa_name_or_id: Either WDPAID (numeric) or WDPA_NAME (character)
+#   decision_filter: Named list to identify the legal decision, can include:
+#                    - year: numeric year of decision
+#                    - type_decision_pattern: regex pattern for type_decision
+#                    - num_texte: exact legal instrument number
+#                    - id_texte: exact decision ID
+#   attributes: Named list of attribute changes, e.g.:
+#               list(DESIG = "Réserve Naturelle Intégrale", IUCN_CAT = "Ia")
+#   amendment_type: Type of attribute amendment (e.g., "status_change",
+#                   "governance_change", "designation_change")
+#   valid_from: Optional start date (Date or character). If NULL, remains NA
+#   confidence: Confidence level ("high", "medium", "low")
+#   verification_method: Method used to verify the attributes
+#   verified_by: Who performed verification
+#   secondary_reference: Optional citation (e.g., "Goodman et al. 2018")
+#   notes: Optional notes (defaults to decision object text)
+#
+# Returns:
+#   Updated FAT table (tibble) with new amendment(s) appended. Each attribute
+#   in the 'attributes' list becomes a separate row in long format.
+
+# Helper: accept WDPAID (numeric) or WDPA_NAME (character) and return a single WDPAID
+add_modif_fat <- function(
+  fat,
+  decisions,
+  wdpa_name_or_id,
+  decision_filter,
+  attributes,
+  amendment_type = "status_change",
+  valid_from = NULL,
+  confidence = "medium",
+  verification_method = "legal_text_analysis",
+  verified_by = "project_team",
+  secondary_reference = NULL,
+  notes = NULL
+) {
+  resolve_wdpaid <- function(wdpa_name_or_id, decisions) {
+    if (is.numeric(wdpa_name_or_id)) {
+      return(wdpa_name_or_id[1])
+    }
+    wdpaid <- decisions %>%
+      filter(WDPA_NAME == wdpa_name_or_id) %>%
+      pull(WDPAID) %>%
+      first()
+    if (is.na(wdpaid)) {
+      stop("WDPAID introuvable pour: ", wdpa_name_or_id)
+    }
+    wdpaid
+  }
+
+  if (!is.list(decision_filter)) {
+    stop("decision_filter doit être une liste.")
+  }
+
+  wdpaid <- resolve_wdpaid(wdpa_name_or_id, decisions)
+
+  # Select exactly one legal decision based on filters
+  dec <- decisions %>%
+    filter(WDPAID == wdpaid)
+
+  if (!is.null(decision_filter$year)) {
+    dec <- dec %>% filter(lubridate::year(date_texte) == decision_filter$year)
+  }
+  if (!is.null(decision_filter$type_decision_pattern)) {
+    dec <- dec %>%
+      filter(str_detect(type_decision, decision_filter$type_decision_pattern))
+  }
+  if (!is.null(decision_filter$num_texte)) {
+    dec <- dec %>% filter(num_texte == decision_filter$num_texte)
+  }
+  if (!is.null(decision_filter$id_texte)) {
+    dec <- dec %>% filter(id_texte == decision_filter$id_texte)
+  }
+
+  dec <- dec %>% arrange(date_texte)
+
+  if (nrow(dec) == 0) {
+    stop("Aucune décision CNLEGIS ne correspond au filtre pour WDPAID=", wdpaid)
+  }
+  if (nrow(dec) > 1) {
+    stop("Filtre CNLEGIS ambigu: plusieurs décisions correspondent.")
+  }
+
+  # Determine date precision
+  date_precision <- if (!is.na(dec$date_texte[1])) {
+    "day"
+  } else if (!is.na(lubridate::year(dec$date_texte[1]))) {
+    "year"
+  } else {
+    NA_character_
+  }
+
+  # Create one FAT entry per attribute (long format)
+  fat_entries <- tibble(
+    attribute_name = names(attributes),
+    attribute_value = as.character(attributes)
+  ) %>%
+    mutate(
+      WDPAID = wdpaid,
+      valid_from = if (!is.null(valid_from)) {
+        as.Date(valid_from)
+      } else {
+        as.Date(NA)
+      },
+      valid_to = dec$date_texte[1],
+      date_precision = date_precision,
+      attribute_type = case_when(
+        attribute_name %in% c("STATUS_YR", "REP_AREA", "GIS_AREA") ~ "numeric",
+        attribute_name %in% c("STATUS_DATE") ~ "date",
+        TRUE ~ "character"
+      ),
+      legal_instrument_type = tolower(dec$type_texte[1]),
+      legal_instrument_number = dec$num_texte[1],
+      legal_instrument_date = dec$date_texte[1],
+      legal_instrument_source = "CNLEGIS",
+      legal_instrument_id = dec$id_texte[1],
+      legal_instrument_url = if ("cnlegis_url" %in% names(dec)) {
+        dec$cnlegis_url[1]
+      } else {
+        NA_character_
+      },
+      secondary_reference = ifelse(
+        is.null(secondary_reference),
+        NA_character_,
+        secondary_reference
+      ),
+      amendment_type = amendment_type,
+      verification_method = verification_method,
+      verified_by = verified_by,
+      verification_date = Sys.Date(),
+      confidence = confidence,
+      notes = ifelse(
+        is.null(notes),
+        dec$objet_texte[1],
+        notes
+      )
+    ) %>%
+    select(
+      WDPAID,
+      attribute_name,
+      attribute_value,
+      attribute_type,
+      valid_from,
+      valid_to,
+      date_precision,
+      legal_instrument_type,
+      legal_instrument_number,
+      legal_instrument_date,
+      legal_instrument_source,
+      legal_instrument_id,
+      legal_instrument_url,
+      secondary_reference,
+      amendment_type,
+      verification_method,
+      verified_by,
+      verification_date,
+      confidence,
+      notes
+    )
+
+  # Initialize or append to FAT
+  if (is.null(fat)) {
+    fat_new <- fat_entries
+  } else {
+    fat_new <- bind_rows(fat, fat_entries)
+  }
+
+  # Assign stable sequential amendment_id
+  fat_new <- fat_new %>%
+    mutate(amendment_id = row_number()) %>%
+    relocate(amendment_id, .before = WDPAID)
+
+  fat_new
 }
 
 ```
@@ -376,7 +579,7 @@ On retient comme géométrie avant 2015 la meilleure source spatiale identifiée
 
 ```{r}
 sat <- NULL |>
-  add_modif_cnlegis(
+  add_modif_sat(
     data = all_PAs_conso,
     decisions = pa_decisions,
     wdpa_name_or_id = "Ambatovaky",
@@ -432,7 +635,7 @@ Conformément aux règles de construction de la SAT, seule la géométrie imméd
 
 ```{r}
 sat <- sat |>
-  add_modif_cnlegis(
+  add_modif_sat(
     data = all_PAs_conso,
     decisions = pa_decisions,
     wdpa_name_or_id = "Analamazaotra",
@@ -499,7 +702,7 @@ Conformément aux règles de construction de la SAT, seule la géométrie imméd
 
 ```{r}
 sat <- sat |>
-  add_modif_cnlegis(
+  add_modif_sat(
     data = all_PAs_conso,
     decisions = pa_decisions,
     wdpa_name_or_id = "Andohahela",
@@ -658,7 +861,7 @@ wdpa_hist <- read_parquet("data/MDG_WDPA_Consolidated.parquet") %>%
 
 
 ankarafantsika_2002_2015 <- NULL |>
-  add_modif_cnlegis(
+  add_modif_sat(
     data = wdpa_hist,
     decisions = pa_decisions,
     wdpa_name_or_id = "Ankarafantsika",
@@ -666,7 +869,7 @@ ankarafantsika_2002_2015 <- NULL |>
     source_dataset_id = "WDPA_2010",
     notes = "Possible problème de projection, cf. comparaison avec ANGAP"
   ) |>
-  add_modif_cnlegis(
+  add_modif_sat(
     data = all_PAs_conso,
     decisions = pa_decisions,
     wdpa_name_or_id = "Ankarafantsika",

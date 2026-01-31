@@ -1050,7 +1050,7 @@ Dernière	modification	de	statut	:	suivant	le	Décret	n°	2015-730	du	21	avril
 2015	;	Surface	actuelle	:	136	513	ha	(selon	le	décret	en	vigueur).
 
 
-Les sources secondaires indiquent qu'Ankarafantsika a connu une évolution complexe, avec la création de la RNI #7 en 1927, l'établissement de réserves forestières adjacentes en 1929, et la consolidation de l'ensemble en parc national en 2002. L'extension de 2002 a fait l'objet d'une cartographie détaillée par Conservation International (voir Alonso & Shuldenberg 2002), mais les périmètres antérieurs à 2002 sont en cours de re-vectorisation et ne sont pas encore disponibles pour documentation dans la SAT.
+Les sources secondaires indiquent qu'Ankarafantsika a connu une évolution complexe, avec la création de la RNI #7 en 1927, l'établissement de réserves forestières adjacentes en 1929, et la consolidation de l'ensemble en parc national en 2002, puis modification de statut et de frontières en 2015. 
 
 ```{r}
 show_cnlegis_for_pa("Ankarafantsika", pa_decisions) %>%
@@ -1064,15 +1064,7 @@ show_cnlegis_for_pa("Ankarafantsika", pa_decisions) %>%
   )
 ```
 
-```{r}
-#| echo: false
-#| eval: false
-visualize_pa_by_name("Ankarafantsika")
-```
-
-- ANGAP 2002 = SAPM 2010:2019
-- WDPA 2025 = SAPM 2010, 2017, 2024
-- WDPA 2024 inclut la zone de protection
+Après inspection visuelle des différentes sources disponibles, on retient ANGAP_2002 comme source des limites avant la modification de 2015.
 
 ```{r}
 plot_pa_sources(
@@ -1080,6 +1072,10 @@ plot_pa_sources(
   sources = c("WDPA_2025", "ANGAP_2002")
 )
 ```
+
+L'extension de 2002 a fait l'objet d'une cartographie détaillée par Conservation International [@alonso2002], mais les périmètres antérieurs à 2002 sont en cours de re-vectorisation et ne sont pas encore disponibles pour documentation dans la SAT.
+
+![Ankarafantsika 2002 expansion](data/Alonso_Shuldenberg_2002.png){fig-alt="Carte d'Ankarafantsika avant 2002."}
 
 Les textes légaux identifient plusieurs décisions modificatives, notamment en 2002 (création du PN par consolidation) et 2015 (modification des limites). Après inspection visuelle, on retient ANGAP_2002 comme source du périmètre avant la modification de 2015.
 
@@ -1111,9 +1107,9 @@ fat <- fat %>%
       IUCN_CAT = "Ia"
     ),
     amendment_type = "status_change",
-    valid_from = "1966-06-01",
+    valid_from = "1927-12-31",
     secondary_reference = "Alonso & Shuldenberg 2002",
-    notes = "RNI #7 (+ forest reserves + Station Forestière Ampijoroa) consolidated into PN in 2002 (Décret 2002-798 du 7 août 2002). Major boundary expansion."
+    notes = "RNI #7 created 1927, boundaries clarified 1966. RNI (+ forest reserves + Station Forestière Ampijoroa) consolidated into PN in 2002 (Décret 2002-798 du 7 août 2002). Major boundary expansion."
   ) %>%
   add_modif_fat(
     decisions = pa_decisions,

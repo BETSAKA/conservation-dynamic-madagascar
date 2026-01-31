@@ -909,22 +909,22 @@ le	Décret	n°	98-376	du	19	août	1998	et	devient	un	parc	national	;	Dernière
 modification	de	statut	:	suivant	le	Décret	n°	98-376	du	19	août	1998	;
 Surface	actuelle	:	31	160	ha	(selon	le	décret	en	vigueur).
 
-Vérification de la nature des modifications pour Andringitra
+Les métadonnées indiquent que cette aire protégée a été créée en 1927 comme RNI #5, puis ses limites ont été fixées en 1966, avant un changement de statut en 1998:
 
 ```{r}
-andringitra_decision_2015 <- pa_decisions %>%
+andringitra_decision <- pa_decisions %>%
   filter(WDPAID == 2308) %>%
   select(date_texte, type_texte, type_decision, id_texte, objet_texte)
 print(list(
-  select(andringitra_decision_2015, -objet_texte),
-  andringitra_decision_2015$objet_texte
+  select(andringitra_decision, -objet_texte),
+  andringitra_decision$objet_texte
 ))
 ```
 
-La modification survenue en 1998 ne porte pas sur un changement de frontière. Elle porte sur un changement de statut juridique, de RNI à PN. Le changement de statut implique une modification de la désignation et de la catégorie IUCN. On documente ces changements d'attributs dans FAT.
+La modification survenue en 1998 ne porte pas sur un changement de frontière mais sur un changement de statut juridique (de RNI à PN). Aucun amendement spatial n'est donc nécessaire. On documente le changement de statut dans FAT.
 
 ```{r}
-fat <- NULL %>%
+fat <- fat %>%
   add_modif_fat(
     decisions = pa_decisions,
     wdpa_name_or_id = "Andringitra",
@@ -936,8 +936,19 @@ fat <- NULL %>%
       IUCN_CAT = "Ia"
     ),
     amendment_type = "status_change",
-    valid_from = "1963-03-06",
-    notes = "RNI transformed to PN in 1998. No boundary change."
+    valid_from = "1966-06-01",
+    notes = "RNI #5 transformed to PN in 1998 (Décret 98-376 du 19 août 1998). Boundaries remained unchanged from 1966 delimitation."
+  ) %>%
+  add_modif_fat(
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Andringitra",
+    decision_filter = list(year = 1998, type_decision_pattern = "modifiant"),
+    attributes = list(
+      STATUS_YR = "1927"
+    ),
+    amendment_type = "correction",
+    valid_from = "1927-12-31",
+    notes = "WDPA incorrectly shows STATUS_YR=1998 (date of PN upgrade). Actual creation was 1927 as RNI #5 (Décret du 31 décembre 1927)."
   )
 ```
 
@@ -959,36 +970,60 @@ Sud	subit	un	changement	de	limites	sous	le	Décret	n°	2015-729	du	21	avril
 2015	;	Dernière	modification	de	statut	:	suivant	le	Décret	n°	2015-729	du	21
 avril	2015	;	Surface	actuelle	:	26	903	ha	(selon	le	décret	en	vigueur).
 
+Les métadonnées indiquent que cette aire protégée a été créée en 1958 comme Réserve Spéciale, puis ses limites ont été modifiées en 2015:
 
 ```{r}
-anjanaharibe_decision_2015 <- pa_decisions %>%
-  filter(WDPAID == 5023) %>%
-  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
-print(list(
-  select(anjanaharibe_decision_2015, -objet_texte),
-  anjanaharibe_decision_2015$objet_texte
-))
+show_cnlegis_for_pa(5023, pa_decisions) %>%
+  select(
+    date_texte,
+    type_texte,
+    num_texte,
+    type_decision,
+    id_texte,
+    objet_texte
+  )
 ```
 
-```{r}
-#| echo: false
-#| eval: false
-visualize_pa_by_name("Anjanaharibe_sud")
-```
-
-- WDPA 2025 = WPDA 2024 = WDPA 2017 = Vahatra
-- WDPA 2010:2019 = ANGAP 2002
-- WDPA 2024 semble très faux.
-- SAPM 2010 = SAPM 2001-2011 très différent
+Après inspection visuelle des différentes sources disponibles, on retient MNP_2010 comme source des limites avant la modification de 2015. Cette géométrie représente le périmètre tel que géré par Madagascar National Parks avant l'entrée en vigueur du décret modificatif.
 
 ```{r}
-plot_pa_by_name(
+plot_pa_sources(
   "Anjanaharibe_sud",
-  sources = c("WDPA_2025", "ANGAP_2002")
+  sources = c("MNP_2010", "WDPA_2025")
 )
 ```
 
-> Ajouter ANGAP 2002
+Conformément aux règles de construction de la SAT, seule la géométrie immédiatement antérieure à la modification de 2015 est ajoutée comme amendement spatial.
+
+```{r}
+sat <- sat |>
+  add_modif_sat(
+    data = all_PAs_conso,
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Anjanaharibe_sud",
+    decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
+    source_dataset_id = "MNP_2010",
+    valid_from = "1958-10-28",
+    notes = "Périmètre antérieur au décret modifiant (géométrie MNP_2010 retenue après vérification visuelle)."
+  )
+```
+
+L'année de création de cette AP est 1958 (pas 2015 comme indiqué dans la WDPA 2025). On corrige STATUS_YR dans FAT.
+
+```{r}
+fat <- fat %>%
+  add_modif_fat(
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Anjanaharibe_sud",
+    decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
+    attributes = list(
+      STATUS_YR = "1958"
+    ),
+    amendment_type = "correction",
+    valid_from = "1958-10-28",
+    notes = "WDPA incorrectly shows STATUS_YR=2015 (date of boundary modification). Actual creation was 1958 as Réserve Spéciale (Décret 58-12 du 28 octobre 1958)."
+  )
+```
 
 ## Ankarafantsika
 
@@ -1014,14 +1049,19 @@ changement	de	limites	en	2015	sous	le	Décret	n°	2015-730	du	21	avril	2015	;
 Dernière	modification	de	statut	:	suivant	le	Décret	n°	2015-730	du	21	avril
 2015	;	Surface	actuelle	:	136	513	ha	(selon	le	décret	en	vigueur).
 
+
+Les sources secondaires indiquent qu'Ankarafantsika a connu une évolution complexe, avec la création de la RNI #7 en 1927, l'établissement de réserves forestières adjacentes en 1929, et la consolidation de l'ensemble en parc national en 2002. L'extension de 2002 a fait l'objet d'une cartographie détaillée par Conservation International (voir Alonso & Shuldenberg 2002), mais les périmètres antérieurs à 2002 sont en cours de re-vectorisation et ne sont pas encore disponibles pour documentation dans la SAT.
+
 ```{r}
-ankarafantsika_decision_2015 <- pa_decisions %>%
-  filter(WDPAID == 1299) %>%
-  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
-print(list(
-  select(ankarafantsika_decision_2015, -objet_texte),
-  ankarafantsika_decision_2015$objet_texte
-))
+show_cnlegis_for_pa("Ankarafantsika", pa_decisions) %>%
+  select(
+    date_texte,
+    type_texte,
+    num_texte,
+    type_decision,
+    id_texte,
+    objet_texte
+  )
 ```
 
 ```{r}
@@ -1035,57 +1075,71 @@ visualize_pa_by_name("Ankarafantsika")
 - WDPA 2024 inclut la zone de protection
 
 ```{r}
-plot_pa_by_name(
+plot_pa_sources(
   "Ankarafantsika",
   sources = c("WDPA_2025", "ANGAP_2002")
 )
 ```
 
-> Ajout de ANGAP 2002
-
-The extension of the protected area in 2002 was mapped as follows in 2002 by experts from the NGO Conservation International, which spearheaded the initiative.
-
-![Ankarafantsika 2002 expansion](data/Alonso_Shuldenberg_2002.png)
+Les textes légaux identifient plusieurs décisions modificatives, notamment en 2002 (création du PN par consolidation) et 2015 (modification des limites). Après inspection visuelle, on retient ANGAP_2002 comme source du périmètre avant la modification de 2015.
 
 ```{r}
-wdpa_hist <- read_parquet("data/MDG_WDPA_Consolidated.parquet") %>%
-  mutate(geometry = st_as_sfc(geometry)) %>%
-  st_as_sf() %>%
-  mutate(dataset_id = paste0("WDPA_", data_year)) |>
-  st_transform(st_crs(all_PAs_conso))
-
-
-ankarafantsika_2002_2015 <- NULL |>
-  add_modif_sat(
-    data = wdpa_hist,
-    decisions = pa_decisions,
-    wdpa_name_or_id = "Ankarafantsika",
-    decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
-    source_dataset_id = "WDPA_2010",
-    notes = "Possible problème de projection, cf. comparaison avec ANGAP"
-  ) |>
+sat <- sat |>
   add_modif_sat(
     data = all_PAs_conso,
     decisions = pa_decisions,
     wdpa_name_or_id = "Ankarafantsika",
     decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
     source_dataset_id = "ANGAP_2002",
-    notes = "Possible problème de projection, cf. comparaison avec WDPA"
+    valid_from = "2002-08-07",
+    notes = "Périmètre 2002-2015 avant modification des limites (géométrie ANGAP_2002 retenue après vérification visuelle). Périmètres pré-2002 en cours de re-vectorisation."
   )
+```
 
-st_write(ankarafantsika_2002_2015, "ankarafantsika_2002_2015.geojson")
+L'année de création de cette AP est 1927 (pas 2015 comme pourrait l'indiquer WDPA). La transformation en PN date de 2002. On documente le changement de statut dans FAT.
+
+```{r}
+fat <- fat %>%
+  add_modif_fat(
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Ankarafantsika",
+    decision_filter = list(year = 2002, type_decision_pattern = "modifiant"),
+    attributes = list(
+      DESIG = "Réserve Naturelle Intégrale",
+      DESIG_ENG = "Strict Nature Reserve",
+      DESIG_TYPE = "National",
+      IUCN_CAT = "Ia"
+    ),
+    amendment_type = "status_change",
+    valid_from = "1966-06-01",
+    secondary_reference = "Alonso & Shuldenberg 2002",
+    notes = "RNI #7 (+ forest reserves + Station Forestière Ampijoroa) consolidated into PN in 2002 (Décret 2002-798 du 7 août 2002). Major boundary expansion."
+  ) %>%
+  add_modif_fat(
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Ankarafantsika",
+    decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
+    attributes = list(
+      STATUS_YR = "1927"
+    ),
+    amendment_type = "correction",
+    valid_from = "1927-12-31",
+    notes = "WDPA may show STATUS_YR=2002 or 2015. Actual creation was 1927 as RNI #7 (Décret du 31 décembre 1927)."
+  )
 ```
 
 ## Bemaraha 
 
 ```{r}
-bemaraha_decision <- pa_decisions %>%
-  filter(WDPAID == 303702) %>%
-  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
-print(list(
-  select(bemaraha_decision, -objet_texte),
-  bemaraha_decision$objet_texte
-))
+show_cnlegis_for_pa(303702, pa_decisions) %>%
+  select(
+    date_texte,
+    type_texte,
+    num_texte,
+    type_decision,
+    id_texte,
+    objet_texte
+  )
 ```
 
 ```{r}
@@ -1103,7 +1157,7 @@ visualize_pa_by_name(303702)
 
 
 ```{r}
-plot_pa_by_name(
+plot_pa_sources(
   303702,
   sources = c("WDPA_2025") # Update after visual inspection
 )
@@ -1112,13 +1166,15 @@ plot_pa_by_name(
 ## Beza Mahafaly
 
 ```{r}
-beza_decision <- pa_decisions %>%
-  filter(WDPAID == 10634) %>%
-  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
-print(list(
-  select(beza_decision, -objet_texte),
-  beza_decision$objet_texte
-))
+show_cnlegis_for_pa(10634, pa_decisions) %>%
+  select(
+    date_texte,
+    type_texte,
+    num_texte,
+    type_decision,
+    id_texte,
+    objet_texte
+  )
 ```
 
 ```{r}
@@ -1128,7 +1184,7 @@ visualize_pa_by_name("Beza Mahafaly")
 ```
 
 ```{r}
-plot_pa_by_name(
+plot_pa_sources(
   10634,
   sources = c("WDPA_2025") # Update after visual inspection
 )
@@ -1137,13 +1193,15 @@ plot_pa_by_name(
 ## Cap Sainte Marie
 
 ```{r}
-cap_decision <- pa_decisions %>%
-  filter(WDPAID == 5041) %>%
-  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
-print(list(
-  select(cap_decision, -objet_texte),
-  cap_decision$objet_texte
-))
+show_cnlegis_for_pa(5041, pa_decisions) %>%
+  select(
+    date_texte,
+    type_texte,
+    num_texte,
+    type_decision,
+    id_texte,
+    objet_texte
+  )
 ```
 
 ```{r}
@@ -1153,7 +1211,7 @@ visualize_pa_by_name("Cap Sainte Marie")
 ```
 
 ```{r}
-plot_pa_by_name(
+plot_pa_sources(
   5041,
   sources = c("WDPA_2025") # Update after visual inspection
 )
@@ -1162,13 +1220,15 @@ plot_pa_by_name(
 ## Kirindy Mite
 
 ```{r}
-kirindy_decision <- pa_decisions %>%
-  filter(WDPAID == 303700) %>%
-  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
-print(list(
-  select(kirindy_decision, -objet_texte),
-  kirindy_decision$objet_texte
-))
+show_cnlegis_for_pa(303700), pa_decisions) %>%
+  select(
+    date_texte,
+    type_texte,
+    num_texte,
+    type_decision,
+    id_texte,
+    objet_texte
+  )
 ```
 
 ```{r}
@@ -1178,7 +1238,7 @@ visualize_pa_by_name("Kirindy Mite")
 ```
 
 ```{r}
-plot_pa_by_name(
+plot_pa_sources(
   303700,
   sources = c("WDPA_2025") # Update after visual inspection
 )
@@ -1187,13 +1247,15 @@ plot_pa_by_name(
 ## Mangerivola
 
 ```{r}
-mangerivola_decision <- pa_decisions %>%
-  filter(WDPAID == 5038) %>%
-  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
-print(list(
-  select(mangerivola_decision, -objet_texte),
-  mangerivola_decision$objet_texte
-))
+show_cnlegis_for_pa(5038, pa_decisions) %>%
+  select(
+    date_texte,
+    type_texte,
+    num_texte,
+    type_decision,
+    id_texte,
+    objet_texte
+  )
 ```
 
 ```{r}
@@ -1203,7 +1265,7 @@ visualize_pa_by_name("Mangerivola")
 ```
 
 ```{r}
-plot_pa_by_name(
+plot_pa_sources(
   5038,
   sources = c("WDPA_2025") # Update after visual inspection
 )
@@ -1212,13 +1274,15 @@ plot_pa_by_name(
 ## Manombo
 
 ```{r}
-manombo_decision <- pa_decisions %>%
-  filter(WDPAID == 5028) %>%
-  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
-print(list(
-  select(manombo_decision, -objet_texte),
-  manombo_decision$objet_texte
-))
+show_cnlegis_for_pa("Manombo", pa_decisions) %>%
+  select(
+    date_texte,
+    type_texte,
+    num_texte,
+    type_decision,
+    id_texte,
+    objet_texte
+  )
 ```
 
 ```{r}
@@ -1228,7 +1292,7 @@ visualize_pa_by_name("Manombo")
 ```
 
 ```{r}
-plot_pa_by_name(
+plot_pa_sources(
   5028,
   sources = c("WDPA_2025") # Update after visual inspection
 )
@@ -1237,13 +1301,15 @@ plot_pa_by_name(
 ## Manongarivo
 
 ```{r}
-manongarivo_decision <- pa_decisions %>%
-  filter(WDPAID == 5026) %>%
-  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
-print(list(
-  select(manongarivo_decision, -objet_texte),
-  manongarivo_decision$objet_texte
-))
+show_cnlegis_for_pa("Manongarivo", pa_decisions) %>%
+  select(
+    date_texte,
+    type_texte,
+    num_texte,
+    type_decision,
+    id_texte,
+    objet_texte
+  )
 ```
 
 ```{r}
@@ -1253,7 +1319,7 @@ visualize_pa_by_name("Manongarivo")
 ```
 
 ```{r}
-plot_pa_by_name(
+plot_pa_sources(
   5026,
   sources = c("WDPA_2025") # Update after visual inspection
 )
@@ -1262,13 +1328,15 @@ plot_pa_by_name(
 ## Mantadia
 
 ```{r}
-mantadia_decision <- pa_decisions %>%
-  filter(WDPAID == 26070) %>%
-  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
-print(list(
-  select(mantadia_decision, -objet_texte),
-  mantadia_decision$objet_texte
-))
+show_cnlegis_for_pa("Mantadia", pa_decisions) %>%
+  select(
+    date_texte,
+    type_texte,
+    num_texte,
+    type_decision,
+    id_texte,
+    objet_texte
+  )
 ```
 
 ```{r}
@@ -1278,7 +1346,7 @@ visualize_pa_by_name("Mantadia")
 ```
 
 ```{r}
-plot_pa_by_name(
+plot_pa_sources(
   26070,
   sources = c("WDPA_2025") # Update after visual inspection
 )
@@ -1287,13 +1355,15 @@ plot_pa_by_name(
 ## Marojejy
 
 ```{r}
-marojejy_decision <- pa_decisions %>%
-  filter(WDPAID == 2305) %>%
-  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
-print(list(
-  select(marojejy_decision, -objet_texte),
-  marojejy_decision$objet_texte
-))
+show_cnlegis_for_pa("Manongarivo", pa_decisions) %>%
+  select(
+    date_texte,
+    type_texte,
+    num_texte,
+    type_decision,
+    id_texte,
+    objet_texte
+  )
 ```
 
 ```{r}
@@ -1303,7 +1373,7 @@ visualize_pa_by_name("Marojejy")
 ```
 
 ```{r}
-plot_pa_by_name(
+plot_pa_sources(
   2305,
   sources = c("WDPA_2025") # Update after visual inspection
 )
@@ -1312,13 +1382,15 @@ plot_pa_by_name(
 ## Montagne d'Ambre
 
 ```{r}
-montagne_decision <- pa_decisions %>%
-  filter(WDPAID == 2314) %>%
-  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
-print(list(
-  select(montagne_decision, -objet_texte),
-  montagne_decision$objet_texte
-))
+show_cnlegis_for_pa("Manongarivo", pa_decisions) %>%
+  select(
+    date_texte,
+    type_texte,
+    num_texte,
+    type_decision,
+    id_texte,
+    objet_texte
+  )
 ```
 
 ```{r}
@@ -1328,7 +1400,7 @@ visualize_pa_by_name("Montagne d'Ambre")
 ```
 
 ```{r}
-plot_pa_by_name(
+plot_pa_sources(
   2314,
   sources = c("WDPA_2025") # Update after visual inspection
 )
@@ -1337,13 +1409,15 @@ plot_pa_by_name(
 ## Namoroka
 
 ```{r}
-namoroka_decision <- pa_decisions %>%
-  filter(WDPAID == 2309) %>%
-  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
-print(list(
-  select(namoroka_decision, -objet_texte),
-  namoroka_decision$objet_texte
-))
+show_cnlegis_for_pa("Manongarivo", pa_decisions) %>%
+  select(
+    date_texte,
+    type_texte,
+    num_texte,
+    type_decision,
+    id_texte,
+    objet_texte
+  )
 ```
 
 ```{r}
@@ -1353,7 +1427,7 @@ visualize_pa_by_name("Namoroka")
 ```
 
 ```{r}
-plot_pa_by_name(
+plot_pa_sources(
   2309,
   sources = c("WDPA_2025") # Update after visual inspection
 )
@@ -1362,13 +1436,15 @@ plot_pa_by_name(
 ## Nosy Mangabe
 
 ```{r}
-nosy_decision <- pa_decisions %>%
-  filter(WDPAID == 5039) %>%
-  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
-print(list(
-  select(nosy_decision, -objet_texte),
-  nosy_decision$objet_texte
-))
+show_cnlegis_for_pa("Manongarivo", pa_decisions) %>%
+  select(
+    date_texte,
+    type_texte,
+    num_texte,
+    type_decision,
+    id_texte,
+    objet_texte
+  )
 ```
 
 ```{r}
@@ -1378,7 +1454,7 @@ visualize_pa_by_name("Nosy Mangabe")
 ```
 
 ```{r}
-plot_pa_by_name(
+plot_pa_sources(
   5039,
   sources = c("WDPA_2025") # Update after visual inspection
 )
@@ -1387,13 +1463,15 @@ plot_pa_by_name(
 ## Tsimanampesotse
 
 ```{r}
-tsimanampesotse_decision <- pa_decisions %>%
-  filter(WDPAID == 2307) %>%
-  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
-print(list(
-  select(tsimanampesotse_decision, -objet_texte),
-  tsimanampesotse_decision$objet_texte
-))
+show_cnlegis_for_pa("Manongarivo", pa_decisions) %>%
+  select(
+    date_texte,
+    type_texte,
+    num_texte,
+    type_decision,
+    id_texte,
+    objet_texte
+  )
 ```
 
 ```{r}
@@ -1403,7 +1481,7 @@ visualize_pa_by_name("Tsimanampesotse")
 ```
 
 ```{r}
-plot_pa_by_name(
+plot_pa_sources(
   2307,
   sources = c("WDPA_2025") # Update after visual inspection
 )
@@ -1412,13 +1490,15 @@ plot_pa_by_name(
 ## Zahamena
 
 ```{r}
-zahamena_decision <- pa_decisions %>%
-  filter(WDPAID == 354013) %>%
-  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
-print(list(
-  select(zahamena_decision, -objet_texte),
-  zahamena_decision$objet_texte
-))
+show_cnlegis_for_pa("Manongarivo", pa_decisions) %>%
+  select(
+    date_texte,
+    type_texte,
+    num_texte,
+    type_decision,
+    id_texte,
+    objet_texte
+  )
 ```
 
 ```{r}
@@ -1429,7 +1509,7 @@ visualize_pa_by_name("Zahamena")
 
 
 ```{r}
-plot_pa_by_name(
+plot_pa_sources(
   354013,
   sources = c("WDPA_2025") # Update after visual inspection
 )

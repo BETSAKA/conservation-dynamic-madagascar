@@ -353,9 +353,9 @@ add_modif_sat <- function(
 # Add attribute amendments to FAT based on a legal decision
 #
 # This function creates FAT entries documenting historical attribute states
-# that differ from current WDPA representation. It uses a long format where
-# each changed attribute becomes its own row, all linked to the same legal
-# decision.
+# that differ from current WDPA representation. It uses a wide format where
+# each amendment is a single row with one column per WDPA attribute that may
+# have changed.
 #
 # Parameters:
 #   fat: Existing FAT table (tibble) or NULL to initialize
@@ -368,6 +368,7 @@ add_modif_sat <- function(
 #                    - id_texte: exact decision ID
 #   attributes: Named list of attribute changes, e.g.:
 #               list(DESIG = "Réserve Naturelle Intégrale", IUCN_CAT = "Ia")
+#               Only attributes that differ from WDPA should be provided.
 #   amendment_type: Type of attribute amendment (e.g., "status_change",
 #                   "governance_change", "designation_change")
 #   valid_from: Optional start date (Date or character). If NULL, remains NA
@@ -378,10 +379,9 @@ add_modif_sat <- function(
 #   notes: Optional notes (defaults to decision object text)
 #
 # Returns:
-#   Updated FAT table (tibble) with new amendment(s) appended. Each attribute
-#   in the 'attributes' list becomes a separate row in long format.
+#   Updated FAT table (tibble) with new amendment row appended. Unspecified
+#   WDPA attributes are set to NA (will inherit from WDPA in CAR).
 
-# Helper: accept WDPAID (numeric) or WDPA_NAME (character) and return a single WDPAID
 add_modif_fat <- function(
   fat,
   decisions,
@@ -452,59 +452,100 @@ add_modif_fat <- function(
     NA_character_
   }
 
-  # Create one FAT entry per attribute (long format)
-  fat_entries <- tibble(
-    attribute_name = names(attributes),
-    attribute_value = as.character(attributes)
-  ) %>%
-    mutate(
-      WDPAID = wdpaid,
-      valid_from = if (!is.null(valid_from)) {
-        as.Date(valid_from)
-      } else {
-        as.Date(NA)
-      },
-      valid_to = dec$date_texte[1],
-      date_precision = date_precision,
-      attribute_type = case_when(
-        attribute_name %in% c("STATUS_YR", "REP_AREA", "GIS_AREA") ~ "numeric",
-        attribute_name %in% c("STATUS_DATE") ~ "date",
-        TRUE ~ "character"
-      ),
-      legal_instrument_type = tolower(dec$type_texte[1]),
-      legal_instrument_number = dec$num_texte[1],
-      legal_instrument_date = dec$date_texte[1],
-      legal_instrument_source = "CNLEGIS",
-      legal_instrument_id = dec$id_texte[1],
-      legal_instrument_url = if ("cnlegis_url" %in% names(dec)) {
-        dec$cnlegis_url[1]
-      } else {
-        NA_character_
-      },
-      secondary_reference = ifelse(
-        is.null(secondary_reference),
-        NA_character_,
-        secondary_reference
-      ),
-      amendment_type = amendment_type,
-      verification_method = verification_method,
-      verified_by = verified_by,
-      verification_date = Sys.Date(),
-      confidence = confidence,
-      notes = ifelse(
-        is.null(notes),
-        dec$objet_texte[1],
-        notes
+  # Define all possible WDPA attributes (wide format columns)
+  wdpa_attributes <- c(
+    "WDPA_PID",
+    "PA_DEF",
+    "NAME",
+    "ORIG_NAME",
+    "DESIG",
+    "DESIG_ENG",
+    "DESIG_TYPE",
+    "IUCN_CAT",
+    "INT_CRIT",
+    "MARINE",
+    "REP_M_AREA",
+    "REP_AREA",
+    "NO_TAKE",
+    "NO_TK_AREA",
+    "STATUS",
+    "STATUS_YR",
+    "GOV_TYPE",
+    "OWN_TYPE",
+    "MANG_AUTH",
+    "MANG_PLAN",
+    "VERIF",
+    "METADATAID",
+    "SUB_LOC",
+    "PARENT_ISO3",
+    "ISO3",
+    "SUPP_INFO",
+    "CONS_OBJ"
+  )
+
+  # Create base FAT entry with metadata
+  fat_entry <- tibble(
+    WDPAID = wdpaid,
+    valid_from = if (!is.null(valid_from)) {
+      as.Date(valid_from)
+    } else {
+      as.Date(NA)
+    },
+    valid_to = dec$date_texte[1],
+    date_precision = date_precision,
+    legal_instrument_type = tolower(dec$type_texte[1]),
+    legal_instrument_number = dec$num_texte[1],
+    legal_instrument_date = dec$date_texte[1],
+    legal_instrument_source = "CNLEGIS",
+    legal_instrument_id = dec$id_texte[1],
+    legal_instrument_url = if ("cnlegis_url" %in% names(dec)) {
+      dec$cnlegis_url[1]
+    } else {
+      NA_character_
+    },
+    secondary_reference = ifelse(
+      is.null(secondary_reference),
+      NA_character_,
+      secondary_reference
+    ),
+    amendment_type = amendment_type,
+    verification_method = verification_method,
+    verified_by = verified_by,
+    verification_date = Sys.Date(),
+    confidence = confidence,
+    notes = ifelse(
+      is.null(notes),
+      dec$objet_texte[1],
+      notes
+    )
+  )
+
+  # Add WDPA attribute columns (all NA initially)
+  for (attr in wdpa_attributes) {
+    fat_entry[[attr]] <- NA_character_
+  }
+
+  # Populate provided attributes
+  for (attr_name in names(attributes)) {
+    if (attr_name %in% wdpa_attributes) {
+      fat_entry[[attr_name]] <- as.character(attributes[[attr_name]])
+    } else {
+      warning(
+        "Attribute '",
+        attr_name,
+        "' is not a recognized WDPA field and will be ignored."
       )
-    ) %>%
+    }
+  }
+
+  # Reorder columns: metadata first, then WDPA attributes
+  fat_entry <- fat_entry %>%
     select(
       WDPAID,
-      attribute_name,
-      attribute_value,
-      attribute_type,
       valid_from,
       valid_to,
       date_precision,
+      all_of(wdpa_attributes),
       legal_instrument_type,
       legal_instrument_number,
       legal_instrument_date,
@@ -522,9 +563,9 @@ add_modif_fat <- function(
 
   # Initialize or append to FAT
   if (is.null(fat)) {
-    fat_new <- fat_entries
+    fat_new <- fat_entry
   } else {
-    fat_new <- bind_rows(fat, fat_entries)
+    fat_new <- bind_rows(fat, fat_entry)
   }
 
   # Assign stable sequential amendment_id
@@ -740,11 +781,33 @@ print(list(
 ))
 ```
 
-La modification survenue en 1998 ne porte pas sur un changement de frontière. Elle porte sur un chanement de statut juridique, de RNI à PN. 
+La modification survenue en 1998 ne porte pas sur un changement de frontière. Elle porte sur un changement de statut juridique, de RNI à PN. 
 
-::: {.callout-note}
-La modification introduite en 1998 transforme la RNI en PN. Si cela a une implication substantielle (cf. [issue #8](https://github.com/BETSAKA/conservation-dynamic-madagascar/issues/8)) alors il faudra l'inclure dans FAT.
-:::
+```{r}
+wdpa_mdg %>%
+  filter(WDPAID == 2308) %>%
+  glimpse()
+```
+
+Le changement de statut implique une modification de la désignation et de la catégorie IUCN. On documente ces changements d'attributs dans FAT.
+
+```{r}
+fat <- NULL %>%
+  add_modif_fat(
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Andringitra",
+    decision_filter = list(year = 1998, type_decision_pattern = "modifiant"),
+    attributes = list(
+      DESIG = "Réserve Naturelle Intégrale",
+      DESIG_ENG = "Strict Nature Reserve",
+      DESIG_TYPE = "National",
+      IUCN_CAT = "Ia"
+    ),
+    amendment_type = "status_change",
+    valid_from = "1963-03-06",
+    notes = "RNI transformed to PN in 1998. No boundary change."
+  )
+```
 
 #### Anjanaharibe_sud
 

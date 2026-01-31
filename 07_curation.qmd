@@ -1025,7 +1025,7 @@ fat <- fat %>%
   )
 ```
 
-## Ankarafantsika
+#### Ankarafantsika
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1124,10 +1124,25 @@ fat <- fat %>%
   )
 ```
 
-## Bemaraha 
+#### Bemaraha 
+
+Goodman et al. [-@goodman2018] indique pour cette AP:
+> Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
+Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
+de	la	Nature	d’Antananarivo)	;	Création	:	selon	le	Décret	du	31	décembre
+1927	(Création	de	la	Réserve	Naturelle	Intégrale	n°	9)	;	Modification	de
+statut	:	la	création	de	la	réserve	naturelle	intégrale	fut	réalisée	en	1927
+suivant	le	Décret	du	31	décembre	1927	complétée	par	le	Décret	n°	66-242	du
+1	juin	1966	(152	000	ha).	En	2011,	l’aire	protégée	subit	une	modification	de
+limites	(157	710	ha)	et	de	statut	en	parc	national	suivant	le	Décret	n°	2011-
+498	du	6	septembre	2011	;	Dernière	modification	de	statut	:	suivant	le
+Décret	n°	2011-498	du	6	septembre	2011	;	Surface	actuelle	:	157	710	ha
+(selon	le	décret	en	vigueur).
+
+Le texte de Goodman et al. omet la modification introduite par le décret 97-1045.
 
 ```{r}
-show_cnlegis_for_pa(303702, pa_decisions) %>%
+show_cnlegis_for_pa("Bemaraha", pa_decisions) %>%
   select(
     date_texte,
     type_texte,
@@ -1138,25 +1153,59 @@ show_cnlegis_for_pa(303702, pa_decisions) %>%
   )
 ```
 
-```{r}
-#| echo: false
-#| eval: false
-visualize_pa_by_name(303702)
-```
-
-- ANGAP 2002 (périmètre Sud) = WDPA 2010:2019
-- ANGAP 2002 (périmètre Nord) 
-- ANGAP 2002 (très petit périmètre centre) dans aucun autre
-
-
-> Ajouter SAPM 2010 ou version MNP
-
+Les textes légaux identifient deux décisions modificatives : 1997 (modification des limites) et 2011 (modification des limites + changement de statut RNI → PN). Nous documentons la modification de 2011, pour laquelle nous disposons d'une géométrie pré-modification. Les périmètres antérieurs à 1997 ne sont pas disponibles.
 
 ```{r}
 plot_pa_sources(
-  303702,
-  sources = c("WDPA_2025") # Update after visual inspection
+  "Bemaraha",
+  sources = c("WDPA_2025", "MNP_2010")
 )
+```
+
+Après inspection visuelle, on retient MNP_2010 comme source du périmètre avant la modification de 2011.
+
+```{r}
+sat <- sat |>
+  add_modif_sat(
+    data = all_PAs_conso,
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Bemaraha",
+    decision_filter = list(year = 2011, type_decision_pattern = "modifiant"),
+    source_dataset_id = "MNP_2010",
+    valid_from = "1997-08-07",
+    notes = "Périmètre 1997-2011 avant modification des limites (géométrie MNP_2010 retenue après vérification visuelle). Périmètres pré-1997 non disponibles."
+  )
+```
+
+L'année de création de cette AP est 1927 (pas 2011). La transformation en PN date de 2011. On documente le changement de statut dans FAT.
+
+```{r}
+fat <- fat %>%
+  add_modif_fat(
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Bemaraha",
+    decision_filter = list(year = 2011, type_decision_pattern = "modifiant"),
+    attributes = list(
+      DESIG = "Réserve Naturelle Intégrale",
+      DESIG_ENG = "Strict Nature Reserve",
+      DESIG_TYPE = "National",
+      IUCN_CAT = "Ia"
+    ),
+    amendment_type = "status_change",
+    valid_from = "1997-08-07",
+    notes = "RNI #9 created 1927, boundaries modified 1997 (Décret 97-1045). Transformed to PN in 2011 (Décret 2011-498 du 6 septembre 2011) with boundary modification."
+  ) %>%
+  add_modif_fat(
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Bemaraha",
+    decision_filter = list(year = 2011, type_decision_pattern = "modifiant"),
+    attributes = list(
+      STATUS_YR = "1927"
+    ),
+    amendment_type = "correction",
+    valid_from = "1927-12-31",
+    notes = "WDPA 2025 show STATUS_YR=1997. Actual creation was 1927 as RNI #9 (Décret du 31 décembre 1927)."
+  )
 ```
 
 ## Beza Mahafaly

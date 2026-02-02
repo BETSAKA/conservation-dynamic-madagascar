@@ -5,15 +5,8 @@ format: html
 
 # Curation
 
-## Construction de la Spatial Amendment Table (SAT)
 
-On documente ici la construction de la SAT, c’est à dire l’identification et la formalisation des géométries qui constituent des amendements spatiaux explicites par rapport à l’état courant décrit dans la WDPA.
-
-La SAT ne vise pas à reconstituer exhaustivement l’historique spatial de toutes les aires protégées, mais à documenter de manière traçable et reproductible les cas où l’information spatiale disponible diverge de la WDPA, sur la base de sources légales, institutionnelles ou techniques identifiées.
-
-Le principe général est le suivant: La WDPA est considérée comme l’état courant par défaut. Un amendement spatial est introduit uniquement lorsqu’une source indépendante, datée et justifiée indique une modification pertinente du périmètre ou de l’organisation spatiale d’une aire protégée.
-
-### Identification des décisions légales impliquant une modification spatiale potentielle
+## Identification des décisions légales impliquant une modification spatiale potentielle
 
 La première porte d’entrée pour identifier des amendements spatiaux est constituée par les textes légaux recensés dans CNLEGIS. Certains types de décisions, en particulier celles qualifiées de modifiant, peuvent signaler une modification des limites ou du statut spatial d’une aire protégée.
 
@@ -671,7 +664,7 @@ add_modif_fat <- function(
 
 ```
 
-#### Ambatovaky
+### Ambatovaky
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 
@@ -725,7 +718,7 @@ sat <- NULL |>
 ```
 
 
-#### Analamazaotra 
+### Analamazaotra 
 
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
@@ -797,7 +790,7 @@ fat <- fat %>%
   )
 ```
 
-#### Andohahela 
+### Andohahela 
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 
@@ -896,7 +889,7 @@ fat <- fat %>%
   )
 ```
 
-#### Andringitra
+### Andringitra
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 
@@ -955,7 +948,7 @@ fat <- fat %>%
   )
 ```
 
-#### Anjanaharibe_sud
+### Anjanaharibe_sud
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspect	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1028,7 +1021,7 @@ fat <- fat %>%
   )
 ```
 
-#### Ankarafantsika
+### Ankarafantsika
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1127,7 +1120,7 @@ fat <- fat %>%
   )
 ```
 
-#### Bemaraha 
+### Bemaraha 
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1211,7 +1204,7 @@ fat <- fat %>%
   )
 ```
 
-#### Beza Mahafaly
+### Beza Mahafaly
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1260,7 +1253,7 @@ sat <- sat |>
   )
 ```
 
-#### Cap Sainte Marie
+### Cap Sainte Marie
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1328,7 +1321,7 @@ fat <- fat %>%
   )
 ```
 
-#### Kirindy Mite
+### Kirindy Mite
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1380,7 +1373,7 @@ sat <- sat |>
 ```
 
 
-#### Mangerivola
+### Mangerivola
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1405,7 +1398,7 @@ show_cnlegis_for_pa(5038, pa_decisions) %>%
   )
 ```
 
-#### Manombo
+### Manombo
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1437,7 +1430,7 @@ show_cnlegis_for_pa("Manombo", pa_decisions) %>%
 
 On n'a pas de source géométrique antérieure aux années 2000 pour cette AP.
 
-#### Manongarivo
+### Manongarivo
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1506,7 +1499,7 @@ fat <- fat %>%
 ```
 
 
-#### Mantadia
+### Mantadia
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1538,7 +1531,7 @@ Voir avec MNP s'il est possible de reconstituer la géométrie initiale de 1989.
 :::
 
 
-#### Marojejy
+### Marojejy
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1597,7 +1590,7 @@ fat <- fat %>%
   )
 ```
 
-#### Montagne d'Ambre
+### Montagne d'Ambre
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1788,7 +1781,7 @@ fat <- add_modif_fat(
 )
 ```
 
-#### Namoroka
+### Namoroka
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;

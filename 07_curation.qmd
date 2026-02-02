@@ -221,7 +221,8 @@ add_modif_sat <- function(
   data,
   decisions,
   wdpa_name_or_id,
-  decision_filter,
+  decision_filter = NULL,
+  manual_decision = NULL,
   source_dataset_id,
   amendment_type = "boundary_modification",
   valid_from = NULL,
@@ -245,10 +246,6 @@ add_modif_sat <- function(
     wdpaid
   }
 
-  if (!is.list(decision_filter)) {
-    stop("decision_filter doit être une liste.")
-  }
-
   # Validate amendment_type for SAT
   allowed_types_sat <- c(
     "boundary_modification",
@@ -266,33 +263,60 @@ add_modif_sat <- function(
 
   wdpaid <- resolve_wdpaid(wdpa_name_or_id, decisions)
 
-  # Select exactly one legal decision based on filters
-  dec <- decisions %>%
-    filter(WDPAID == wdpaid)
-
-  if (!is.null(decision_filter$year)) {
-    dec <- dec %>% filter(lubridate::year(date_texte) == decision_filter$year)
-  }
-  if (!is.null(decision_filter$type_decision_pattern)) {
-    dec <- dec %>%
-      filter(str_detect(type_decision, decision_filter$type_decision_pattern))
-  }
-  if (!is.null(decision_filter$num_texte)) {
-    dec <- dec %>% filter(num_texte == decision_filter$num_texte)
-  }
-  if (!is.null(decision_filter$id_texte)) {
-    dec <- dec %>% filter(id_texte == decision_filter$id_texte)
-  }
-
-  dec <- dec %>% arrange(date_texte)
-
-  if (nrow(dec) == 0) {
-    stop("Aucune décision CNLEGIS ne correspond au filtre pour WDPAID=", wdpaid)
-  }
-  if (nrow(dec) > 1) {
-    stop(
-      "Filtre CNLEGIS ambigu: plusieurs décisions correspondent. Raffiner decision_filter."
+  # Use manual_decision if provided, otherwise search CNLEGIS database
+  if (!is.null(manual_decision)) {
+    # Manual decision provided - use it directly
+    dec <- tibble(
+      date_texte = manual_decision$date_texte,
+      type_texte = manual_decision$type_texte,
+      num_texte = manual_decision$num_texte,
+      id_texte = if (!is.null(manual_decision$id_texte)) {
+        manual_decision$id_texte
+      } else {
+        NA_character_
+      },
+      objet_texte = manual_decision$objet_texte,
+      cnlegis_url = NA_character_
     )
+  } else {
+    # Search CNLEGIS database with filters
+    if (!is.list(decision_filter)) {
+      stop(
+        "decision_filter doit être une liste ou NULL si manual_decision est fourni."
+      )
+    }
+
+    # Select exactly one legal decision based on filters
+    dec <- decisions %>%
+      filter(WDPAID == wdpaid)
+
+    if (!is.null(decision_filter$year)) {
+      dec <- dec %>% filter(lubridate::year(date_texte) == decision_filter$year)
+    }
+    if (!is.null(decision_filter$type_decision_pattern)) {
+      dec <- dec %>%
+        filter(str_detect(type_decision, decision_filter$type_decision_pattern))
+    }
+    if (!is.null(decision_filter$num_texte)) {
+      dec <- dec %>% filter(num_texte == decision_filter$num_texte)
+    }
+    if (!is.null(decision_filter$id_texte)) {
+      dec <- dec %>% filter(id_texte == decision_filter$id_texte)
+    }
+
+    dec <- dec %>% arrange(date_texte)
+
+    if (nrow(dec) == 0) {
+      stop(
+        "Aucune décision CNLEGIS ne correspond au filtre pour WDPAID=",
+        wdpaid
+      )
+    }
+    if (nrow(dec) > 1) {
+      stop(
+        "Filtre CNLEGIS ambigu: plusieurs décisions correspondent. Raffiner decision_filter."
+      )
+    }
   }
 
   # Extract historical geometry from consolidated spatial data
@@ -1206,6 +1230,43 @@ fat <- fat %>%
   )
 ```
 
+## Betampona
+
+Goodman et al. [-@goodman2018] indique pour cette AP:
+> Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)
+depuis	1996	;	Gestion	antérieure	:	Service	des	Eaux	&	Forêts	de	Toamasina
+&	SAF/FJKM	;	Création	:	selon	le	Décret	du	31	décembre	1927	(Création
+de	la	Réserve	Naturelle	Intégrale	n°	1)	;	Modification	de	statut	:	la	Réserve
+Naturelle	Intégrale	de	Betampona	fut	créée	en	1927	sous	le	Décret	du	31
+décembre	1927	complété	par	le	Décret	n°	66-242	du	1	juin	1966	;	Dernière
+modification	de	statut	:	suivant	le	Décret	n°	66-242	du	1	juin	1966	;	Surface
+actuelle	:	2228	ha	(selon	le	décret	en	vigueur).
+
+
+WDPA 2025 montre STATUS_YR=1997, ce qui est incorrect: aucun changement n'a eu lieu en 1997. La RNI a été créée en 1927 et maintient ce statut jusqu'à aujourd'hui.
+
+```{r}
+# FAT: Correction du STATUS_YR
+fat <- add_modif_fat(
+  fat = fat,
+  decisions = pa_decisions,
+  wdpa_name_or_id = 2310,
+  manual_decision = list(
+    date_texte = as.Date("1927-12-31"),
+    type_texte = "Décret",
+    num_texte = "1927-12-31",
+    objet_texte = "Création de la Réserve Naturelle Intégrale n°1 de Betampona"
+  ),
+  attributes = list(
+    STATUS_YR = 1927
+  ),
+  amendment_type = "correction",
+  valid_from = "1927-12-31",
+  notes = "WDPA incorrectly shows STATUS_YR=1997. RNI Betampona was created in 1927 as RNI #1 (Décret du 31 décembre 1927, complemented by Décret 66-242 of 1966). No status change occurred in 1997."
+)
+```
+
+
 ## Beza Mahafaly
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
@@ -1838,11 +1899,11 @@ sat <- add_modif_sat(
   data = foret_ambre_pre2015,
   decisions = pa_decisions,
   wdpa_name_or_id = 5025,
-  decision_filter = NULL, # No decision changes geometry for 5025
+  decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
   source_dataset_id = "MNP_2010_split",
-  amendment_type = "dissolved_pa_geometry",
+  amendment_type = "boundary_modification",
   valid_from = "1958-10-28",
-  notes = "Geometry of RS Forêt d'Ambre (polygons 2+3 from MNP_2010, 45.60 km²). Geometry remains constant, but PA received STATUS='Dissolved' in 2015 when absorbed into WDPAID 2314. Attributes from WDPA 2010."
+  notes = "Geometry of RS Forêt d'Ambre (polygons 2+3 from MNP_2010, 45.60 km²). This PA was absorbed into WDPAID 2314 in 2015 and received STATUS='Dissolved'. SAT documents the historical geometry before dissolution."
 )
 ```
 
@@ -1875,7 +1936,7 @@ fat <- add_modif_fat(
     merged_into_wdpaid = "2314",
     merger_date = "2015-04-28"
   ),
-  amendment_type = "merger_dissolution",
+  amendment_type = "status_change",
   valid_from = "2015-04-28",
   notes = "RS Forêt d'Ambre (created 1958 by Décret 58-15) was absorbed into WDPAID 2314 via Décret 2015-776. STATUS changed from 'Designated' to 'Dissolved'. WDPAID 5025 remains in database for historical traceability but with dissolved status."
 )
@@ -2371,13 +2432,11 @@ fat <- add_modif_fat(
   attributes = list(
     DESIG = "Parc National + Réserve Naturelle Intégrale",
     DESIG_ENG = "National Park + Strict Nature Reserve",
-    IUCN_CAT = "II+Ia",
-    composite_zones = "PN (42,300 ha, IUCN II) + RNI (22,100 ha, IUCN Ia)",
-    enclave_antenina = "350 ha"
+    IUCN_CAT = "II+Ia"
   ),
   amendment_type = "status_change",
   valid_from = "1997-08-07",
-  notes = "Mixed PN+RNI status from 1997-2015 per Décret 97-1044. Unified to PN only in 2015 via Décret 2015-737."
+  notes = "Mixed PN+RNI status from 1997-2015 per Décret 97-1044: PN (42,300 ha, IUCN II) + RNI (22,100 ha, IUCN Ia) with Antenina enclave (350 ha). Unified to PN only in 2015 via Décret 2015-737."
 )
 
 # FAT for STATUS_YR correction

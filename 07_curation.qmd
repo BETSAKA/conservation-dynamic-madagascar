@@ -471,9 +471,12 @@ add_modif_fat <- function(
     required_fields <- c("date_texte", "type_texte", "num_texte")
     missing <- setdiff(required_fields, names(manual_decision))
     if (length(missing) > 0) {
-      stop("manual_decision missing required fields: ", paste(missing, collapse = ", "))
+      stop(
+        "manual_decision missing required fields: ",
+        paste(missing, collapse = ", ")
+      )
     }
-    
+
     dec <- tibble(
       date_texte = as.Date(manual_decision$date_texte),
       type_texte = manual_decision$type_texte,
@@ -486,7 +489,7 @@ add_modif_fat <- function(
     if (!is.list(decision_filter)) {
       stop("decision_filter doit être une liste.")
     }
-    
+
     # Select exactly one legal decision based on filters
     dec <- decisions %>%
       filter(WDPAID == wdpaid)
@@ -508,7 +511,10 @@ add_modif_fat <- function(
     dec <- dec %>% arrange(date_texte)
 
     if (nrow(dec) == 0) {
-      stop("Aucune décision CNLEGIS ne correspond au filtre pour WDPAID=", wdpaid)
+      stop(
+        "Aucune décision CNLEGIS ne correspond au filtre pour WDPAID=",
+        wdpaid
+      )
     }
     if (nrow(dec) > 1) {
       stop("Filtre CNLEGIS ambigu: plusieurs décisions correspondent.")
@@ -603,9 +609,6 @@ add_modif_fat <- function(
     notes = ifelse(
       is.null(notes),
       if (!is.na(dec$objet_texte[1])) dec$objet_texte[1] else NA_character_,
-      notes
-    )
-  )
       notes
     )
   )
@@ -1238,11 +1241,39 @@ Après inspection visuelle et croisement avec des cartes incluses dans des publi
 ```{r}
 plot_pa_sources(
   "Beza Mahafaly",
-  sources = c("MNP_2010", "WDPA_2025") # Update after visual inspection
+  sources = c("MNP_2010", "WDPA_2025")
 )
 ```
 
+La modification de 2015 ne porte que sur les limites, sans changement de statut (reste Réserve Spéciale). On documente uniquement l'amendement spatial dans SAT.
+
+```{r}
+sat <- sat |>
+  add_modif_sat(
+    data = all_PAs_conso,
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Beza Mahafaly",
+    decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
+    source_dataset_id = "MNP_2010",
+    valid_from = "1986-06-04",
+    notes = "Géométrie MNP_2010 retenue après vérification visuelle et croisement avec Sussman et al. 2012, https://doi.org/10.1007/978-3-642-22514-7_3)."
+  )
+```
+
 ## Cap Sainte Marie
+
+Goodman et al. [-@goodman2018] indique pour cette AP:
+> Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
+Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
+de	la	Nature	d’Antananarivo	et	Cantonnement	Forestier	de	Tsihombe)	;
+Création	:	selon	le	Décret	n°	62-527	du	24	octobre	1962	;	Modification	de
+statut	:	la	Réserve	Spéciale	de	Cap	Sainte	Marie	fut	créée	en	1962	sous	le
+Décret	n°	62-527	du	24	octobre	1962	puis	subit	un	changement	de	limites	en
+2015	sous	le	Décret	n°	2015-734	du	21	avril	2015	;	Dernière	modification	de
+statut	:	suivant	le	Décret	n°	2015-734	du	21	avril	2015	;	Surface	actuelle	:
+3610	ha	(selon	le	décret	en	vigueur).
+
+Les métadonnées indiquent bien que cette aire protégée a été créée en 1962 comme Réserve Spéciale, puis ses limites ont été modifiées en 2015:
 
 ```{r}
 show_cnlegis_for_pa(5041, pa_decisions) %>%
@@ -1256,23 +1287,64 @@ show_cnlegis_for_pa(5041, pa_decisions) %>%
   )
 ```
 
-```{r}
-#| echo: false
-#| eval: false
-visualize_pa_by_name("Cap Sainte Marie")
-```
+Après inspection visuelle des différentes sources disponibles, on retient MNP_2010 comme source des limites avant la modification de 2015.
 
 ```{r}
 plot_pa_sources(
-  5041,
-  sources = c("WDPA_2025") # Update after visual inspection
+  "Cap Sainte Marie",
+  sources = c("WDPA_2025", "MNP_2010")
 )
+```
+
+La modification de 2015 ne porte que sur les limites, sans changement de statut (reste Réserve Spéciale). On documente l'amendement spatial dans SAT.
+
+```{r}
+sat <- sat |>
+  add_modif_sat(
+    data = all_PAs_conso,
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Cap Sainte Marie",
+    decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
+    source_dataset_id = "MNP_2010",
+    valid_from = "1962-10-24",
+    notes = "Périmètre 1962-2015 avant modification des limites (géométrie MNP_2010 retenue après vérification visuelle)."
+  )
+```
+
+L'année de création de cette AP est 1962 (pas 2015 comme indiqué dans WDPA 2025). On corrige STATUS_YR dans FAT.
+
+```{r}
+fat <- fat %>%
+  add_modif_fat(
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Cap Sainte Marie",
+    decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
+    attributes = list(
+      STATUS_YR = "1962"
+    ),
+    amendment_type = "correction",
+    valid_from = "1962-10-24",
+    notes = "WDPA incorrectly shows STATUS_YR=2015 (date of boundary modification). Actual creation was 1962 as Réserve Spéciale (Décret 62-527 du 24 octobre 1962)."
+  )
 ```
 
 ## Kirindy Mite
 
+Goodman et al. [-@goodman2018] indique pour cette AP:
+> Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
+Gestion	antérieure	:	aucune	;	Création	:	selon	le	Décret	n°	97-1453	du	18
+décembre	1997	;	Modification	de	statut	:	une	partie	de	la	Forêt	Classée	de
+Marofihitra	mise	en	place	par	l’Arrêté	n°	1462-MFR/FOR	du	5	juin	1963
+est	intégrée	dans	le	Parc	National	de	Kirindy	Mité	créé	en	1997	suivant	le
+Décret	n°	97-1453	du	18	décembre	1997.	Il	subit	un	changement	de	limites
+en	2015	sous	le	Décret	n°	2015-735	du	21	avril	2015	;	Dernière	modification
+de	statut	:	suivant	le	Décret	n°	2015-735	du	21	avril	2015	;	Surface	actuelle	:
+156	350	ha	(selon	le	décret	en	vigueur).
+
+Les métadonnées indiquent que cette aire protégée a été créée en 1997, puis ses limites ont été modifiées en 2015:
+
 ```{r}
-show_cnlegis_for_pa(303700), pa_decisions) %>%
+show_cnlegis_for_pa(303700, pa_decisions) %>%
   select(
     date_texte,
     type_texte,
@@ -1283,18 +1355,16 @@ show_cnlegis_for_pa(303700), pa_decisions) %>%
   )
 ```
 
-```{r}
-#| echo: false
-#| eval: false
-visualize_pa_by_name("Kirindy Mite")
-```
+Après inspection visuelle des différentes sources disponibles, on retient MNP_2010 comme source des limites avant la modification de 2015.
 
 ```{r}
 plot_pa_sources(
-  303700,
-  sources = c("WDPA_2025") # Update after visual inspection
+  "Kirindy Mite",
+  sources = c("MNP_2010", "WDPA_2025") # Update after visual inspection
 )
 ```
+
+
 
 ## Mangerivola
 

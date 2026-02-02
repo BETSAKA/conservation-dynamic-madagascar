@@ -1373,6 +1373,103 @@ sat <- sat |>
 ```
 
 
+### Lokobe
+
+Goodman et al. [-@goodman2018] indique pour cette AP:
+> Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
+Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
+de	la	Nature	d’Antananarivo	et	le	Cantonnement	Forestier	de	Nosy	Be	à
+Hell-Ville)	;	Création	:	selon	le	Décret	du	31	décembre	1927	(Création	de	la
+Réserve	Naturelle	Intégrale	n°	6)	;	Modification	de	statut	:	la	Réserve
+Naturelle	Intégrale	de	Lokobe	fut	créée	en	1927	selon	le	Décret	du	31
+décembre	1927	complété	par	le	Décret	n°	66-242	du	1	juin	1966.	En	2011,
+l’aire	protégée	subit	un	changement	de	statut	et	de	limites	sous	le	Décret	n°
+2011-500	du	6	juillet	2011	et	est	déclassée	en	parc	national.	En	effet,	la
+partie	terrestre	occupée	auparavant	par	la	réserve	naturelle	intégrale
+(740	ha)	ainsi	que	son	extension	marine	(122	ha)	située	dans	le	District	de
+Nosy	Be	constituent	l’actuel	parc	national	;	Dernière	modification	de
+statut	:	suivant	le	Décret	n°	2011-500	du	6	juillet	2011	;	Surface	actuelle	:
+862	ha	(selon	le	décret	en	vigueur).
+
+Les textes légaux confirment que cette aire protégée a été transformée en parc national en 2011 avec modification des limites.
+
+```{r}
+show_cnlegis_for_pa("Lokobe", pa_decisions) %>%
+  select(
+    date_texte,
+    type_texte,
+    num_texte,
+    type_decision,
+    id_texte,
+    objet_texte
+  )
+```
+
+
+```{r}
+# Extract pre-2011 geometry from SAPM_2010 (excluding "Lokobe extension")
+lokobe_pre2011 <- all_PAs_conso %>%
+  filter(WDPA_NAME == "Lokobe", dataset_id == "SAPM_2010") %>%
+  filter(NAME == "Lokobe") # Only main Lokobe, not the extension
+
+# For plotting, filter the consolidated data to exclude "Lokobe extension"
+lokobe_filtered <- all_PAs_conso %>%
+  filter(WDPA_NAME == "Lokobe") %>%
+  filter(NAME != "Lokobe extension")
+
+plot_pa_sources(
+  "Lokobe",
+  data = lokobe_filtered,
+  sources = c("SAPM_2010", "WDPA_2025")
+)
+```
+
+**Lokobe (WDPAID 2311)** a subi un changement de statut de Réserve Naturelle Intégrale (RNI/Catégorie UICN Ia) à Parc National (PN/Catégorie UICN II) en 2011 par le Décret 2011-500. Le décret a également autorisé une modification des limites incluant une extension marine (122 ha) et l'intégration de la partie terrestre (740 ha).
+
+Le jeu de données SAPM_2010 contient deux entités distinctes pour le WDPAID 2311 : "Lokobe" (~7,28 km²) représentant la RNI terrestre originale, et "Lokobe extension" représentant les extensions prévues. Pour la géométrie historique pré-2011, nous utilisons uniquement le polygone principal "Lokobe", qui correspond à la RNI originale de 740 ha mentionnée dans le décret.
+
+WDPA 2025 rapporte 8,62 km² (862 ha comme indiqué dans le décret), reflétant la limite post-2011 incluant l'extension marine. La superficie calculée à partir de SAPM_2010 (~7,28 km²/728 ha) est proche des 740 ha terrestres du décret, les différences étant attribuables aux méthodes de projection et de calcul.
+
+**STATUS_YR** dans WDPA 2025 est correctement fixé à 2011 (reflétant la date de désignation en PN). Cependant, la RNI originale a été créée en 1927, ce qui doit être suivi dans la FAT.
+
+```{r}
+# SAT: Pre-2011 boundary (original RNI)
+add_modif_sat(
+  sat = sat,
+  data = lokobe_pre2011,
+  decisions = pa_decisions,
+  wdpa_name_or_id = "Lokobe",
+  decision_filter = list(num_texte = "2011-500"),
+  source_dataset_id = "SAPM_2010",
+  amendment_type = "boundary_modification",
+  valid_from = "1927-12-31",
+  confidence = "medium",
+  verification_method = "visual_verification_shiny",
+  verified_by = "project_team",
+  notes = "Pre-2011 terrestrial RNI boundary before marine extension. SAPM_2010 'Lokobe' feature only (excluding 'Lokobe extension')."
+)
+
+# FAT: Pre-2011 status (RNI/Ia)
+add_modif_fat(
+  fat = fat,
+  decisions = pa_decisions,
+  wdpa_name_or_id = "Lokobe",
+  decision_filter = list(num_texte = "2011-500"),
+  attributes = list(
+    DESIG = "Réserve Naturelle Intégrale",
+    DESIG_ENG = "Strict Nature Reserve",
+    IUCN_CAT = "Ia"
+  ),
+  amendment_type = "status_change",
+  valid_from = "1927-12-31",
+  confidence = "high",
+  verification_method = "legal_text_analysis",
+  verified_by = "project_team",
+  notes = "Original RNI status from 1927 to 2011. Décret 1927-12-31 complemented by Décret 66-242 (1966-06-01)."
+)
+```
+
+
 ### Mangerivola
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
@@ -1843,7 +1940,7 @@ fat <- add_modif_fat(
 )
 ```
 
-## Nosy Mangabe
+### Nosy Mangabe
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1952,7 +2049,7 @@ fat <- add_modif_fat(
 )
 ```
 
-## Tsimanampesotse
+### Tsimanampesotse
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -2034,7 +2131,7 @@ fat <- add_modif_fat(
 )
 ```
 
-## Zahamena
+### Zahamena
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -2178,3 +2275,89 @@ fat <- add_modif_fat(
   notes = "WDPA incorrectly shows STATUS_YR=2015 (date of status unification to PN). Actual creation was 1927 as RNI #3 (Décret du 31 décembre 1927)."
 )
 ```
+
+## Identification des décisions légales sans modification spatiale
+
+
+
+### Montagne	des	Français
+Goodman	et	al.	[-@goodman2018]	indique	pour	cette	AP:
+> Aspects	légaux	:	Gestionnaire	actuel	:	Service	d’Appui	à	la	Gestion	de
+l’Environnement	(SAGE)	;	Gestion	antérieure	:	aucune	;	Création	:	selon	le
+Décret	n°	2015-780	du	28	avril	2015	;	Modification	de	statut	:	une	partie	de
+la	Réserve	Forestière	de	la	Montagne	des	Français,	mise	en	place	en	1955
+selon	l’Arrêté	n°	823-DOM	du	2	avril	1955	(5571	ha),	est	intégrée	dans	le
+paysage	harmonieux	protégé	créé	en	2015	suivant	le	Décret	n°	2015-780	du
+28	avril	2015	;	Dernière	modification	de	statut	:	aucune	;	Surface	actuelle	:
+6049	ha	(selon	le	décret	en	vigueur).
+
+
+
+### Analamerana
+
+Goodman	et	al.	[-@goodman2018]	indique	pour	cette	AP:
+> Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
+Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
+de	la	Nature	d’Antananarivo	et	le	Cantonnement	Forestier	d’Anivorano-
+Avaratra)	;	Création	:	selon	le	Décret	n°	56-208	du	20	février	1956	(Création
+de	la	Réserve	Spéciale)	;	Modification	de	statut	:	aucune	;	Dernière
+modification	de	statut	:	aucune	;	Surface	actuelle	:	34	700	ha	(selon	le	décret
+en	vigueur).
+
+Statyut IV ou II ??? (dans WDPA 2025 c'est II)
+
+
+### Ankarana
+
+Goodman	et	al.	[-@goodman2018]	indique	pour	cette	AP:
+> Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
+Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
+de	la	Nature	d’Antananarivo	et	Triage	Forestier	d’Anivorano)	;	Création	:
+selon	le	Décret	n°	56-208	du	20	février	1956	(Création	de	la	Réserve
+Spéciale)	;	Modification	de	statut	:	aucune	;	Dernière	modification	de
+statut	:	aucune	;	Surface	actuelle	:	18	225	ha	(selon	le	décret	en	vigueur).
+
+Création en 1956 ou 2015 (dans WDPA 2025 c'est 2015) ?
+
+
+###
+
+
+###
+
+###
+
+
+
+###
+
+
+###
+
+
+###
+
+
+###
+
+
+###
+
+
+###
+
+
+
+###
+
+
+###
+
+
+###
+
+
+###
+
+
+###

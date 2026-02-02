@@ -1158,11 +1158,11 @@ Les textes légaux identifient deux décisions modificatives : 1997 (modificatio
 ```{r}
 plot_pa_sources(
   "Bemaraha",
-  sources = c("WDPA_2025", "MNP_2010")
+  sources = c("WDPA_2025", "SAPM_2010")
 )
 ```
 
-Après inspection visuelle, on retient MNP_2010 comme source du périmètre avant la modification de 2011.
+Après inspection visuelle, on retient SAPM_2010 comme source du périmètre avant la modification de 2011.
 
 ```{r}
 sat <- sat |>
@@ -1171,9 +1171,9 @@ sat <- sat |>
     decisions = pa_decisions,
     wdpa_name_or_id = "Bemaraha",
     decision_filter = list(year = 2011, type_decision_pattern = "modifiant"),
-    source_dataset_id = "MNP_2010",
+    source_dataset_id = "SAPM_2010",
     valid_from = "1997-08-07",
-    notes = "Périmètre 1997-2011 avant modification des limites (géométrie MNP_2010 retenue après vérification visuelle). Périmètres pré-1997 non disponibles."
+    notes = "Périmètre 1997-2011 avant modification des limites (géométrie SAPM_2010 retenue après vérification visuelle). Périmètres pré-1997 non disponibles."
   )
 ```
 
@@ -1208,7 +1208,18 @@ fat <- fat %>%
   )
 ```
 
-## Beza Mahafaly
+#### Beza Mahafaly
+
+Goodman et al. [-@goodman2018] indique pour cette AP:
+> Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
+Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
+de	la	Nature	d’Antananarivo)	et	Ecole	Supérieure	des	Sciences
+Agronomiques,	Forêts	(ESSA-Forêts)	;	Création	:	selon	le	Décret	n°	86-168
+du	4	juin	1986	;	Modification	de	statut	:	la	Réserve	Spéciale	de	Bezà-
+Mahafaly,	créée	en	1986	selon	le	Décret	n°	86-168	du	4	juin	1986,	a	subi	un
+changement	de	limites	en	2015	sous	le	Décret	n°	2015-733	du	21	avril	2015	;
+Dernière	modification	de	statut	:	suivant	le	Décret	n°	2015-733	du	21	avril
+2015	;	Surface	actuelle	:	4200	ha	(selon	le	décret	en	vigueur).
 
 ```{r}
 show_cnlegis_for_pa(10634, pa_decisions) %>%
@@ -1222,16 +1233,12 @@ show_cnlegis_for_pa(10634, pa_decisions) %>%
   )
 ```
 
-```{r}
-#| echo: false
-#| eval: false
-visualize_pa_by_name("Beza Mahafaly")
-```
+Après inspection visuelle et croisement avec des cartes incluses dans des publications scientifiques [@sussman2012], on retient MNP_2010 comme source des limites avant la modification de 2015.
 
 ```{r}
 plot_pa_sources(
-  10634,
-  sources = c("WDPA_2025") # Update after visual inspection
+  "Beza Mahafaly",
+  sources = c("MNP_2010", "WDPA_2025") # Update after visual inspection
 )
 ```
 

@@ -5,9 +5,6 @@ format: html
 
 # Curation
 
-
-## Identification des décisions légales impliquant une modification spatiale potentielle
-
 La première porte d’entrée pour identifier des amendements spatiaux est constituée par les textes légaux recensés dans CNLEGIS. Certains types de décisions, en particulier celles qualifiées de modifiant, peuvent signaler une modification des limites ou du statut spatial d’une aire protégée.
 
 Dans cette section, nous identifions les décisions légales qui mentionnent explicitement une modification, et les aires protégées concernées.
@@ -24,6 +21,11 @@ library(wdpar)
 
 # Load WDPA for reference
 wdpa_mdg <- wdpa_read("data/WDPA_WDOECM_Nov2025_Public_MDG.zip")
+
+# Load historical WDPA data
+wdpa_historical <- read_parquet("data/MDG_WDPA_Consolidated.parquet") |>
+  mutate(geometry = st_as_sfc(geometry)) |>
+  st_as_sf()
 
 # Load legal decisions (FAT source)
 pa_decisions <- read_rds("data/id/legal_texts.rds") |>
@@ -664,7 +666,7 @@ add_modif_fat <- function(
 
 ```
 
-### Ambatovaky
+## Ambatovaky
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 
@@ -718,7 +720,7 @@ sat <- NULL |>
 ```
 
 
-### Analamazaotra 
+## Analamazaotra 
 
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
@@ -790,7 +792,7 @@ fat <- NULL %>%
   )
 ```
 
-### Andohahela 
+## Andohahela 
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 
@@ -889,7 +891,7 @@ fat <- fat %>%
   )
 ```
 
-### Andringitra
+## Andringitra
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 
@@ -948,7 +950,7 @@ fat <- fat %>%
   )
 ```
 
-### Anjanaharibe_sud
+## Anjanaharibe_sud
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspect	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1021,7 +1023,7 @@ fat <- fat %>%
   )
 ```
 
-### Ankarafantsika
+## Ankarafantsika
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1120,7 +1122,7 @@ fat <- fat %>%
   )
 ```
 
-### Bemaraha 
+## Bemaraha 
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1204,7 +1206,7 @@ fat <- fat %>%
   )
 ```
 
-### Beza Mahafaly
+## Beza Mahafaly
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1253,7 +1255,7 @@ sat <- sat |>
   )
 ```
 
-### Cap Sainte Marie
+## Cap Sainte Marie
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1323,7 +1325,7 @@ fat <- fat %>%
 
 
 
-### Kirindy Mite
+## Kirindy Mite
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1375,7 +1377,7 @@ sat <- sat |>
 ```
 
 
-### Lokobe
+## Lokobe
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1473,7 +1475,7 @@ add_modif_fat(
 ```
 
 
-### Mangerivola
+## Mangerivola
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1498,7 +1500,7 @@ show_cnlegis_for_pa(5038, pa_decisions) %>%
   )
 ```
 
-### Manombo
+## Manombo
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1530,7 +1532,7 @@ show_cnlegis_for_pa("Manombo", pa_decisions) %>%
 
 On n'a pas de source géométrique antérieure aux années 2000 pour cette AP.
 
-### Manongarivo
+## Manongarivo
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1599,7 +1601,7 @@ fat <- fat %>%
 ```
 
 
-### Mantadia
+## Mantadia
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1631,7 +1633,7 @@ Voir avec MNP s'il est possible de reconstituer la géométrie initiale de 1989.
 :::
 
 
-### Marojejy
+## Marojejy
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1690,7 +1692,7 @@ fat <- fat %>%
   )
 ```
 
-### Montagne d'Ambre
+## Montagne d'Ambre
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1778,8 +1780,6 @@ montagne_ambre_pre2015 <- mnp_polygons %>%
 # Get attributes from WDPA 2010
 wdpa_2010_foret <- wdpa_historical %>%
   filter(WDPAID == 5025, data_year == 2010) %>%
-  mutate(geometry = st_as_sfc(geometry)) %>%
-  st_as_sf() %>%
   st_drop_geometry() %>%
   select(
     WDPAID,
@@ -1881,7 +1881,7 @@ fat <- add_modif_fat(
 )
 ```
 
-### Namoroka
+## Namoroka
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1943,7 +1943,7 @@ fat <- add_modif_fat(
 )
 ```
 
-### Nosy Mangabe
+## Nosy Mangabe
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -2052,7 +2052,7 @@ fat <- add_modif_fat(
 )
 ```
 
-### Tsaratanàna
+## Tsaratanàna
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -2095,13 +2095,13 @@ Le Décret 2015-782 crée le CAPAM (Complexe des Aires Protégées Ambohimirahav
 
 **Total pour la RNI + extensions : 108 610 ha** (49 331 + 59 279)
 
-Cependant, WDPA 2025 présente plusieurs **erreurs majeures** pour le WDPAID 2306 :
-1. **DESIG = "Parc National"** : INCORRECT - c'est une Réserve Naturelle Intégrale
-2. **IUCN_CAT = "II"** : INCORRECT - devrait être "Ia" (Strict Nature Reserve)
-3. **STATUS_YR = 1997** : INCORRECT - aucun décret de 1997 n'existe ; devrait être 2015 (extensions) ou 1927 (création originale)
+Cependant, WDPA 2025 présente plusieurs erreurs pour le WDPAID 2306 :
+1. `DESIG = "Parc National"` : INCORRECT - c'est une Réserve Naturelle Intégrale
+2. `IUCN_CAT = "II"` : INCORRECT - devrait être "Ia" (Strict Nature Reserve)
+3. `STATUS_YR = 1997` : INCORRECT - aucun décret de 1997 n'existe ; devrait être 2015 (extensions) ou 1927 (création originale)
 4. **REP_AREA = 1086 km²** : Cette superficie correspond bien aux 108 610 ha (RNI + extensions)
 
-La RNI de Tsaratanàna **n'a JAMAIS changé de statut**. Elle reste une RNI/Ia depuis 1927. Le Décret 2015-782 a uniquement :
+La RNI de Tsaratanàna n'a JAMAIS changé de statut. Elle reste une RNI/Ia depuis 1927. Le Décret 2015-782 a uniquement :
 - Créé le complexe CAPAM englobant plusieurs aires protégées
 - Ajouté des extensions (59 279 ha) à la RNI originale (49 331 ha)
 - Maintenu le statut RNI/Ia pour l'ensemble
@@ -2110,17 +2110,22 @@ La RNI de Tsaratanàna **n'a JAMAIS changé de statut**. Elle reste une RNI/Ia d
 
 ```{r}
 # FAT: Correction du statut (devrait être RNI/Ia, pas PN/II)
-add_modif_fat(
+fat <- add_modif_fat(
   fat = fat,
   decisions = pa_decisions,
   wdpa_name_or_id = 2306,
-  decision_filter = list(num_texte = "2015-782"),
+  manual_decision = list(
+    date_texte = as.Date("2015-04-28"),
+    type_texte = "Décret",
+    num_texte = "2015-782",
+    objet_texte = "Portant création du Complexe des Aires Protégées Ambohimirahavavy-Marivorahona (CAPAM)"
+  ),
   attributes = list(
     DESIG = "Réserve Naturelle Intégrale",
     DESIG_ENG = "Strict Nature Reserve",
     IUCN_CAT = "Ia"
   ),
-  amendment_type = "attribute_correction",
+  amendment_type = "correction",
   valid_from = "1927-12-31",
   confidence = "high",
   verification_method = "legal_text_analysis",
@@ -2129,15 +2134,20 @@ add_modif_fat(
 )
 
 # FAT: Correction du STATUS_YR (devrait être 2015 pour les extensions, ou 1927 pour la création)
-add_modif_fat(
+fat <- add_modif_fat(
   fat = fat,
   decisions = pa_decisions,
   wdpa_name_or_id = 2306,
-  decision_filter = list(num_texte = "2015-782"),
+  manual_decision = list(
+    date_texte = as.Date("2015-04-28"),
+    type_texte = "Décret",
+    num_texte = "2015-782",
+    objet_texte = "Portant création du Complexe des Aires Protégées Ambohimirahavavy-Marivorahona (CAPAM)"
+  ),
   attributes = list(
     STATUS_YR = 2015
   ),
-  amendment_type = "attribute_correction",
+  amendment_type = "correction",
   valid_from = "2015-04-28",
   confidence = "high",
   verification_method = "legal_text_analysis",
@@ -2158,7 +2168,7 @@ Pour l'instant, nous documentons les erreurs d'attributs (statut PN/II incorrect
 
  
 
-### Tsimanampesotse
+## Tsimanampesotse
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -2240,7 +2250,7 @@ fat <- add_modif_fat(
 )
 ```
 
-### Zahamena
+## Zahamena
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -2385,11 +2395,8 @@ fat <- add_modif_fat(
 )
 ```
 
-## Identification des décisions légales sans modification spatiale
 
-
-
-### Montagne des Français
+## Montagne des Français
 Goodman	et	al.	[-@goodman2018]	indique	pour	cette	AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Service	d’Appui	à	la	Gestion	de
 l’Environnement	(SAGE)	;	Gestion	antérieure	:	aucune	;	Création	:	selon	le
@@ -2402,7 +2409,7 @@ paysage	harmonieux	protégé	créé	en	2015	suivant	le	Décret	n°	2015-780	du
 
 
 
-### Analamerana
+## Analamerana
 
 Goodman	et	al.	[-@goodman2018]	indique	pour	cette	AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -2416,7 +2423,7 @@ en	vigueur).
 Statyut IV ou II ??? (dans WDPA 2025 c'est II)
 
 
-### Ankarana
+## Ankarana
 
 Goodman	et	al.	[-@goodman2018]	indique	pour	cette	AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -2429,44 +2436,44 @@ statut	:	aucune	;	Surface	actuelle	:	18	225	ha	(selon	le	décret	en	vigueur).
 Création en 1956 ou 2015 (dans WDPA 2025 c'est 2015) ?
 
 
-###
+##
 
 
-###
+##
 
-###
-
-
-
-###
-
-
-###
-
-
-###
-
-
-###
-
-
-###
-
-
-###
+##
 
 
 
-###
+##
 
 
-###
+##
 
 
-###
+##
 
 
-###
+##
 
 
-###
+##
+
+
+##
+
+
+
+##
+
+
+##
+
+
+##
+
+
+##
+
+
+##

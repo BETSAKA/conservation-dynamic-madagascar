@@ -1260,7 +1260,7 @@ sat <- sat |>
   )
 ```
 
-## Cap Sainte Marie
+#### Cap Sainte Marie
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1328,7 +1328,7 @@ fat <- fat %>%
   )
 ```
 
-## Kirindy Mite
+#### Kirindy Mite
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1380,7 +1380,7 @@ sat <- sat |>
 ```
 
 
-## Mangerivola
+#### Mangerivola
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1405,7 +1405,7 @@ show_cnlegis_for_pa(5038, pa_decisions) %>%
   )
 ```
 
-## Manombo
+#### Manombo
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1437,7 +1437,7 @@ show_cnlegis_for_pa("Manombo", pa_decisions) %>%
 
 On n'a pas de source géométrique antérieure aux années 2000 pour cette AP.
 
-## Manongarivo
+#### Manongarivo
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1506,7 +1506,18 @@ fat <- fat %>%
 ```
 
 
-## Mantadia
+#### Mantadia
+
+Goodman et al. [-@goodman2018] indique pour cette AP:
+> Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
+Gestion	antérieure	:	aucune	;	Création	:	selon	le	Décret	n°	89-011	du	11
+janvier	1989	;	Modification	de	statut	:	le	Parc	National	de	Mantadia	fut	créé
+en	1989	suivant	le	Décret	n°	89-011	du	11	janvier	1989	(10	000	ha)	puis	subit
+une	extension	de	limites	en	2002	selon	le	Décret	n°	2002-790	du	7	août	2002	;
+Dernière	modification	de	statut	:	suivant	le	Décret	n°	2002-790	du	7	août
+2002	;	Surface	actuelle	:	15	480	ha	(selon	le	décret	en	vigueur).
+
+Les métadonnées confirment que cette aire protégée a été créée en 1989 comme Parc National, puis ses limites ont été étendues en 2002:
 
 ```{r}
 show_cnlegis_for_pa("Mantadia", pa_decisions) %>%
@@ -1520,23 +1531,31 @@ show_cnlegis_for_pa("Mantadia", pa_decisions) %>%
   )
 ```
 
-```{r}
-#| echo: false
-#| eval: false
-visualize_pa_by_name("Mantadia")
-```
+Malheureusement, on ne dispose pas de source géométrique antérieure à 2002 pour cette AP.
+
+::: {.callout-note}
+Voir avec MNP s'il est possible de reconstituer la géométrie initiale de 1989.
+:::
+
+
+#### Marojejy
+
+Goodman et al. [-@goodman2018] indique pour cette AP:
+> Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
+Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
+de	la	Nature	d’Antananarivo)	et	World	Wide	Fund	for	Nature	(WWF)	;
+Création	:	selon	le	Décret	du	3	janvier	1952	(Création	de	la	Réserve
+Naturelle	Intégrale	n°	12)	;	Modification	de	statut	:	la	Réserve	Naturelle
+Intégrale	de	Marojejy	fut	créée	en	1952	sous	le	Décret	du	3	janvier	1952
+complété	par	le	Décret	n°	66-242	du	1	juin	1966.	En	1998,	l’aire	protégée
+subit	un	déclassement	en	parc	national	suivant	le	Décret	n°	98-375	du	19
+mai	1998	;	Dernière	modification	de	statut	:	suivant	le	Décret	n°	98-375	du
+19	mai	1998	;	Surface	actuelle	:	60	050	ha	(selon	le	décret	en	vigueur).
+
+Les métadonnées confirment que cette aire protégée a été créée en 1952 comme RNI, puis reclassée en Parc National en 1998:
 
 ```{r}
-plot_pa_sources(
-  26070,
-  sources = c("WDPA_2025") # Update after visual inspection
-)
-```
-
-## Marojejy
-
-```{r}
-show_cnlegis_for_pa("Manongarivo", pa_decisions) %>%
+show_cnlegis_for_pa("Marojejy", pa_decisions) %>%
   select(
     date_texte,
     type_texte,
@@ -1547,23 +1566,65 @@ show_cnlegis_for_pa("Manongarivo", pa_decisions) %>%
   )
 ```
 
+La modification de 1998 ne porte que sur le statut (de RNI à PN), sans changement de limites. On documente le changement de statut dans FAT.
+
 ```{r}
-#| echo: false
-#| eval: false
-visualize_pa_by_name("Marojejy")
+fat <- fat %>%
+  add_modif_fat(
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Marojejy",
+    decision_filter = list(year = 1998, type_decision_pattern = "modifiant"),
+    attributes = list(
+      DESIG = "Réserve Naturelle Intégrale",
+      DESIG_ENG = "Strict Nature Reserve",
+      DESIG_TYPE = "National",
+      IUCN_CAT = "Ia"
+    ),
+    amendment_type = "status_change",
+    valid_from = "1966-06-01",
+    notes = "RNI #12 created 1952, boundaries clarified 1966. Transformed to PN in 1998 (Décret 98-375 du 19 mai 1998). No boundary change."
+  ) %>%
+  add_modif_fat(
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Marojejy",
+    decision_filter = list(year = 1998, type_decision_pattern = "modifiant"),
+    attributes = list(
+      STATUS_YR = "1952"
+    ),
+    amendment_type = "correction",
+    valid_from = "1952-01-03",
+    notes = "WDPA incorrectly shows STATUS_YR=1998 (date of PN upgrade). Actual creation was 1952 as RNI #12 (Décret du 3 janvier 1952)."
+  )
 ```
 
-```{r}
-plot_pa_sources(
-  2305,
-  sources = c("WDPA_2025") # Update after visual inspection
-)
-```
+#### Montagne d'Ambre
 
-## Montagne d'Ambre
+Goodman et al. [-@goodman2018] indique pour cette AP:
+> Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
+Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
+de	la	Nature	d’Antananarivo	et	Service	Provincial	des	Eaux	et	Forêts
+d’Antsiranana)	et	World	Wide	Fund	for	Nature	;	Création	:	selon	le	Décret
+n°	58-07	du	28	octobre	1958	(Création	du	Parc	National	de	Montagne
+d’Ambre)	et	le	Décret	n°	58-15	du	28	octobre	1958	(Création	de	la	Réserve
+Spéciale	de	la	Forêt	d’Ambre)	;	Modification	de	statut	:	fondée	en	1937,	la
+Station	Forestière	des	Roussettes	servait	à	des	essais	sylvicoles.	En	1958,	une
+partie	de	la	Réserve	Forestière	du	Massif	Forestier	d’Ambre	(Arrêté	n°
+1282-DOM	du	3	juin	1955,	49	389	ha)	fut	déclassée	en	une	forêt	classée	dite
+«	d’Ambre	»	(Arrêté	n°	89-PRO/DS/F	du	27	mars	1958,	5595	ha)	tandis
+qu’une	autre	partie	est	reclassée,	ce	qui	conduit	à	l’institution	du	Parc
+National	de	Montagne	d’Ambre	(Décret	n°	58-07	du	28	octobre	1958)	et	de
+la	Réserve	Spéciale	de	la	Forêt	d’Ambre	(Décret	n°	58-15	du	28	octobre
+1958).	En	2015,	les	deux	aires	protégées,	intégrant	l’ancienne	Forêt	Classée
+d’Ambre,	sont	fusionnées	en	un	seul	Parc	National	et	la	Station	Forestière
+des	Roussettes	est	devenue	une	zone	de	service	de	ce	dernier	selon	le	Décret
+n°	2015-776	du	28	avril	2015	;	Dernière	modification	de	statut	:	suivant	le
+Décret	n°	2015-776	du	28	avril	2015	;	Surface	actuelle	:	30	538	ha	(selon	le
+décret	en	vigueur).
+
+Les métadonnées confirment que les limites de cette aire protégée ont été modifiées en 2015:
 
 ```{r}
-show_cnlegis_for_pa("Manongarivo", pa_decisions) %>%
+show_cnlegis_for_pa("Montagne d'Ambre", pa_decisions) %>%
   select(
     date_texte,
     type_texte,
@@ -1574,23 +1635,177 @@ show_cnlegis_for_pa("Manongarivo", pa_decisions) %>%
   )
 ```
 
-```{r}
-#| echo: false
-#| eval: false
-visualize_pa_by_name("Montagne d'Ambre")
-```
+Le décret 2015-776 a fusionné **deux aires protégées distinctes** ayant chacune leur propre WDPAID :
+- **WDPAID 2314** : Parc National de Montagne d'Ambre (créé en 1958 par le Décret 58-07)
+- **WDPAID 5025** : Réserve Spéciale de la Forêt d'Ambre (créée en 1958 par le Décret 58-15)
+
+Le résultat est un seul Parc National élargi conservant le WDPAID 2314. Le WDPAID 5025 reçoit le statut "Dissolved" après la fusion, mais reste présent dans la base de données pour traçabilité.
 
 ```{r}
 plot_pa_sources(
-  2314,
-  sources = c("WDPA_2025") # Update after visual inspection
+  "Montagne d'Ambre",
+  sources = c("MNP_2010", "WDPA_2025")
 )
 ```
 
-## Namoroka
+**Note de validation** : Cette fusion constitue un cas particulier dans notre modèle de données. Avant 2015, il existait DEUX aires protégées distinctes avec leurs propres WDPAIDs. Pour préserver la provenance des données et permettre la reconstruction historique du portefeuille d'AP, nous devons traquer les deux WDPAIDs séparément.
+
+**Approche pour les fusions** : Au lieu de supprimer WDPAID 5025 après 2015, nous lui attribuons STATUS="Dissolved". Cela permet :
+- De conserver la traçabilité historique du WDPAID
+- D'utiliser un statut standard (comme "Proposed", "Designated") 
+- De simplifier les requêtes temporelles : filtrer STATUS != "Dissolved" pour les AP actives
+
+**Géométries** : Le jeu MNP_2010 contient un multipolygone de 3 composantes représentant l'entité fusionnée. Ces polygones ont été réattribués comme suit :
+- Polygone 1 (232.47 km²) → WDPAID 2314 (Montagne d'Ambre PN)
+- Polygones 2+3 (45.60 km²) → WDPAID 5025 (Forêt d'Ambre RS)
+
+Les attributs pour WDPAID 5025 proviennent du WDPA 2010.
 
 ```{r}
-show_cnlegis_for_pa("Manongarivo", pa_decisions) %>%
+# Split MNP_2010 multipolygon to separate the two pre-merger entities
+mnp_2010_ambre <- all_PAs_conso %>%
+  filter(dataset_id == "MNP_2010", str_detect(NAME, "Montagne d'Ambre"))
+
+mnp_polygons <- mnp_2010_ambre %>%
+  st_cast("POLYGON") %>%
+  mutate(polygon_id = row_number())
+
+# WDPAID 2314: Polygon 1 (Montagne d'Ambre PN)
+montagne_ambre_pre2015 <- mnp_polygons %>%
+  filter(polygon_id == 1) %>%
+  select(-polygon_id) %>%
+  mutate(
+    WDPAID = 2314,
+    NAME = "Montagne d'Ambre",
+    dataset_id = "MNP_2010_split",
+    valid_from = as.Date("1958-10-28")
+  )
+
+# WDPAID 5025: Polygons 2+3 (Forêt d'Ambre RS)
+# Get attributes from WDPA 2010
+wdpa_2010_foret <- wdpa_historical %>%
+  filter(WDPAID == 5025, data_year == 2010) %>%
+  mutate(geometry = st_as_sfc(geometry)) %>%
+  st_as_sf() %>%
+  st_drop_geometry() %>%
+  select(
+    WDPAID,
+    NAME,
+    DESIG,
+    DESIG_ENG,
+    DESIG_TYPE,
+    IUCN_CAT,
+    STATUS_YR,
+    GOV_TYPE,
+    MANG_AUTH,
+    ISO3
+  )
+
+foret_ambre_pre2015 <- mnp_polygons %>%
+  filter(polygon_id %in% c(2, 3)) %>%
+  st_union() %>%
+  st_sf() %>%
+  st_set_geometry("geometry") %>%
+  mutate(
+    WDPAID = 5025,
+    NAME = wdpa_2010_foret$NAME,
+    DESIG = wdpa_2010_foret$DESIG,
+    DESIG_ENG = wdpa_2010_foret$DESIG_ENG,
+    DESIG_TYPE = wdpa_2010_foret$DESIG_TYPE,
+    IUCN_CAT = wdpa_2010_foret$IUCN_CAT,
+    STATUS = "Designated", # Pre-merger status
+    STATUS_YR = wdpa_2010_foret$STATUS_YR,
+    GOV_TYPE = wdpa_2010_foret$GOV_TYPE,
+    MANG_AUTH = wdpa_2010_foret$MANG_AUTH,
+    ISO3 = wdpa_2010_foret$ISO3,
+    dataset_id = "MNP_2010_split",
+    valid_from = as.Date("1958-10-28")
+  )
+```
+
+**Modifications SAT** : Nous créons des entrées SAT pour les deux WDPAIDs, documentant leurs géométries pré-fusion. WDPAID 2314 conserve sa géométrie élargie après 2015, tandis que WDPAID 5025 conserve sa géométrie mais avec STATUS="Dissolved".
+
+```{r}
+# SAT for WDPAID 2314 (Montagne d'Ambre) - pre-merger geometry
+sat <- add_modif_sat(
+  sat = sat,
+  data = montagne_ambre_pre2015,
+  decisions = pa_decisions,
+  wdpa_name_or_id = 2314,
+  decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
+  source_dataset_id = "MNP_2010_split",
+  amendment_type = "boundary_modification",
+  valid_from = "1958-10-28",
+  notes = "Pre-merger geometry of PN Montagne d'Ambre (polygon 1 from MNP_2010, 232.47 km²). In 2015, absorbed RS Forêt d'Ambre (WDPAID 5025, 45.60 km²) to create enlarged PN (278.08 km²)."
+)
+
+# SAT for WDPAID 5025 (Forêt d'Ambre) - geometry remains but status changes to Dissolved
+sat <- add_modif_sat(
+  sat = sat,
+  data = foret_ambre_pre2015,
+  decisions = pa_decisions,
+  wdpa_name_or_id = 5025,
+  decision_filter = NULL, # No decision changes geometry for 5025
+  source_dataset_id = "MNP_2010_split",
+  amendment_type = "dissolved_pa_geometry",
+  valid_from = "1958-10-28",
+  notes = "Geometry of RS Forêt d'Ambre (polygons 2+3 from MNP_2010, 45.60 km²). Geometry remains constant, but PA received STATUS='Dissolved' in 2015 when absorbed into WDPAID 2314. Attributes from WDPA 2010."
+)
+```
+
+**Modifications FAT** : Correction du STATUS_YR pour WDPAID 2314, et changement de STATUS pour WDPAID 5025 de "Designated" à "Dissolved".
+
+```{r}
+# FAT for WDPAID 2314: STATUS_YR correction
+fat <- add_modif_fat(
+  fat = fat,
+  decisions = pa_decisions,
+  wdpa_name_or_id = 2314,
+  decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
+  attributes = list(
+    STATUS_YR = "1958"
+  ),
+  amendment_type = "correction",
+  valid_from = "1958-10-28",
+  notes = "WDPA incorrectly shows STATUS_YR=2015 (date of merger/enlargement). Actual creation was 1958 as PN (Décret 58-07 du 28 octobre 1958)."
+)
+
+# FAT for WDPAID 5025: Change STATUS to "Dissolved" after merger
+fat <- add_modif_fat(
+  fat = fat,
+  decisions = pa_decisions,
+  wdpa_name_or_id = 5025,
+  decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
+  attributes = list(
+    STATUS = "Dissolved",
+    DESIG = "Special Reserve (dissolved)",
+    merged_into_wdpaid = "2314",
+    merger_date = "2015-04-28"
+  ),
+  amendment_type = "merger_dissolution",
+  valid_from = "2015-04-28",
+  notes = "RS Forêt d'Ambre (created 1958 by Décret 58-15) was absorbed into WDPAID 2314 via Décret 2015-776. STATUS changed from 'Designated' to 'Dissolved'. WDPAID 5025 remains in database for historical traceability but with dissolved status."
+)
+```
+
+#### Namoroka
+
+Goodman et al. [-@goodman2018] indique pour cette AP:
+> Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
+Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
+de	la	Nature	d’Antananarivo	et	le	Service	Provincial	des	Eaux	et	Forêts	de
+Mahajanga)	;	Création	:	selon	le	Décret	du	31	décembre	1927	(Création	de
+la	Réserve	Naturelle	Intégrale	n°	8)	;	Modification	de	statut	:	la	réserve
+naturelle	intégrale	a	été	créée	en	1927	selon	le	Décret	du	31	décembre	1927
+complété	par	le	Décret	n°	66-242	du	1	juin	1966.	L’aire	protégée	subit	un
+changement	de	statut	et	devient	parc	national	sous	le	Décret	n°	2002-796	du
+7	août	2002	;	Dernière	modification	de	statut	:	suivant	le	Décret	n°	2002-796
+du	7	août	2002	;	Surface	actuelle	:	22	227	ha	(selon	le	décret	en	vigueur).
+
+Les métadonnées confirment que cette aire protégée a été reclassée en Parc National en 2002:
+
+```{r}
+show_cnlegis_for_pa("Namoroka", pa_decisions) %>%
   select(
     date_texte,
     type_texte,
@@ -1601,20 +1816,54 @@ show_cnlegis_for_pa("Manongarivo", pa_decisions) %>%
   )
 ```
 
-```{r}
-#| echo: false
-#| eval: false
-visualize_pa_by_name("Namoroka")
-```
+**Note de validation** : Namoroka a subi un changement de statut de RNI à PN en 2002, sans modification de limites. La WDPA 2025 indique incorrectement STATUS_YR=2004 alors que la création comme RNI date de 1927.
 
 ```{r}
-plot_pa_sources(
-  2309,
-  sources = c("WDPA_2025") # Update after visual inspection
+# FAT for status change: RNI → PN in 2002
+fat <- add_modif_fat(
+  fat = fat,
+  decisions = pa_decisions,
+  wdpa_name_or_id = "Namoroka",
+  decision_filter = list(year = 2002, type_decision_pattern = "modifiant"),
+  attributes = list(
+    DESIG = "Réserve Naturelle Intégrale",
+    DESIG_ENG = "Strict Nature Reserve",
+    IUCN_CAT = "Ia"
+  ),
+  amendment_type = "status_change",
+  valid_from = "1927-12-31",
+  notes = "Created as RNI #8 on 1927-12-31. Upgraded to PN (Parc National) via Décret 2002-796 du 7 août 2002."
+)
+
+# FAT for STATUS_YR correction
+fat <- add_modif_fat(
+  fat = fat,
+  decisions = pa_decisions,
+  wdpa_name_or_id = "Namoroka",
+  decision_filter = list(year = 2002, type_decision_pattern = "modifiant"),
+  attributes = list(
+    STATUS_YR = "1927"
+  ),
+  amendment_type = "correction",
+  valid_from = "1927-12-31",
+  notes = "WDPA incorrectly shows STATUS_YR=2004. Actual creation was 1927 as RNI #8 (Décret du 31 décembre 1927)."
 )
 ```
 
 ## Nosy Mangabe
+
+Goodman et al. [-@goodman2018] indique pour cette AP:
+> Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
+Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
+de	la	Nature	d’Antananarivo	et	le	Cantonnement	Forestier	de
+Maroantsetra)	;	Création	:	selon	le	Décret	n°	65-795	du	14	décembre	1965
+(Création	de	la	Réserve	Spéciale)	;	Modification	de	statut	:	la	Réserve
+Spéciale	de	Nosy	Mangabe	fut	créée	suivant	le	Décret	n°	65-795	du	14
+décembre	1965.	En	2015,	elle	subit	un	changement	de	limites	et	une
+modification	de	statut	en	parc	national	sous	le	Décret	n°	2015-775	du	28
+avril	2015	;	Dernière	modification	de	statut	:	suivant	le	Décret	n°	2015-775
+du	28	avril	2015	;	Surface	actuelle	:	729	ha	(selon	le	décret	en	vigueur).
+
 
 ```{r}
 show_cnlegis_for_pa("Manongarivo", pa_decisions) %>%

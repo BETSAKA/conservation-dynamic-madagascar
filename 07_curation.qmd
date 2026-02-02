@@ -1321,6 +1321,8 @@ fat <- fat %>%
   )
 ```
 
+
+
 ### Kirindy Mite
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
@@ -1413,9 +1415,10 @@ lokobe_pre2011 <- all_PAs_conso %>%
   filter(NAME == "Lokobe") # Only main Lokobe, not the extension
 
 # For plotting, filter the consolidated data to exclude "Lokobe extension"
-lokobe_filtered <- all_PAs_conso %>%
-  filter(WDPA_NAME == "Lokobe") %>%
-  filter(NAME != "Lokobe extension")
+lokobe_current <- all_PAs_conso %>%
+  filter(NAME == "Lokobe", dataset_id == "WDPA_2025")
+
+lokobe_filtered <- bind_rows(lokobe_pre2011, lokobe_current)
 
 plot_pa_sources(
   "Lokobe",
@@ -2049,6 +2052,38 @@ fat <- add_modif_fat(
 )
 ```
 
+### Tsaratanàna
+
+Goodman et al. [-@goodman2018] indique pour cette AP:
+> Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
+Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
+de	la	Nature	d’Antananarivo	;	le	Service	Provincial	des	Eaux	et	Forêts
+d’Antsiranana	et	les	Cantonnements	Forestiers	de	Bealanana	et
+d’Ambanja)	;	Création	:	selon	le	Décret	du	31	décembre	1927	(Création	de
+la	Réserve	Naturelle	Intégrale	n°	4)	;	Modification	de	statut	:	la	Réserve
+Naturelle	Intégrale	de	Tsaratanàna	(49	331	ha)	fut	établie	avec	le	Décret	du
+31	décembre	1927,	complété	par	le	Décret	n°	66-242	du	1	juin	1966.	Elle	fait
+partie	du	Complexe	des	Aires	Protégées	d’Ambohimirahavavy-
+Marivorahona	(CAPAM,	Décret	n°	2015-782	du	28	avril	2015)	mis	en	place
+en	2015	et	intègre	dans	ses	limites,	les	extensions	nord	et	sud	(59	279	ha)
+définies	par	la	Commission	du	Système	des	Aires	Protégées	de	Madagascar
+en	2008	;	Dernière	modification	de	statut	:	suivant	le	Décret	n°	2015-782	du
+28	avril	2015	;	Surface	actuelle	:	108	610	ha	(selon	le	décret	en	vigueur).
+
+Les métadonnées confirment que cette aire protégée a subi une modification de limites en 2015:
+
+```{r}
+show_cnlegis_for_pa(2306, pa_decisions) %>%
+  select(
+    date_texte,
+    type_texte,
+    num_texte,
+    type_decision,
+    id_texte,
+    objet_texte
+  )
+```
+
 ### Tsimanampesotse
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
@@ -2280,7 +2315,7 @@ fat <- add_modif_fat(
 
 
 
-### Montagne	des	Français
+### Montagne des Français
 Goodman	et	al.	[-@goodman2018]	indique	pour	cette	AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Service	d’Appui	à	la	Gestion	de
 l’Environnement	(SAGE)	;	Gestion	antérieure	:	aucune	;	Création	:	selon	le

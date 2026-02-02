@@ -776,7 +776,7 @@ sat <- sat |>
 L'année de création de cette AP est 1970 (pas 2015 comme indiqué dans la WDPA 2025). On corrige STATUS_YR dans FAT.
 
 ```{r}
-fat <- fat %>%
+fat <- NULL %>%
   add_modif_fat(
     decisions = pa_decisions,
     wdpa_name_or_id = "Analamazaotra",
@@ -2070,19 +2070,93 @@ définies	par	la	Commission	du	Système	des	Aires	Protégées	de	Madagascar
 en	2008	;	Dernière	modification	de	statut	:	suivant	le	Décret	n°	2015-782	du
 28	avril	2015	;	Surface	actuelle	:	108	610	ha	(selon	le	décret	en	vigueur).
 
-Les métadonnées confirment que cette aire protégée a subi une modification de limites en 2015:
+Le WDPAID 2306 (Tsaratanana) n'est pas directement associé à une décision dans notre base. Cependant, le Décret 2015-782 concerne le Complexe des Aires Protégées Ambohimirahavavy-Marivorahona (CAPAM), qui **inclut** la RNI de Tsaratanàna :
 
 ```{r}
-show_cnlegis_for_pa(2306, pa_decisions) %>%
+# Afficher le décret 2015-782 (CAPAM)
+pa_decisions %>%
+  filter(num_texte == "2015-782") %>%
   select(
     date_texte,
     type_texte,
     num_texte,
+    ap_nom_texte,
     type_decision,
-    id_texte,
     objet_texte
   )
 ```
+
+**Analyse critique : Erreurs dans WDPA 2025 pour Tsaratanàna**
+
+Le Décret 2015-782 crée le CAPAM (Complexe des Aires Protégées Ambohimirahavavy-Marivorahona), qui regroupe plusieurs aires protégées de statuts différents :
+- RNI de Tsaratanàna (Noyau Dur n°1) : 49 331 ha - catégorie UICN Ia
+- Extensions Nord et Sud de la RNI Tsaratanàna (Noyaux Durs n°2 et n°3) : 59 279 ha - catégorie UICN Ia
+- Autres aires protégées (RRN COMATSA Nord/Sud, PHP Bemanevika, etc.)
+
+**Total pour la RNI + extensions : 108 610 ha** (49 331 + 59 279)
+
+Cependant, WDPA 2025 présente plusieurs **erreurs majeures** pour le WDPAID 2306 :
+1. **DESIG = "Parc National"** : INCORRECT - c'est une Réserve Naturelle Intégrale
+2. **IUCN_CAT = "II"** : INCORRECT - devrait être "Ia" (Strict Nature Reserve)
+3. **STATUS_YR = 1997** : INCORRECT - aucun décret de 1997 n'existe ; devrait être 2015 (extensions) ou 1927 (création originale)
+4. **REP_AREA = 1086 km²** : Cette superficie correspond bien aux 108 610 ha (RNI + extensions)
+
+La RNI de Tsaratanàna **n'a JAMAIS changé de statut**. Elle reste une RNI/Ia depuis 1927. Le Décret 2015-782 a uniquement :
+- Créé le complexe CAPAM englobant plusieurs aires protégées
+- Ajouté des extensions (59 279 ha) à la RNI originale (49 331 ha)
+- Maintenu le statut RNI/Ia pour l'ensemble
+
+**Corrections FAT nécessaires** :
+
+```{r}
+# FAT: Correction du statut (devrait être RNI/Ia, pas PN/II)
+add_modif_fat(
+  fat = fat,
+  decisions = pa_decisions,
+  wdpa_name_or_id = 2306,
+  decision_filter = list(num_texte = "2015-782"),
+  attributes = list(
+    DESIG = "Réserve Naturelle Intégrale",
+    DESIG_ENG = "Strict Nature Reserve",
+    IUCN_CAT = "Ia"
+  ),
+  amendment_type = "attribute_correction",
+  valid_from = "1927-12-31",
+  confidence = "high",
+  verification_method = "legal_text_analysis",
+  verified_by = "project_team",
+  notes = "WDPA 2025 incorrectly classifies Tsaratanàna as PN/II. Decree 2015-782 confirms it remains RNI/Ia (Strict Nature Reserve). The RNI has never changed status since creation in 1927. The 2015 decree created the CAPAM complex and added 59,279 ha extensions (also Ia), bringing total to 108,610 ha."
+)
+
+# FAT: Correction du STATUS_YR (devrait être 2015 pour les extensions, ou 1927 pour la création)
+add_modif_fat(
+  fat = fat,
+  decisions = pa_decisions,
+  wdpa_name_or_id = 2306,
+  decision_filter = list(num_texte = "2015-782"),
+  attributes = list(
+    STATUS_YR = 2015
+  ),
+  amendment_type = "attribute_correction",
+  valid_from = "2015-04-28",
+  confidence = "high",
+  verification_method = "legal_text_analysis",
+  verified_by = "project_team",
+  notes = "WDPA 2025 shows STATUS_YR=1997 with no supporting decree. Setting to 2015 (date of extensions via Decree 2015-782). Original RNI creation was 1927-12-31."
+)
+```
+
+::: {.callout-warning}
+**Complexité de modélisation : Aires protégées composites**
+
+Le cas de Tsaratanàna soulève une question de modélisation. Le CAPAM est un **complexe** regroupant plusieurs aires protégées distinctes avec leurs propres WDPAID théoriques. Cependant, dans WDPA 2025, seul le WDPAID 2306 apparaît avec la superficie totale de la RNI + extensions (108 610 ha).
+
+Cette situation diffère du cas de Montagne d'Ambre où deux WDPAIDs distincts existaient avant fusion. Ici, les extensions de Tsaratanàna n'ont apparemment jamais eu de WDPAID séparé dans la WDPA.
+
+Pour l'instant, nous documentons les erreurs d'attributs (statut PN/II incorrect) sans modéliser séparément les extensions, car elles ne disposent pas de WDPAID distinct.
+:::
+
+ 
 
 ### Tsimanampesotse
 

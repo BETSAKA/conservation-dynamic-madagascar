@@ -1360,13 +1360,38 @@ Après inspection visuelle des différentes sources disponibles, on retient MNP_
 ```{r}
 plot_pa_sources(
   "Kirindy Mite",
-  sources = c("MNP_2010", "WDPA_2025") # Update after visual inspection
+  sources = c("MNP_2010", "WDPA_2025")
 )
 ```
 
+La modification de 2015 ne porte que sur les limites, sans changement de statut (reste Parc National). On documente uniquement l'amendement spatial dans SAT.
+
+```{r}
+sat <- sat |>
+  add_modif_sat(
+    data = all_PAs_conso,
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Kirindy Mite",
+    decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
+    source_dataset_id = "MNP_2010",
+    valid_from = "1997-12-18",
+    notes = "Périmètre 1997-2015 avant modification des limites (géométrie MNP_2010 retenue après vérification visuelle)."
+  )
+```
 
 
 ## Mangerivola
+
+Goodman et al. [-@goodman2018] indique pour cette AP:
+> Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
+Gestion	antérieure	:	aucune	;	Création	:	selon	le	Décret	n°	58-10	du	28
+octobre	1958	;	Modification	de	statut	:	l’aire	protégée	fut	créée	en	1958
+selon	le	Décret	n°	58-10	du	28	octobre	1958	complété	par	l’Arrêté	n°	1723-
+MFR/FOR	du	14	septembre	1963	qui	définit	clairement	ses	limites	;
+Dernière	modification	de	statut	:	aucune	;	Surface	actuelle	:	12	475	ha	(selon
+le	décret	en	vigueur).
+
+Les métadonnées confirment que cette aire protégée a été créée en 1958 comme Réserve Spéciale, sans modification ultérieure:
 
 ```{r}
 show_cnlegis_for_pa(5038, pa_decisions) %>%
@@ -1380,20 +1405,23 @@ show_cnlegis_for_pa(5038, pa_decisions) %>%
   )
 ```
 
-```{r}
-#| echo: false
-#| eval: false
-visualize_pa_by_name("Mangerivola")
-```
-
-```{r}
-plot_pa_sources(
-  5038,
-  sources = c("WDPA_2025") # Update after visual inspection
-)
-```
-
 ## Manombo
+
+Goodman et al. [-@goodman2018] indique pour cette AP:
+> Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
+Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
+de	la	Nature	d’Antananarivo	;	le	Cantonnement	Forestier	de	Farafangana
+et	la	Circonscription	Forestière	de	Manakara)	;	Création	:	selon	le	Décret	n°
+62-637	du	5	décembre	1962	;	Modification	de	statut	:	une	partie	de	la
+Réserve	Forestière	d’Efasy	mise	en	place	en	1952	suivant	l’Arrêté	n°	814-
+DOM	du	9	avril	1952	(7850	ha)	de	2800	ha	fut	reclassée	et	est	devenue	la
+Réserve	Spéciale	de	Manombo	en	1962,	selon	le	Décret	n°	62-637	du	5
+décembre	1962.	Cette	dernière	subit	une	modification	de	limites	en	1967
+sous	le	Décret	n°	67-051	du	31	janvier	1967	;	Dernière	modification	de
+statut	:	suivant	le	Décret	n°	67-051	du	31	janvier	1967	;	Surface	actuelle	:
+5320	ha	(selon	le	décret	en	vigueur).
+
+Les métadonnées confirment que cette aire protégée a été créée en 1962 comme Réserve Spéciale, puis ses limites ont été modifiées en 1967:
 
 ```{r}
 show_cnlegis_for_pa("Manombo", pa_decisions) %>%
@@ -1407,20 +1435,22 @@ show_cnlegis_for_pa("Manombo", pa_decisions) %>%
   )
 ```
 
-```{r}
-#| echo: false
-#| eval: false
-visualize_pa_by_name("Manombo")
-```
-
-```{r}
-plot_pa_sources(
-  5028,
-  sources = c("WDPA_2025") # Update after visual inspection
-)
-```
+On n'a pas de source géométrique antérieure aux années 2000 pour cette AP.
 
 ## Manongarivo
+
+Goodman et al. [-@goodman2018] indique pour cette AP:
+> Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
+Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
+de	la	Nature	d’Antananarivo	et	le	Cantonnement	Forestier	d’Ambanja)	;
+Création	:	selon	le	Décret	n°	56-208	du	20	février	1956	(Création	de	la
+Réserve	Spéciale)	;	Modification	de	statut	:	la	réserve	spéciale	fut	créée	en
+1956	selon	le	Décret	n°	56-208	du	20	février	1956	et	subit	une	modification
+de	limites	en	2015	sous	le	Décret	n°	2015-784	du	28	avril	2015	;	Dernière
+modification	de	statut	:	suivant	le	Décret	n°	2015-784	du	28	avril	2015	;
+Surface	actuelle	:	51	568	ha	(selon	le	décret	en	vigueur).
+
+Les métadonnées indiquent que les limites de cette aire protégée aont été modifiées en 2015:
 
 ```{r}
 show_cnlegis_for_pa("Manongarivo", pa_decisions) %>%
@@ -1434,18 +1464,47 @@ show_cnlegis_for_pa("Manongarivo", pa_decisions) %>%
   )
 ```
 
-```{r}
-#| echo: false
-#| eval: false
-visualize_pa_by_name("Manongarivo")
-```
+Après inspection visuelle des différentes sources disponibles, on retient MNP_2010 comme source des limites avant la modification de 2015.
 
 ```{r}
 plot_pa_sources(
-  5026,
-  sources = c("WDPA_2025") # Update after visual inspection
+  "Manongarivo",
+  sources = c("MNP_2010", "WDPA_2025")
 )
 ```
+
+La modification de 2015 ne porte que sur les limites, sans changement de statut (reste Réserve Spéciale). On documente l'amendement spatial dans SAT.
+
+```{r}
+sat <- sat |>
+  add_modif_sat(
+    data = all_PAs_conso,
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Manongarivo",
+    decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
+    source_dataset_id = "MNP_2010",
+    valid_from = "1956-02-20",
+    notes = "Périmètre 1956-2015 avant modification des limites (géométrie MNP_2010 retenue après vérification visuelle)."
+  )
+```
+
+L'année de création de cette AP est 1956 (pas 2015 comme indiqué dans WDPA 2025). On corrige STATUS_YR dans FAT.
+
+```{r}
+fat <- fat %>%
+  add_modif_fat(
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Manongarivo",
+    decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
+    attributes = list(
+      STATUS_YR = "1956"
+    ),
+    amendment_type = "correction",
+    valid_from = "1956-02-20",
+    notes = "WDPA incorrectly shows STATUS_YR=2015 (date of boundary modification). Actual creation was 1956 as Réserve Spéciale (Décret 56-208 du 20 février 1956)."
+  )
+```
+
 
 ## Mantadia
 

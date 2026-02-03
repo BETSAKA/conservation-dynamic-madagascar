@@ -1316,6 +1316,28 @@ sat <- sat |>
   )
 ```
 
+## Bora
+
+Goodman et al. [-@goodman2018] indique pour cette AP:
+> Aspects	légaux	:	Gestionnaire	actuel	:	Ministère	de	l’Environnement,	de
+l’Ecologie	et	des	Forêts	(MEEF)	;	Gestion	antérieure	:	Direction	des	Eaux	et
+Forêts	(Service	de	la	Protection	de	la	Nature	d’Antananarivo	et	la
+Circonscription	Forestière	d’Antsohihy)	et	Madagascar	National	Parks
+(MNP)	;	Création	:	selon	le	Décret	n°	56-208	du	20	février	1956	;
+Modification	de	statut	:	la	Réserve	Spéciale	de	Bora,	initialement	composée
+de	deux	parcelles	(Parcelle	I	:	4787	ha	et	Parcelle	II	:	3650	ha)	et	d’un
+Jardin	Botanique	(54	ha),	a	été	créée	sous	le	Décret	n°	56-208	du	20	février
+1956.	L’aire	protégée	subit	un	changement	de	limites	en	1964	avec	le
+déclassement	de	la	deuxième	parcelle	en	réserve	forestière	suivant	le	Décret
+n°	64-159	du	22	avril	1964	;	Dernière	modification	de	statut	:	suivant	le
+Décret	n°	64-159	du	22	avril	1964	;	Surface	actuelle	:	4841	ha	(selon	le
+décret	en	vigueur).
+
+
+::: {.callout-note}
+  Cette aire protégée a connu une modification en 1964, mais aucune géométrie antérieure à cette date n'est disponible pour documentation dans la SAT.
+:::
+
 ## Cap Sainte Marie
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
@@ -1591,7 +1613,9 @@ show_cnlegis_for_pa("Manombo", pa_decisions) %>%
   )
 ```
 
-On n'a pas de source géométrique antérieure aux années 2000 pour cette AP.
+::: {.callout-note}
+1967-01-31: modification des limites, mais pas de géométrie antérieure disponible pour documentation dans la SAT.
+:::
 
 ## Manongarivo
 
@@ -1752,6 +1776,26 @@ fat <- fat %>%
     notes = "WDPA incorrectly shows STATUS_YR=1998 (date of PN upgrade). Actual creation was 1952 as RNI #12 (Décret du 3 janvier 1952)."
   )
 ```
+
+## Masoala
+
+Goodman et al. [-@goodman2018] indique pour cette AP:
+> Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
+Gestion	antérieure	:	aucune	;	Création	:	selon	le	Décret	du	31	décembre
+1927	(Création	de	la	Réserve	Naturelle	Intégrale	n°	2)	;	Modification	de
+statut	:	la	Réserve	Naturelle	Intégrale	de	Masoala	créée	en	1927	sous	le
+Décret	du	31	décembre	1927,	fut	établie	dans	Partie	nord-est	de	la	péninsule
+de	Masoala	puis	déclassée	et	devient	la	Forêt	Classée	du	Cap	Masoala	en
+1964,	suivant	le	Décret	n°	64-381	du	16	septembre	1964	(20	977	ha).	En
+1997,	le	Parc	National	de	Masoala	est	établi	sur	presque	toute	la	péninsule
+et	intègre	dans	ses	limites	la	partie	ouest	de	l’ancienne	forêt	classée	selon	le
+Décret	n°	97-141	du	2	mars	1997	;	Dernière	modification	de	statut	:	suivant
+le	Décret	n°	97-141	du	2	mars	1997	;	Surface	actuelle	:	230	000	ha	(selon	le
+décret	en	vigueur).
+
+::: {callout-note}
+Cette aire protégée a existé entre 1927 et 1964 sous le statut de RNI, avant d'être reclassée en Forêt Classée en 1964, mais on ne dispose pas de la géométrie de cette période.
+:::
 
 ## Montagne d'Ambre
 
@@ -2112,6 +2156,29 @@ fat <- add_modif_fat(
   notes = "WDPA incorrectly shows STATUS_YR=2015 (date of PN upgrade and boundary expansion). Actual creation was 1965 as RS (Décret 65-795 du 14 décembre 1965)."
 )
 ```
+
+## Ranomafana
+
+Goodman et al. [-@goodman2018] indique pour cette AP:
+Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
+Gestion	antérieure	:	aucune	;	Création	:	selon	le	Décret	n°	91-250	du	7	mai
+1991	;	Modification	de	statut	:	Ranomafana	fut	décrit	comme	Site	d’Intérêt
+Biologique.	La	création	du	parc	national	fut	proposée	conjointement	par
+l’Université	de	Duke	(Etats	Unis	d’Amérique)	et	le	Service	de	Protection	de
+la	Nature	(Direction	des	Eaux	et	Forêts,	Ministère	des	Eaux	et	Forêts)	puis
+réalisée	en	1991	selon	le	Décret	n°	91-250	du	7	mai	1991.	Le	Parc	National
+de	Ranomafana	intègre	les	parties	reclassées	de	la	Réserve	Forestière	de
+Ranomafana	et	Tsaratanana	(Arrêté	du	19	mai	1947,	22	730	ha),	de	la
+Réserve	Forestière	d’Ambohimiera	1	(Arrêté	du	9	août	1947,	33	950	ha)
+ainsi	que	celles	d’Ambatovaky	et	Mahatsinjony	(Arrêté	n°	2026-DOM	du	5
+septembre	1950,	5560	ha).	En	1997,	l’aire	protégée	subit	une	modification	de
+limites	suivant	le	Décret	n°	97-1042	du	7	août	1997	;	Dernière	modification
+de	statut	:	suivant	le	Décret	n°	97-1042	du	7	août	1997	;	Surface	actuelle	:
+43	550	ha	(selon	le	décret	en	vigueur).
+
+::: {callout-note}
+Une modification de limites a eu lieu en 1997. Malheureusement, nous ne disposons pas de source géométrique antérieure à 1997 pour cette AP.
+:::
 
 ## Tsaratanàna
 

@@ -692,7 +692,7 @@ add_modif_fat <- function(
 
 ## Ambatovaky
 
-Goodman et al. [-@goodman2018] indique pour cette AP:
+@goodman2018 indique pour cette AP:
 
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	aucune	;	Création	:	selon	le	Décret	n°	58-10	du	28
@@ -747,7 +747,7 @@ sat <- NULL |>
 ## Analamazaotra 
 
 
-Goodman et al. [-@goodman2018] indique pour cette AP:
+@goodman2018 indique pour cette AP:
 
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	; 
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
@@ -818,7 +818,7 @@ fat <- NULL %>%
 
 ## Analamerana
 
-Goodman	et	al.	[-@goodman2018]	indique	pour	cette	AP:
+@goodman2018	indique	pour	cette	AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d’Antananarivo	et	le	Cantonnement	Forestier	d’Anivorano-
@@ -868,7 +868,7 @@ fat <- add_modif_fat(
 
 ## Andohahela 
 
-Goodman et al. [-@goodman2018] indique pour cette AP:
+@goodman2018 indique pour cette AP:
 
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
@@ -968,7 +968,7 @@ fat <- fat %>%
 
 ## Andranomena
 
-Goodman et al. [-@goodman2018] indique pour cette AP:
+@goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d'Antananarivo	et	la	Circonscription	Forestière	de
@@ -1014,7 +1014,7 @@ fat <- add_modif_fat(
 
 ## Andringitra
 
-Goodman et al. [-@goodman2018] indique pour cette AP:
+@goodman2018 indique pour cette AP:
 
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
@@ -1073,7 +1073,7 @@ fat <- fat %>%
 
 ## Anjanaharibe_sud
 
-Goodman et al. [-@goodman2018] indique pour cette AP:
+@goodman2018 indique pour cette AP:
 > Aspect	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d’Antananarivo	et	le	Cantonnement	Forestier	d’Andapa).	Le
@@ -1146,7 +1146,7 @@ fat <- fat %>%
 
 ## Ankarafantsika
 
-Goodman et al. [-@goodman2018] indique pour cette AP:
+@goodman2018 indique pour cette AP:
 Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d’Antananarivo	et	le	Service	Provincial	des	Eaux	et	Forêts	de
@@ -1293,7 +1293,7 @@ fat <- add_modif_fat(
 
 ## Befotaka-Midongy du Sud
 
-Goodman et al. [-@goodman2018] indique pour cette AP:
+@goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d'Antananarivo	;	le	Cantonnement	Forestier	de	Midongy	du
@@ -1342,7 +1342,7 @@ fat <- add_modif_fat(
 
 ## Bemaraha 
 
-Goodman et al. [-@goodman2018] indique pour cette AP:
+@goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d’Antananarivo)	;	Création	:	selon	le	Décret	du	31	décembre
@@ -1426,7 +1426,7 @@ fat <- fat %>%
 
 ## Betampona
 
-Goodman et al. [-@goodman2018] indique pour cette AP:
+@goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)
 depuis	1996	;	Gestion	antérieure	:	Service	des	Eaux	&	Forêts	de	Toamasina
 &	SAF/FJKM	;	Création	:	selon	le	Décret	du	31	décembre	1927	(Création
@@ -1462,7 +1462,7 @@ fat <- add_modif_fat(
 
 ## Beza Mahafaly
 
-Goodman et al. [-@goodman2018] indique pour cette AP:
+@goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d’Antananarivo)	et	Ecole	Supérieure	des	Sciences
@@ -1511,7 +1511,7 @@ sat <- sat |>
 
 ## Bora
 
-Goodman et al. [-@goodman2018] indique pour cette AP:
+@goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Ministère	de	l’Environnement,	de
 l’Ecologie	et	des	Forêts	(MEEF)	;	Gestion	antérieure	:	Direction	des	Eaux	et
 Forêts	(Service	de	la	Protection	de	la	Nature	d’Antananarivo	et	la
@@ -1534,7 +1534,7 @@ décret	en	vigueur).
 
 ## Cap Sainte Marie
 
-Goodman et al. [-@goodman2018] indique pour cette AP:
+@goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d’Antananarivo	et	Cantonnement	Forestier	de	Tsihombe)	;
@@ -1604,7 +1604,7 @@ fat <- fat %>%
 
 ## Kirindy Mite
 
-Goodman et al. [-@goodman2018] indique pour cette AP:
+@goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	aucune	;	Création	:	selon	le	Décret	n°	97-1453	du	18
 décembre	1997	;	Modification	de	statut	:	une	partie	de	la	Forêt	Classée	de
@@ -1656,7 +1656,7 @@ sat <- sat |>
 
 ## Lokobe
 
-Goodman et al. [-@goodman2018] indique pour cette AP:
+@goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d’Antananarivo	et	le	Cantonnement	Forestier	de	Nosy	Be	à
@@ -1754,7 +1754,7 @@ add_modif_fat(
 
 ## Mangerivola
 
-Goodman et al. [-@goodman2018] indique pour cette AP:
+@goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	aucune	;	Création	:	selon	le	Décret	n°	58-10	du	28
 octobre	1958	;	Modification	de	statut	:	l’aire	protégée	fut	créée	en	1958
@@ -1779,7 +1779,7 @@ show_cnlegis_for_pa(5038, pa_decisions) %>%
 
 ## Manombo
 
-Goodman et al. [-@goodman2018] indique pour cette AP:
+@goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d’Antananarivo	;	le	Cantonnement	Forestier	de	Farafangana
@@ -1813,7 +1813,7 @@ show_cnlegis_for_pa("Manombo", pa_decisions) %>%
 
 ## Manongarivo
 
-Goodman et al. [-@goodman2018] indique pour cette AP:
+@goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d’Antananarivo	et	le	Cantonnement	Forestier	d’Ambanja)	;
@@ -1882,7 +1882,7 @@ fat <- fat %>%
 
 ## Mantadia
 
-Goodman et al. [-@goodman2018] indique pour cette AP:
+@goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	aucune	;	Création	:	selon	le	Décret	n°	89-011	du	11
 janvier	1989	;	Modification	de	statut	:	le	Parc	National	de	Mantadia	fut	créé
@@ -1914,7 +1914,7 @@ Voir avec MNP s'il est possible de reconstituer la géométrie initiale de 1989.
 
 ## Marojejy
 
-Goodman et al. [-@goodman2018] indique pour cette AP:
+@goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d’Antananarivo)	et	World	Wide	Fund	for	Nature	(WWF)	;
@@ -1973,7 +1973,7 @@ fat <- fat %>%
 
 ## Masoala
 
-Goodman et al. [-@goodman2018] indique pour cette AP:
+@goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	aucune	;	Création	:	selon	le	Décret	du	31	décembre
 1927	(Création	de	la	Réserve	Naturelle	Intégrale	n°	2)	;	Modification	de
@@ -1993,7 +1993,7 @@ Cette aire protégée a existé entre 1927 et 1964 sous le statut de RNI, avant 
 
 ## Montagne d'Ambre
 
-Goodman et al. [-@goodman2018] indique pour cette AP:
+@goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d’Antananarivo	et	Service	Provincial	des	Eaux	et	Forêts
@@ -2182,7 +2182,7 @@ fat <- add_modif_fat(
 
 ## Namoroka
 
-Goodman et al. [-@goodman2018] indique pour cette AP:
+@goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d’Antananarivo	et	le	Service	Provincial	des	Eaux	et	Forêts	de
@@ -2244,7 +2244,7 @@ fat <- add_modif_fat(
 
 ## Nosy Mangabe
 
-Goodman et al. [-@goodman2018] indique pour cette AP:
+@goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d’Antananarivo	et	le	Cantonnement	Forestier	de
@@ -2353,7 +2353,7 @@ fat <- add_modif_fat(
 
 ## Ranomafana
 
-Goodman et al. [-@goodman2018] indique pour cette AP:
+@goodman2018 indique pour cette AP:
 Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	aucune	;	Création	:	selon	le	Décret	n°	91-250	du	7	mai
 1991	;	Modification	de	statut	:	Ranomafana	fut	décrit	comme	Site	d’Intérêt
@@ -2376,7 +2376,7 @@ Une modification de limites a eu lieu en 1997. Malheureusement, nous ne disposon
 
 ## Tsaratanàna
 
-Goodman et al. [-@goodman2018] indique pour cette AP:
+@goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d’Antananarivo	;	le	Service	Provincial	des	Eaux	et	Forêts
@@ -2492,7 +2492,7 @@ Pour l'instant, nous documentons les erreurs d'attributs (statut PN/II incorrect
 
 ## Tsimanampesotse
 
-Goodman et al. [-@goodman2018] indique pour cette AP:
+@goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d’Antananarivo	et	Cantonnement	Forestier	de	Betioky)	;
@@ -2574,7 +2574,7 @@ fat <- add_modif_fat(
 
 ## Zahamena
 
-Goodman et al. [-@goodman2018] indique pour cette AP:
+@goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d’Antananarivo)	;	Création	:	selon	le	Décret	du	31	décembre

@@ -66,9 +66,9 @@ resolve_wdpaid <- function(wdpa_name_or_id, decisions) {
   if (is.numeric(wdpa_name_or_id)) {
     return(wdpa_name_or_id[1])
   }
-  wdpaid <- decisions %>%
-    filter(WDPA_NAME == wdpa_name_or_id) %>%
-    pull(WDPAID) %>%
+  wdpaid <- decisions |>
+    filter(WDPA_NAME == wdpa_name_or_id) |>
+    pull(WDPAID) |>
     first()
   if (is.na(wdpaid)) {
     stop("WDPAID introuvable pour: ", wdpa_name_or_id)
@@ -80,8 +80,8 @@ show_cnlegis_for_pa <- function(wdpa_name_or_id, decisions, pattern = NULL) {
   # English: show all CNLEGIS decisions for a PA, optionally filter by a pattern on type_decision
   wdpaid <- resolve_wdpaid(wdpa_name_or_id, decisions)
 
-  out <- decisions %>%
-    filter(WDPAID == wdpaid) %>%
+  out <- decisions |>
+    filter(WDPAID == wdpaid) |>
     select(
       WDPA_NAME,
       WDPAID,
@@ -92,11 +92,11 @@ show_cnlegis_for_pa <- function(wdpa_name_or_id, decisions, pattern = NULL) {
       id_texte,
       objet_texte,
       cnlegis_url
-    ) %>%
+    ) |>
     arrange(date_texte)
 
   if (!is.null(pattern)) {
-    out <- out %>% filter(str_detect(type_decision, pattern))
+    out <- out |> filter(str_detect(type_decision, pattern))
   }
 
   out
@@ -114,9 +114,9 @@ plot_pa_sources <- function(
     wdpaid <- wdpa_name
   } else {
     # Look up the WDPAID from pa_decisions
-    wdpaid <- decisions %>%
-      filter(WDPA_NAME == wdpa_name) %>%
-      pull(WDPAID) %>%
+    wdpaid <- decisions |>
+      filter(WDPA_NAME == wdpa_name) |>
+      pull(WDPAID) |>
       first()
 
     # Check if WDPAID was found
@@ -127,15 +127,15 @@ plot_pa_sources <- function(
   }
 
   # Filter all observations matching this WDPAID from all_PAs_conso
-  pa_subset <- data %>%
+  pa_subset <- data |>
     filter(WDPAID == wdpaid)
 
   # Load and filter WDPA historical data
-  wdpa_historical <- read_parquet(wdpa_historical_path) %>%
-    mutate(geometry = st_as_sfc(geometry)) %>%
-    st_as_sf() %>%
-    filter(WDPAID == wdpaid) %>%
-    mutate(dataset_id = paste0("WDPA_", data_year)) %>%
+  wdpa_historical <- read_parquet(wdpa_historical_path) |>
+    mutate(geometry = st_as_sfc(geometry)) |>
+    st_as_sf() |>
+    filter(WDPAID == wdpaid) |>
+    mutate(dataset_id = paste0("WDPA_", data_year)) |>
     st_transform(st_crs(pa_subset))
 
   # Combine both datasets
@@ -143,8 +143,8 @@ plot_pa_sources <- function(
 
   # Filter by specified sources if provided
   if (!is.null(sources) && length(sources) > 0) {
-    pa_subset <- pa_subset %>%
-      filter(dataset_id %in% sources) %>%
+    pa_subset <- pa_subset |>
+      filter(dataset_id %in% sources) |>
       # Convert to factor with levels in the order specified by sources
       mutate(dataset_id = factor(dataset_id, levels = sources))
   }
@@ -236,9 +236,9 @@ add_modif_sat <- function(
     if (is.numeric(wdpa_name_or_id)) {
       return(wdpa_name_or_id[1])
     }
-    wdpaid <- decisions %>%
-      filter(WDPA_NAME == wdpa_name_or_id) %>%
-      pull(WDPAID) %>%
+    wdpaid <- decisions |>
+      filter(WDPA_NAME == wdpa_name_or_id) |>
+      pull(WDPAID) |>
       first()
     if (is.na(wdpaid)) {
       stop("WDPAID introuvable pour: ", wdpa_name_or_id)
@@ -287,24 +287,24 @@ add_modif_sat <- function(
     }
 
     # Select exactly one legal decision based on filters
-    dec <- decisions %>%
+    dec <- decisions |>
       filter(WDPAID == wdpaid)
 
     if (!is.null(decision_filter$year)) {
-      dec <- dec %>% filter(lubridate::year(date_texte) == decision_filter$year)
+      dec <- dec |> filter(lubridate::year(date_texte) == decision_filter$year)
     }
     if (!is.null(decision_filter$type_decision_pattern)) {
-      dec <- dec %>%
+      dec <- dec |>
         filter(str_detect(type_decision, decision_filter$type_decision_pattern))
     }
     if (!is.null(decision_filter$num_texte)) {
-      dec <- dec %>% filter(num_texte == decision_filter$num_texte)
+      dec <- dec |> filter(num_texte == decision_filter$num_texte)
     }
     if (!is.null(decision_filter$id_texte)) {
-      dec <- dec %>% filter(id_texte == decision_filter$id_texte)
+      dec <- dec |> filter(id_texte == decision_filter$id_texte)
     }
 
-    dec <- dec %>% arrange(date_texte)
+    dec <- dec |> arrange(date_texte)
 
     if (nrow(dec) == 0) {
       stop(
@@ -320,10 +320,10 @@ add_modif_sat <- function(
   }
 
   # Extract historical geometry from consolidated spatial data
-  geom_before <- data %>%
-    filter(WDPAID == wdpaid, dataset_id == source_dataset_id) %>%
-    filter(dataset_id != "CNLEGIS_2024") %>%
-    st_zm(drop = TRUE, what = "ZM") %>%
+  geom_before <- data |>
+    filter(WDPAID == wdpaid, dataset_id == source_dataset_id) |>
+    filter(dataset_id != "CNLEGIS_2024") |>
+    st_zm(drop = TRUE, what = "ZM") |>
     st_make_valid()
 
   if (nrow(geom_before) == 0) {
@@ -336,7 +336,7 @@ add_modif_sat <- function(
   }
 
   # Build SAT entry with geometry and metadata
-  sat_entry <- geom_before %>%
+  sat_entry <- geom_before |>
     mutate(
       WDPAID = wdpaid,
       amendment_type = amendment_type,
@@ -359,7 +359,7 @@ add_modif_sat <- function(
       verification_date = Sys.Date(),
       notes = ifelse(is.null(notes), dec$objet_texte[1], notes),
       confidence = confidence
-    ) %>%
+    ) |>
     select(
       WDPAID,
       geometry,
@@ -385,8 +385,8 @@ add_modif_sat <- function(
   }
 
   # Assign stable sequential amendment_id
-  sat_new <- sat_new %>%
-    mutate(amendment_id = row_number()) %>%
+  sat_new <- sat_new |>
+    mutate(amendment_id = row_number()) |>
     relocate(amendment_id, .before = WDPAID)
 
   sat_new
@@ -451,9 +451,9 @@ add_modif_fat <- function(
     if (is.numeric(wdpa_name_or_id)) {
       return(wdpa_name_or_id[1])
     }
-    wdpaid <- decisions %>%
-      filter(WDPA_NAME == wdpa_name_or_id) %>%
-      pull(WDPAID) %>%
+    wdpaid <- decisions |>
+      filter(WDPA_NAME == wdpa_name_or_id) |>
+      pull(WDPAID) |>
       first()
     if (is.na(wdpaid)) {
       stop("WDPAID introuvable pour: ", wdpa_name_or_id)
@@ -510,24 +510,24 @@ add_modif_fat <- function(
     }
 
     # Select exactly one legal decision based on filters
-    dec <- decisions %>%
+    dec <- decisions |>
       filter(WDPAID == wdpaid)
 
     if (!is.null(decision_filter$year)) {
-      dec <- dec %>% filter(lubridate::year(date_texte) == decision_filter$year)
+      dec <- dec |> filter(lubridate::year(date_texte) == decision_filter$year)
     }
     if (!is.null(decision_filter$type_decision_pattern)) {
-      dec <- dec %>%
+      dec <- dec |>
         filter(str_detect(type_decision, decision_filter$type_decision_pattern))
     }
     if (!is.null(decision_filter$num_texte)) {
-      dec <- dec %>% filter(num_texte == decision_filter$num_texte)
+      dec <- dec |> filter(num_texte == decision_filter$num_texte)
     }
     if (!is.null(decision_filter$id_texte)) {
-      dec <- dec %>% filter(id_texte == decision_filter$id_texte)
+      dec <- dec |> filter(id_texte == decision_filter$id_texte)
     }
 
-    dec <- dec %>% arrange(date_texte)
+    dec <- dec |> arrange(date_texte)
 
     if (nrow(dec) == 0) {
       stop(
@@ -651,7 +651,7 @@ add_modif_fat <- function(
   }
 
   # Reorder columns: metadata first, then WDPA attributes
-  fat_entry <- fat_entry %>%
+  fat_entry <- fat_entry |>
     select(
       WDPAID,
       valid_from,
@@ -681,8 +681,8 @@ add_modif_fat <- function(
   }
 
   # Assign stable sequential amendment_id
-  fat_new <- fat_new %>%
-    mutate(amendment_id = row_number()) %>%
+  fat_new <- fat_new |>
+    mutate(amendment_id = row_number()) |>
     relocate(amendment_id, .before = WDPAID)
 
   fat_new
@@ -708,7 +708,7 @@ Surface	actuelle	:	78	139	ha	(selon	le	décret	en	vigueur).
 L'attibut STATUS_YR d'Ambatovaky indiquent qu'elle a été créée en 1958, mais au moins une décision a modifié son statut depuis : 
 
 ```{r}
-show_cnlegis_for_pa("Ambatovaky", pa_decisions, pattern = "modifiant") %>%
+show_cnlegis_for_pa("Ambatovaky", pa_decisions, pattern = "modifiant") |>
   select(
     date_texte,
     type_texte,
@@ -764,7 +764,7 @@ suivant	le	Décret	n°	2015-732	du	21	avril	2015	;	Surface	actuelle	:	874	ha
 Les métadonnées indiquent que cette aire protégée a été créée en 1970 (Arrêté 2778/70), puis modifiée en 2015 :
 
 ```{r}
-show_cnlegis_for_pa(5021, pa_decisions) %>%
+show_cnlegis_for_pa(5021, pa_decisions) |>
   select(
     date_texte,
     type_texte,
@@ -802,7 +802,7 @@ sat <- sat |>
 L'année de création de cette AP est 1970 (pas 2015 comme indiqué dans la WDPA 2025). On corrige STATUS_YR dans FAT.
 
 ```{r}
-fat <- NULL %>%
+fat <- NULL |>
   add_modif_fat(
     decisions = pa_decisions,
     wdpa_name_or_id = "Analamazaotra",
@@ -893,7 +893,7 @@ Les sources secondaires indiquent qu’Andohahela a connu plusieurs évolutions 
 Les textes réglementaires récents identifiés dans CNLEGIS confirment en revanche une modification explicite des limites en 2015, par l’Arrêté n°2015-785 du 28 avril 2015, portant modification des limites du Parc National d’Andohahela. On la retrouve bien dans nos données CNLEGIS :
 
 ```{r}
-show_cnlegis_for_pa("Andohahela", pa_decisions) %>%
+show_cnlegis_for_pa("Andohahela", pa_decisions) |>
   select(
     date_texte,
     type_texte,
@@ -931,7 +931,7 @@ sat <- sat |>
 Le changement de statut de 1997 (RNI → PN) constitue un changement d'attributs à documenter dans FAT. Bien que ce décret ne soit pas référencé dans CNLEGIS, il a été retrouvé et archivé.
 
 ```{r}
-fat <- fat %>%
+fat <- fat |>
   add_modif_fat(
     decisions = pa_decisions,
     wdpa_name_or_id = "Andohahela",
@@ -951,7 +951,7 @@ fat <- fat %>%
     valid_from = "1966-06-01",
     secondary_reference = "https://archive.org/details/decret-n-97-1043-du-07-aout-1997-pn-andoahahela",
     notes = "RNI #11 transformed to PN in 1997 (Décret 97-1043 du 7 août 1997). Three-parcel structure maintained. Decree not in CNLEGIS but archived independently."
-  ) %>%
+  ) |>
   add_modif_fat(
     decisions = pa_decisions,
     wdpa_name_or_id = "Andohahela",
@@ -983,7 +983,7 @@ règlementations	y	afférant	;	Dernière	modification	de	statut	:	aucune	;
 Surface	actuelle	:	6420	ha	(selon	le	décret	en	vigueur).
 
 ```{r}
-show_cnlegis_for_pa(5040, pa_decisions) %>%
+show_cnlegis_for_pa(5040, pa_decisions) |>
   select(
     date_texte,
     type_texte,
@@ -1031,8 +1031,8 @@ Surface	actuelle	:	31	160	ha	(selon	le	décret	en	vigueur).
 Les métadonnées indiquent que cette aire protégée a été créée en 1927 comme RNI #5, puis ses limites ont été fixées en 1966, avant un changement de statut en 1998:
 
 ```{r}
-andringitra_decision <- pa_decisions %>%
-  filter(WDPAID == 2308) %>%
+andringitra_decision <- pa_decisions |>
+  filter(WDPAID == 2308) |>
   select(date_texte, type_texte, type_decision, id_texte, objet_texte)
 print(list(
   select(andringitra_decision, -objet_texte),
@@ -1043,7 +1043,7 @@ print(list(
 La modification survenue en 1998 ne porte pas sur un changement de frontière mais sur un changement de statut juridique (de RNI à PN). Aucun amendement spatial n'est donc nécessaire. On documente le changement de statut dans FAT.
 
 ```{r}
-fat <- fat %>%
+fat <- fat |>
   add_modif_fat(
     decisions = pa_decisions,
     wdpa_name_or_id = "Andringitra",
@@ -1057,7 +1057,7 @@ fat <- fat %>%
     amendment_type = "status_change",
     valid_from = "1966-06-01",
     notes = "RNI #5 transformed to PN in 1998 (Décret 98-376 du 19 août 1998). Boundaries remained unchanged from 1966 delimitation."
-  ) %>%
+  ) |>
   add_modif_fat(
     decisions = pa_decisions,
     wdpa_name_or_id = "Andringitra",
@@ -1092,7 +1092,7 @@ avril	2015	;	Surface	actuelle	:	26	903	ha	(selon	le	décret	en	vigueur).
 Les métadonnées indiquent que cette aire protégée a été créée en 1958 comme Réserve Spéciale, puis ses limites ont été modifiées en 2015:
 
 ```{r}
-show_cnlegis_for_pa(5023, pa_decisions) %>%
+show_cnlegis_for_pa(5023, pa_decisions) |>
   select(
     date_texte,
     type_texte,
@@ -1130,7 +1130,7 @@ sat <- sat |>
 L'année de création de cette AP est 1958 (pas 2015 comme indiqué dans la WDPA 2025). On corrige STATUS_YR dans FAT.
 
 ```{r}
-fat <- fat %>%
+fat <- fat |>
   add_modif_fat(
     decisions = pa_decisions,
     wdpa_name_or_id = "Anjanaharibe_sud",
@@ -1172,7 +1172,7 @@ Dernière	modification	de	statut	:	suivant	le	Décret	n°	2015-730	du	21	avril
 Les sources secondaires indiquent qu'Ankarafantsika a connu une évolution complexe, avec la création de la RNI #7 en 1927, l'établissement de réserves forestières adjacentes en 1929, et la consolidation de l'ensemble en parc national en 2002, puis modification de statut et de frontières en 2015. 
 
 ```{r}
-show_cnlegis_for_pa("Ankarafantsika", pa_decisions) %>%
+show_cnlegis_for_pa("Ankarafantsika", pa_decisions) |>
   select(
     date_texte,
     type_texte,
@@ -1214,7 +1214,7 @@ sat <- sat |>
 L'année de création de cette AP est 1927 (pas 2015 comme pourrait l'indiquer WDPA). La transformation en PN date de 2002. On documente le changement de statut dans FAT.
 
 ```{r}
-fat <- fat %>%
+fat <- fat |>
   add_modif_fat(
     decisions = pa_decisions,
     wdpa_name_or_id = "Ankarafantsika",
@@ -1229,7 +1229,7 @@ fat <- fat %>%
     valid_from = "1927-12-31",
     secondary_reference = "Alonso & Shuldenberg 2002",
     notes = "RNI #7 created 1927, boundaries clarified 1966. RNI (+ forest reserves + Station Forestière Ampijoroa) consolidated into PN in 2002 (Décret 2002-798 du 7 août 2002). Major boundary expansion."
-  ) %>%
+  ) |>
   add_modif_fat(
     decisions = pa_decisions,
     wdpa_name_or_id = "Ankarafantsika",
@@ -1308,7 +1308,7 @@ modification	de	statut	:	aucune	;	Surface	actuelle	:	192	198	ha	(selon	le
 décret	en	vigueur).
 
 ```{r}
-show_cnlegis_for_pa(20272, pa_decisions) %>%
+show_cnlegis_for_pa(20272, pa_decisions) |>
   select(
     date_texte,
     type_texte,
@@ -1358,7 +1358,7 @@ Décret	n°	2011-498	du	6	septembre	2011	;	Surface	actuelle	:	157	710	ha
 Le texte de Goodman et al. omet la modification introduite par le décret 97-1045.
 
 ```{r}
-show_cnlegis_for_pa("Bemaraha", pa_decisions) %>%
+show_cnlegis_for_pa("Bemaraha", pa_decisions) |>
   select(
     date_texte,
     type_texte,
@@ -1396,7 +1396,7 @@ sat <- sat |>
 L'année de création de cette AP est 1927 (pas 2011). La transformation en PN date de 2011. On documente le changement de statut dans FAT.
 
 ```{r}
-fat <- fat %>%
+fat <- fat |>
   add_modif_fat(
     decisions = pa_decisions,
     wdpa_name_or_id = "Bemaraha",
@@ -1410,7 +1410,7 @@ fat <- fat %>%
     amendment_type = "status_change",
     valid_from = "1997-08-07",
     notes = "RNI #9 created 1927, boundaries modified 1997 (Décret 97-1045). Transformed to PN in 2011 (Décret 2011-498 du 6 septembre 2011) with boundary modification."
-  ) %>%
+  ) |>
   add_modif_fat(
     decisions = pa_decisions,
     wdpa_name_or_id = "Bemaraha",
@@ -1474,7 +1474,7 @@ Dernière	modification	de	statut	:	suivant	le	Décret	n°	2015-733	du	21	avril
 2015	;	Surface	actuelle	:	4200	ha	(selon	le	décret	en	vigueur).
 
 ```{r}
-show_cnlegis_for_pa(10634, pa_decisions) %>%
+show_cnlegis_for_pa(10634, pa_decisions) |>
   select(
     date_texte,
     type_texte,
@@ -1548,7 +1548,7 @@ statut	:	suivant	le	Décret	n°	2015-734	du	21	avril	2015	;	Surface	actuelle	:
 Les métadonnées indiquent bien que cette aire protégée a été créée en 1962 comme Réserve Spéciale, puis ses limites ont été modifiées en 2015:
 
 ```{r}
-show_cnlegis_for_pa(5041, pa_decisions) %>%
+show_cnlegis_for_pa(5041, pa_decisions) |>
   select(
     date_texte,
     type_texte,
@@ -1586,7 +1586,7 @@ sat <- sat |>
 L'année de création de cette AP est 1962 (pas 2015 comme indiqué dans WDPA 2025). On corrige STATUS_YR dans FAT.
 
 ```{r}
-fat <- fat %>%
+fat <- fat |>
   add_modif_fat(
     decisions = pa_decisions,
     wdpa_name_or_id = "Cap Sainte Marie",
@@ -1618,7 +1618,7 @@ de	statut	:	suivant	le	Décret	n°	2015-735	du	21	avril	2015	;	Surface	actuelle	
 Les métadonnées indiquent que cette aire protégée a été créée en 1997, puis ses limites ont été modifiées en 2015:
 
 ```{r}
-show_cnlegis_for_pa(303700, pa_decisions) %>%
+show_cnlegis_for_pa(303700, pa_decisions) |>
   select(
     date_texte,
     type_texte,
@@ -1675,7 +1675,7 @@ statut	:	suivant	le	Décret	n°	2011-500	du	6	juillet	2011	;	Surface	actuelle	:
 Les textes légaux confirment que cette aire protégée a été transformée en parc national en 2011 avec modification des limites.
 
 ```{r}
-show_cnlegis_for_pa("Lokobe", pa_decisions) %>%
+show_cnlegis_for_pa("Lokobe", pa_decisions) |>
   select(
     date_texte,
     type_texte,
@@ -1689,12 +1689,12 @@ show_cnlegis_for_pa("Lokobe", pa_decisions) %>%
 
 ```{r}
 # Extract pre-2011 geometry from SAPM_2010 (excluding "Lokobe extension")
-lokobe_pre2011 <- all_PAs_conso %>%
-  filter(WDPA_NAME == "Lokobe", dataset_id == "SAPM_2010") %>%
+lokobe_pre2011 <- all_PAs_conso |>
+  filter(WDPA_NAME == "Lokobe", dataset_id == "SAPM_2010") |>
   filter(NAME == "Lokobe") # Only main Lokobe, not the extension
 
 # For plotting, filter the consolidated data to exclude "Lokobe extension"
-lokobe_current <- all_PAs_conso %>%
+lokobe_current <- all_PAs_conso |>
   filter(NAME == "Lokobe", dataset_id == "WDPA_2025")
 
 lokobe_filtered <- bind_rows(lokobe_pre2011, lokobe_current)
@@ -1766,7 +1766,7 @@ le	décret	en	vigueur).
 Les métadonnées confirment que cette aire protégée a été créée en 1958 comme Réserve Spéciale, sans modification ultérieure:
 
 ```{r}
-show_cnlegis_for_pa(5038, pa_decisions) %>%
+show_cnlegis_for_pa(5038, pa_decisions) |>
   select(
     date_texte,
     type_texte,
@@ -1796,7 +1796,7 @@ statut	:	suivant	le	Décret	n°	67-051	du	31	janvier	1967	;	Surface	actuelle	:
 Les métadonnées confirment que cette aire protégée a été créée en 1962 comme Réserve Spéciale, puis ses limites ont été modifiées en 1967:
 
 ```{r}
-show_cnlegis_for_pa("Manombo", pa_decisions) %>%
+show_cnlegis_for_pa("Manombo", pa_decisions) |>
   select(
     date_texte,
     type_texte,
@@ -1827,7 +1827,7 @@ Surface	actuelle	:	51	568	ha	(selon	le	décret	en	vigueur).
 Les métadonnées indiquent que les limites de cette aire protégée aont été modifiées en 2015:
 
 ```{r}
-show_cnlegis_for_pa("Manongarivo", pa_decisions) %>%
+show_cnlegis_for_pa("Manongarivo", pa_decisions) |>
   select(
     date_texte,
     type_texte,
@@ -1865,7 +1865,7 @@ sat <- sat |>
 L'année de création de cette AP est 1956 (pas 2015 comme indiqué dans WDPA 2025). On corrige STATUS_YR dans FAT.
 
 ```{r}
-fat <- fat %>%
+fat <- fat |>
   add_modif_fat(
     decisions = pa_decisions,
     wdpa_name_or_id = "Manongarivo",
@@ -1894,7 +1894,7 @@ Dernière	modification	de	statut	:	suivant	le	Décret	n°	2002-790	du	7	août
 Les métadonnées confirment que cette aire protégée a été créée en 1989 comme Parc National, puis ses limites ont été étendues en 2002:
 
 ```{r}
-show_cnlegis_for_pa("Mantadia", pa_decisions) %>%
+show_cnlegis_for_pa("Mantadia", pa_decisions) |>
   select(
     date_texte,
     type_texte,
@@ -1929,7 +1929,7 @@ mai	1998	;	Dernière	modification	de	statut	:	suivant	le	Décret	n°	98-375	du
 Les métadonnées confirment que cette aire protégée a été créée en 1952 comme RNI, puis reclassée en Parc National en 1998:
 
 ```{r}
-show_cnlegis_for_pa("Marojejy", pa_decisions) %>%
+show_cnlegis_for_pa("Marojejy", pa_decisions) |>
   select(
     date_texte,
     type_texte,
@@ -1943,7 +1943,7 @@ show_cnlegis_for_pa("Marojejy", pa_decisions) %>%
 La modification de 1998 ne porte que sur le statut (de RNI à PN), sans changement de limites. On documente le changement de statut dans FAT.
 
 ```{r}
-fat <- fat %>%
+fat <- fat |>
   add_modif_fat(
     decisions = pa_decisions,
     wdpa_name_or_id = "Marojejy",
@@ -1957,7 +1957,7 @@ fat <- fat %>%
     amendment_type = "status_change",
     valid_from = "1966-06-01",
     notes = "RNI #12 created 1952, boundaries clarified 1966. Transformed to PN in 1998 (Décret 98-375 du 19 mai 1998). No boundary change."
-  ) %>%
+  ) |>
   add_modif_fat(
     decisions = pa_decisions,
     wdpa_name_or_id = "Marojejy",
@@ -2018,7 +2018,7 @@ décret	en	vigueur).
 Les métadonnées confirment que les limites de cette aire protégée ont été modifiées en 2015:
 
 ```{r}
-show_cnlegis_for_pa("Montagne d'Ambre", pa_decisions) %>%
+show_cnlegis_for_pa("Montagne d'Ambre", pa_decisions) |>
   select(
     date_texte,
     type_texte,
@@ -2057,17 +2057,17 @@ Les attributs pour WDPAID 5025 proviennent du WDPA 2010.
 
 ```{r}
 # Split MNP_2010 multipolygon to separate the two pre-merger entities
-mnp_2010_ambre <- all_PAs_conso %>%
+mnp_2010_ambre <- all_PAs_conso |>
   filter(dataset_id == "MNP_2010", str_detect(NAME, "Montagne d'Ambre"))
 
-mnp_polygons <- mnp_2010_ambre %>%
-  st_cast("POLYGON") %>%
+mnp_polygons <- mnp_2010_ambre |>
+  st_cast("POLYGON") |>
   mutate(polygon_id = row_number())
 
 # WDPAID 2314: Polygon 1 (Montagne d'Ambre PN)
-montagne_ambre_pre2015 <- mnp_polygons %>%
-  filter(polygon_id == 1) %>%
-  select(-polygon_id) %>%
+montagne_ambre_pre2015 <- mnp_polygons |>
+  filter(polygon_id == 1) |>
+  select(-polygon_id) |>
   mutate(
     WDPAID = 2314,
     NAME = "Montagne d'Ambre",
@@ -2077,9 +2077,9 @@ montagne_ambre_pre2015 <- mnp_polygons %>%
 
 # WDPAID 5025: Polygons 2+3 (Forêt d'Ambre RS)
 # Get attributes from WDPA 2010
-wdpa_2010_foret <- wdpa_historical %>%
-  filter(WDPAID == 5025, data_year == 2010) %>%
-  st_drop_geometry() %>%
+wdpa_2010_foret <- wdpa_historical |>
+  filter(WDPAID == 5025, data_year == 2010) |>
+  st_drop_geometry() |>
   select(
     WDPAID,
     NAME,
@@ -2093,11 +2093,11 @@ wdpa_2010_foret <- wdpa_historical %>%
     ISO3
   )
 
-foret_ambre_pre2015 <- mnp_polygons %>%
-  filter(polygon_id %in% c(2, 3)) %>%
-  st_union() %>%
-  st_sf() %>%
-  st_set_geometry("geometry") %>%
+foret_ambre_pre2015 <- mnp_polygons |>
+  filter(polygon_id %in% c(2, 3)) |>
+  st_union() |>
+  st_sf() |>
+  st_set_geometry("geometry") |>
   mutate(
     WDPAID = 5025,
     NAME = wdpa_2010_foret$NAME,
@@ -2197,7 +2197,7 @@ du	7	août	2002	;	Surface	actuelle	:	22	227	ha	(selon	le	décret	en	vigueur).
 Les métadonnées confirment que cette aire protégée a été reclassée en Parc National en 2002:
 
 ```{r}
-show_cnlegis_for_pa("Namoroka", pa_decisions) %>%
+show_cnlegis_for_pa("Namoroka", pa_decisions) |>
   select(
     date_texte,
     type_texte,
@@ -2259,7 +2259,7 @@ du	28	avril	2015	;	Surface	actuelle	:	729	ha	(selon	le	décret	en	vigueur).
 Les métadonnées confirment que cette aire protégée a été créée en 1965 comme Réserve Spéciale, puis reclassée en Parc National en 2015 avec modification des limites:
 
 ```{r}
-show_cnlegis_for_pa("Nosy Mangabe", pa_decisions) %>%
+show_cnlegis_for_pa("Nosy Mangabe", pa_decisions) |>
   select(
     date_texte,
     type_texte,
@@ -2285,17 +2285,17 @@ Les polygones pré-2015 semblent toutefois souffrir d'une erreur de projection, 
 
 ```{r}
 # Split WDPA 2025 multipolygon to extract pre-2015 geometry
-nosy_mangabe_2025 <- wdpa_mdg %>%
+nosy_mangabe_2025 <- wdpa_mdg |>
   filter(str_detect(NAME, "Nosy Mangabe"))
 
-nosy_mangabe_polygons <- nosy_mangabe_2025 %>%
-  st_cast("POLYGON") %>%
+nosy_mangabe_polygons <- nosy_mangabe_2025 |>
+  st_cast("POLYGON") |>
   mutate(polygon_id = row_number())
 
 # Polygon 5 = pre-2015 geometry (the main island, 5.70 km²)
-nosy_mangabe_pre2015 <- nosy_mangabe_polygons %>%
-  filter(polygon_id == 5) %>%
-  select(-polygon_id) %>%
+nosy_mangabe_pre2015 <- nosy_mangabe_polygons |>
+  filter(polygon_id == 5) |>
+  select(-polygon_id) |>
   mutate(
     WDPAID = 5039,
     NAME = "Nosy Mangabe",
@@ -2396,8 +2396,8 @@ Le WDPAID 2306 (Tsaratanana) n'est pas directement associé à une décision dan
 
 ```{r}
 # Afficher le décret 2015-782 (CAPAM)
-pa_decisions %>%
-  filter(num_texte == "2015-782") %>%
+pa_decisions |>
+  filter(num_texte == "2015-782") |>
   select(
     date_texte,
     type_texte,
@@ -2513,7 +2513,7 @@ Dernière	modification	de	statut	:	suivant	le	Décret	n°	2015-736	du	21	avril
 Les métadonnées confirment que cette aire protégée a été reclassée en Parc National en 2002, puis ses limites ont été modifiées en 2015:
 
 ```{r}
-show_cnlegis_for_pa("Tsimanampesotse", pa_decisions) %>%
+show_cnlegis_for_pa("Tsimanampesotse", pa_decisions) |>
   select(
     date_texte,
     type_texte,
@@ -2591,7 +2591,7 @@ Dernière	modification	de	statut	:	suivant	le	Décret	n°	2015-737	du	21	avril
 Les métadonnées et sources historiques confirment que cette aire protégée a connu une histoire complexe avec plusieurs modifications de limites et de statut:
 
 ```{r}
-show_cnlegis_for_pa("Zahamena", pa_decisions) %>%
+show_cnlegis_for_pa("Zahamena", pa_decisions) |>
   select(
     date_texte,
     type_texte,

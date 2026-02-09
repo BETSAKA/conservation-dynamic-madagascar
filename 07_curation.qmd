@@ -915,6 +915,53 @@ fat <- fat %>%
   )
 ```
 
+
+## Andranomena
+
+Goodman et al. [-@goodman2018] indique pour cette AP:
+> Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
+Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
+de	la	Nature	d'Antananarivo	et	la	Circonscription	Forestière	de
+Morondava)	;	Création	:	selon	le	Décret	n°	58-13	du	28	octobre	1958
+(Création	de	la	Réserve	Spéciale)	;	Modification	de	statut	:	la	Réserve
+Spéciale	d'Andranomena	fut	mise	en	place	depuis	1955	selon	l'Arrêté	n°
+152-SE/EF/CG	du	16	avril	1955	et	est	définitivement	créée	en	1958	suivant
+le	Décret	n°	58-13	du	28	octobre	1958.	Elle	fait	actuellement	partie	du
+Paysage	Harmonieux	Protégé	de	Menabe	Antimena	créé	en	2015.	Toutefois,
+elle	conserve	ses	propres	statuts	juridique	et	foncier	ainsi	que	toutes	les
+règlementations	y	afférant	;	Dernière	modification	de	statut	:	aucune	;
+Surface	actuelle	:	6420	ha	(selon	le	décret	en	vigueur).
+
+```{r}
+show_cnlegis_for_pa(5040, pa_decisions) %>%
+  select(
+    date_texte,
+    type_texte,
+    num_texte,
+    type_decision,
+    id_texte,
+    objet_texte
+  )
+```
+
+WDPA 2025 montre STATUS_YR=2015, qui correspond à la création du Paysage Harmonieux Protégé de Menabe Antimena. Cependant, Goodman précise qu'Andranomena conserve ses propres statuts juridique et foncier. La Réserve Spéciale d'Andranomena a été créée en 1958 par le Décret 58-13, qui apparaît dans CNLEGIS.
+
+```{r}
+# FAT: Correction du STATUS_YR
+fat <- add_modif_fat(
+  fat = fat,
+  decisions = pa_decisions,
+  wdpa_name_or_id = 5040,
+  decision_filter = list(num_texte = "58-13"),
+  attributes = list(
+    STATUS_YR = 1958
+  ),
+  amendment_type = "correction",
+  valid_from = "1958-10-28",
+  notes = "WDPA incorrectly shows STATUS_YR=2015 (date of creation of PHP Menabe Antimena which encompasses Andranomena). RS Andranomena was created in 1958 (Décret 58-13) and retains its own legal and land status according to Goodman et al. 2018."
+)
+```
+
 ## Andringitra
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
@@ -1386,6 +1433,7 @@ décret	en	vigueur).
 ::: {.callout-note}
   Cette aire protégée a connu une modification en 1964, mais aucune géométrie antérieure à cette date n'est disponible pour documentation dans la SAT.
 :::
+
 
 ## Cap Sainte Marie
 

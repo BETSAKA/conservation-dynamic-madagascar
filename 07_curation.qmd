@@ -2137,7 +2137,12 @@ sat <- add_modif_sat(
   data = foret_ambre_pre2015,
   decisions = pa_decisions,
   wdpa_name_or_id = 5025,
-  decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
+  manual_decision = list(
+    date_texte = as.Date("2015-04-28"),
+    type_texte = "Décret",
+    num_texte = "2015-776",
+    objet_texte = "Fusion de RS Forêt d'Ambre dans PN Montagne d'Ambre"
+  ),
   source_dataset_id = "MNP_2010_split",
   amendment_type = "boundary_modification",
   valid_from = "1958-10-28",
@@ -2167,16 +2172,19 @@ fat <- add_modif_fat(
   fat = fat,
   decisions = pa_decisions,
   wdpa_name_or_id = 5025,
-  decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
+  manual_decision = list(
+    date_texte = as.Date("2015-04-28"),
+    type_texte = "Décret",
+    num_texte = "2015-776",
+    objet_texte = "Fusion de RS Forêt d'Ambre dans PN Montagne d'Ambre"
+  ),
   attributes = list(
     STATUS = "Dissolved",
-    DESIG = "Special Reserve (dissolved)",
-    merged_into_wdpaid = "2314",
-    merger_date = "2015-04-28"
+    DESIG = "Special Reserve (dissolved)"
   ),
   amendment_type = "status_change",
   valid_from = "2015-04-28",
-  notes = "RS Forêt d'Ambre (created 1958 by Décret 58-15) was absorbed into WDPAID 2314 via Décret 2015-776. STATUS changed from 'Designated' to 'Dissolved'. WDPAID 5025 remains in database for historical traceability but with dissolved status."
+  notes = "RS Forêt d'Ambre (created 1958 by Décret 58-15) was absorbed into WDPAID 2314 via Décret 2015-776 on 2015-04-28. STATUS changed from 'Designated' to 'Dissolved'. WDPAID 5025 remains in database for historical traceability but with dissolved status."
 )
 ```
 

@@ -816,6 +816,56 @@ fat <- NULL %>%
   )
 ```
 
+## Analamerana
+
+Goodman	et	al.	[-@goodman2018]	indique	pour	cette	AP:
+> Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
+Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
+de	la	Nature	d’Antananarivo	et	le	Cantonnement	Forestier	d’Anivorano-
+Avaratra)	;	Création	:	selon	le	Décret	n°	56-208	du	20	février	1956	(Création
+de	la	Réserve	Spéciale)	;	Modification	de	statut	:	aucune	;	Dernière
+modification	de	statut	:	aucune	;	Surface	actuelle	:	34	700	ha	(selon	le	décret
+en	vigueur).
+
+```{r}
+show_cnlegis_for_pa(5022, pa_decisions) |>
+  select(
+    date_texte,
+    type_texte,
+    num_texte,
+    type_decision,
+    id_texte,
+    objet_texte
+  )
+```
+
+Le Décret 56-208 du 20 février 1956 créant la Réserve Spéciale d'Analamerana n'apparaît pas dans CNLEGIS (pré-2000). WDPA 2025 montre des erreurs majeures : DESIG="Parc National" au lieu de "Reserve Speciale", IUCN_CAT=II au lieu de IV, et STATUS_YR=2015 au lieu de 1956. Goodman confirme qu'aucune modification de statut n'a eu lieu.
+
+```{r}
+# FAT: Correction du DESIG, IUCN_CAT et STATUS_YR
+fat <- add_modif_fat(
+  fat = fat,
+  decisions = pa_decisions,
+  wdpa_name_or_id = 5022,
+  manual_decision = list(
+    date_texte = as.Date("1956-02-20"),
+    type_texte = "Décret",
+    num_texte = "56-208",
+    objet_texte = "Création de la Réserve Spéciale d'Analamerana"
+  ),
+  attributes = list(
+    DESIG = "Reserve Speciale",
+    DESIG_ENG = "Special Reserve",
+    DESIG_TYPE = "National",
+    IUCN_CAT = "IV",
+    STATUS_YR = 1956
+  ),
+  amendment_type = "correction",
+  valid_from = "1956-02-20",
+  notes = "WDPA incorrectly shows DESIG='Parc National', IUCN_CAT=II, and STATUS_YR=2015. Analamerana is a Special Reserve (RS) created in 1956 (Décret 56-208), IUCN category IV. No status change has occurred according to Goodman et al. 2018."
+)
+```
+
 ## Andohahela 
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
@@ -1191,6 +1241,53 @@ fat <- fat %>%
     valid_from = "1927-12-31",
     notes = "WDPA may show STATUS_YR=2002 or 2015. Actual creation was 1927 as RNI #7 (Décret du 31 décembre 1927)."
   )
+```
+
+## Ankarana
+
+Goodman	et	al.	[-@goodman2018]	indique	pour	cette	AP:
+> Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
+Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
+de	la	Nature	d’Antananarivo	et	Triage	Forestier	d’Anivorano)	;	Création	:
+selon	le	Décret	n°	56-208	du	20	février	1956	(Création	de	la	Réserve
+Spéciale)	;	Modification	de	statut	:	aucune	;	Dernière	modification	de
+statut	:	aucune	;	Surface	actuelle	:	18	225	ha	(selon	le	décret	en	vigueur).
+
+Création en 1956 ou 2015 (dans WDPA 2025 c'est 2015) ?
+
+```{r}
+show_cnlegis_for_pa(5024, pa_decisions) |>
+  select(
+    date_texte,
+    type_texte,
+    num_texte,
+    type_decision,
+    id_texte,
+    objet_texte
+  )
+```
+
+Le Décret 56-208 du 20 février 1956 créant la Réserve Spéciale d'Ankarana n'apparaît pas dans CNLEGIS (pré-2000). WDPA 2025 montre STATUS_YR=2015 au lieu de 1956. DESIG et IUCN_CAT sont corrects (Reserve Speciale, IV). Goodman confirme qu'aucune modification de statut n'a eu lieu.
+
+```{r}
+# FAT: Correction du STATUS_YR
+fat <- add_modif_fat(
+  fat = fat,
+  decisions = pa_decisions,
+  wdpa_name_or_id = 5024,
+  manual_decision = list(
+    date_texte = as.Date("1956-02-20"),
+    type_texte = "Décret",
+    num_texte = "56-208",
+    objet_texte = "Création de la Réserve Spéciale d'Ankarana"
+  ),
+  attributes = list(
+    STATUS_YR = 1956
+  ),
+  amendment_type = "correction",
+  valid_from = "1956-02-20",
+  notes = "WDPA incorrectly shows STATUS_YR=2015. RS Ankarana was created in 1956 (Décret 56-208). No status change has occurred according to Goodman et al. 2018."
+)
 ```
 
 
@@ -2619,84 +2716,7 @@ fat <- add_modif_fat(
 ```
 
 
-## Montagne des Français
-Goodman	et	al.	[-@goodman2018]	indique	pour	cette	AP:
-> Aspects	légaux	:	Gestionnaire	actuel	:	Service	d’Appui	à	la	Gestion	de
-l’Environnement	(SAGE)	;	Gestion	antérieure	:	aucune	;	Création	:	selon	le
-Décret	n°	2015-780	du	28	avril	2015	;	Modification	de	statut	:	une	partie	de
-la	Réserve	Forestière	de	la	Montagne	des	Français,	mise	en	place	en	1955
-selon	l’Arrêté	n°	823-DOM	du	2	avril	1955	(5571	ha),	est	intégrée	dans	le
-paysage	harmonieux	protégé	créé	en	2015	suivant	le	Décret	n°	2015-780	du
-28	avril	2015	;	Dernière	modification	de	statut	:	aucune	;	Surface	actuelle	:
-6049	ha	(selon	le	décret	en	vigueur).
 
 
 
-## Analamerana
 
-Goodman	et	al.	[-@goodman2018]	indique	pour	cette	AP:
-> Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
-Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
-de	la	Nature	d’Antananarivo	et	le	Cantonnement	Forestier	d’Anivorano-
-Avaratra)	;	Création	:	selon	le	Décret	n°	56-208	du	20	février	1956	(Création
-de	la	Réserve	Spéciale)	;	Modification	de	statut	:	aucune	;	Dernière
-modification	de	statut	:	aucune	;	Surface	actuelle	:	34	700	ha	(selon	le	décret
-en	vigueur).
-
-Statut IV ou II ??? (dans WDPA 2025 c'est II)
-
-
-## Ankarana
-
-Goodman	et	al.	[-@goodman2018]	indique	pour	cette	AP:
-> Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
-Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
-de	la	Nature	d’Antananarivo	et	Triage	Forestier	d’Anivorano)	;	Création	:
-selon	le	Décret	n°	56-208	du	20	février	1956	(Création	de	la	Réserve
-Spéciale)	;	Modification	de	statut	:	aucune	;	Dernière	modification	de
-statut	:	aucune	;	Surface	actuelle	:	18	225	ha	(selon	le	décret	en	vigueur).
-
-Création en 1956 ou 2015 (dans WDPA 2025 c'est 2015) ?
-
-
-##
-
-
-##
-
-##
-
-
-
-##
-
-
-##
-
-
-##
-
-
-##
-
-
-##
-
-
-##
-
-
-
-##
-
-
-##
-
-
-##
-
-
-##
-
-
-##

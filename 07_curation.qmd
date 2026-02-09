@@ -1146,6 +1146,56 @@ fat <- fat %>%
   )
 ```
 
+
+## Befotaka-Midongy du Sud
+
+Goodman et al. [-@goodman2018] indique pour cette AP:
+> Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
+Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
+de	la	Nature	d'Antananarivo	;	le	Cantonnement	Forestier	de	Midongy	du
+Sud	et	la	Circonscription	Forestière	de	Manakara)	;	Création	:	selon	le
+Décret	n°	97-1451	du	18	décembre	1997	;	Modification	de	statut	:	les	Forêts
+Classées	de	Soarano	(Arrêté	n°	150-DOM/PF	du	22	janvier	1953)	et	de
+Befotaka	(Arrêté	n°	08-DOM/PF	du	15	avril	1953)	localisées	à	100	km	à
+l'ouest	de	Vangaindrano,	existent	déjà	depuis	1953	et	font	actuellement
+partie	intégrante	du	Parc	National	de	Befotaka-Midongy	du	Sud	créé	en
+1997	selon	le	Décret	n°	97-1451	du	18	décembre	1997	;	Dernière
+modification	de	statut	:	aucune	;	Surface	actuelle	:	192	198	ha	(selon	le
+décret	en	vigueur).
+
+```{r}
+show_cnlegis_for_pa(20272, pa_decisions) %>%
+  select(
+    date_texte,
+    type_texte,
+    num_texte,
+    type_decision,
+    id_texte,
+    objet_texte
+  )
+```
+
+Le Décret 97-1451 du 18 décembre 1997 portant création du Parc National de Befotaka-Midongy du Sud apparaît bien dans la base CNLEGIS. Ce parc intègre des parties des forêts classées de Soarano et Befotaka créées en 1953.
+
+WDPA 2025 montre STATUS_YR=1953, ce qui est incorrect. Cette date correspond aux forêts classées qui ne sont pas des aires protégées au sens du Code de la Conservation. Le Parc National a été créé en 1997.
+
+```{r}
+# FAT: Correction du STATUS_YR
+fat <- add_modif_fat(
+  fat = fat,
+  decisions = pa_decisions,
+  wdpa_name_or_id = 20272,
+  decision_filter = list(num_texte = "97-1451"),
+  attributes = list(
+    STATUS_YR = 1997
+  ),
+  amendment_type = "correction",
+  valid_from = "1997-12-18",
+  notes = "WDPA incorrectly shows STATUS_YR=1953 (date of classified forests that were not protected areas). PN Befotaka-Midongy du Sud was created in 1997 (Décret 97-1451), incorporating parts of the Soarano and Befotaka classified forests from 1953."
+)
+```
+
+
 ## Bemaraha 
 
 Goodman et al. [-@goodman2018] indique pour cette AP:
@@ -1265,7 +1315,6 @@ fat <- add_modif_fat(
   notes = "WDPA incorrectly shows STATUS_YR=1997. RNI Betampona was created in 1927 as RNI #1 (Décret du 31 décembre 1927, complemented by Décret 66-242 of 1966). No status change occurred in 1997."
 )
 ```
-
 
 ## Beza Mahafaly
 
@@ -2546,7 +2595,7 @@ de	la	Réserve	Spéciale)	;	Modification	de	statut	:	aucune	;	Dernière
 modification	de	statut	:	aucune	;	Surface	actuelle	:	34	700	ha	(selon	le	décret
 en	vigueur).
 
-Statyut IV ou II ??? (dans WDPA 2025 c'est II)
+Statut IV ou II ??? (dans WDPA 2025 c'est II)
 
 
 ## Ankarana

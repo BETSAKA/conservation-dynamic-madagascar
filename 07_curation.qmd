@@ -2723,8 +2723,28 @@ fat <- add_modif_fat(
 )
 ```
 
+# Save Curated Tables {#sec-save-curated}
 
+The manual curation process has generated two key tables:
 
+- **SAT** (Site Attribute Table): Records all corrections to WDPA attributes (e.g., designation, IUCN category, status year)
+- **FAT** (Feature Attribute Table): Provides detailed feature-level attribute changes with legal documentation and temporal validity
 
+These curated tables will be used in subsequent analyses to produce corrected PA datasets that reflect accurate historical information for Madagascar's protected areas.
+
+```{r}
+#| label: save-curated-tables
+
+# Save the Site Attribute Table
+write_rds(sat, "data/sat_curated.rds")
+
+# Save the Feature Attribute Table
+write_rds(fat, "data/fat_curated.rds")
+
+# Summary of curation results
+cat("Curation complete!\n")
+cat("SAT entries:", nrow(sat), "\n")
+cat("FAT entries:", nrow(fat), "\n")
+```
 
 

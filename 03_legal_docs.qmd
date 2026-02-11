@@ -22,9 +22,12 @@ Sur cette base, on a entré les requêtes suivantes, qui ont donné le nombre de
 -   parc naturel : 1
 -   paysage harmonieux : 1
 -   réserve naturelle : 12
+-   réserves naturelles : 
 -   réserve spéciale : 21
 -   réserve de ressource : 0
--   protection temporaire globale: 3
+-   protection temporaire globale : 3
+-   réserves de faunes : 1 
+-   réserve de faune : 3
 
 Les résultats de chaque requête sont regroupées par pages contenant entre 1 et 2 réponses. Nous avons extrait les 25 pages web contenant les résultats ont été enregistrées localement. Le code ci-dessous extrait les informations pertinentes qu'elles contiennent, les nettoient et les restitue sous forme tabulaire.
 
@@ -120,16 +123,28 @@ extract_table <- function(file_path) {
 }
 
 # Get a list of all HTML files in the directory
-html_files <- list.files(input_dir, pattern = "\\.html?$", full.names = TRUE)
+# Directory containing the HTML files
+input_dir_complet <- paste0(data_dir, "Décrets/CNLEGIS_complet")
+input_dir_add <- paste0(data_dir, "Décrets/CNLEGIS_add")
+
+# Get a list of all HTML files from both directories
+html_files <- c(
+  list.files(input_dir_complet, pattern = "\\.html?$", full.names = TRUE),
+  list.files(input_dir_add, pattern = "\\.htm$", full.names = TRUE)
+)
 
 # Apply the extraction function to all files
-all_results <- map_dfr(html_files, extract_table) %>%
+all_results <- map_dfr(html_files, extract_table) |>
   mutate(
-    date_txt = dmy(date_textes), # Convertit les dates
+    # Clean invalid date values before parsing
+    date_jo = if_else(str_detect(date_jo, "undefined"), NA_character_, date_jo),
+    # Parse dates
+    date_txt = dmy(date_textes),
     date_jo = dmy(date_jo),
+    # Use date_txt as fallback if date_jo is missing
     date_jo = coalesce(date_jo, date_txt)
-  ) %>% # 2 cas
-  relocate(date_txt, date_jo, .before = everything()) # place les dates au début
+  ) |>
+  relocate(date_txt, date_jo, .before = everything())
 
 all_results |>
   select(
@@ -155,7 +170,7 @@ class_results <- all_results %>%
     creation_definitive = str_detect(
       textes,
       regex(
-        "(?<!en )(création|crétion de l'aire protégée)|instituant",
+        "(?<!en )(création|crétion de l'aire protégée)|instituant|classant",
         ignore_case = TRUE
       )
     ),
@@ -223,6 +238,15 @@ class_results <- class_results %>%
       str_extract(
         textes,
         regex("respectivement\\s+(.*?)(?=\\.|N°|ETAT)", ignore_case = TRUE)
+      ),
+      pa
+    ),
+    # Add pattern for "station forestière d'" or "réserve de faune"
+    pa = ifelse(
+      is.na(pa) & str_detect(textes, "station forestière d'"),
+      str_extract(
+        textes,
+        regex("(?<=station forestière d')[^,]+", ignore_case = TRUE)
       ),
       pa
     ),
@@ -387,25 +411,24 @@ match_pa_to_wdpa <- function(pa_name, wdpa_names) {
 
 # Find closest matches for each split name
 conversion_table <- split_class_clean %>%
+  filter(!is.na(single_cleaned_pa), single_cleaned_pa != "") %>% # Remove NA/empty values
   rowwise() %>%
   mutate(
-    match_result = list(match_pa_to_wdpa(
-      single_cleaned_pa,
-      wdpa_clean$cleaned_NAME
-    )),
-    closest_match = wdpa_clean$NAME[which.min(
-      stringdist(single_cleaned_pa, wdpa_clean$cleaned_NAME) /
+    distances = list(
+      stringdist(single_cleaned_pa, wdpa_clean$cleaned_NAME, method = "lv") /
         pmax(nchar(single_cleaned_pa), nchar(wdpa_clean$cleaned_NAME))
-    )],
-    match_distance = min(
-      stringdist(single_cleaned_pa, wdpa_clean$cleaned_NAME) /
-        pmax(nchar(single_cleaned_pa), nchar(wdpa_clean$cleaned_NAME))
-    )
+    ),
+    best_idx = ifelse(length(distances) > 0, which.min(distances), NA_integer_),
+    closest_match = ifelse(
+      !is.na(best_idx),
+      wdpa_clean$NAME[best_idx],
+      NA_character_
+    ),
+    match_distance = ifelse(!is.na(best_idx), min(distances), NA_real_)
   ) %>%
   ungroup() %>%
   select(original_pa = single_cleaned_pa, closest_match, match_distance) %>%
   distinct(original_pa, .keep_all = TRUE)
-
 
 writexl::write_xlsx(conversion_table, "conversion_table.xlsx")
 ```

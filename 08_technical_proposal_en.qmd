@@ -1,0 +1,28 @@
+# Technical proposal (English)
+
+The dataset is designed as a time explicit extension of WDPA polygon data that incorporates legal history, spatial changes, and internal zoning of protected areas when such information is available. WDPA provides the default current state of each protected area, but this state is treated as a single segment within a longer trajectory marked by changes in legal status, boundaries, and internal organization. For each WDPAID, the dataset reconstructs successive states of the protected area, each defined by explicit validity periods, by mobilizing dated legal and spatial information when available, while remaining fully compatible with WDPA when such information is absent.
+
+The core principle relies on default completion combined with explicit and deterministic precedence rules. In the absence of alternative information, WDPA attributes and geometry define a single state whose validity period starts from STATUS_YR, interpreted using a documented date convention, and extends to the reference date of the WDPA release. When earlier legal decisions, previous boundaries, or internal zoning arrangements are identified through supplementary sources, the timeline is split into multiple non overlapping validity intervals. Earlier states inherit WDPA attributes by default, except where legal texts, dated perimeters, or zoning documents explicitly indicate differences, such as temporary protection status, alternative boundaries, changes in management, or a specific internal organization.
+
+Legal history, boundary evolution, and the establishment of internal zoning are treated as independent sources of temporal segmentation. Dates derived from legal texts, zoning instruments, or boundary modifications jointly structure the timeline. Each resulting interval is then populated with the most specific information available for the period considered, both at the protected area level and, when relevant, for its internal zones. External boundaries are treated as a specific zone type, allowing internal zoning and outer limits to follow a unified spatial logic.
+
+Concretely, the dataset does not replace WDPA. It is constructed from four complementary components, each with a clearly defined role:
+
+- **WDPA**
+The global WDPA polygon dataset, used as the baseline reference describing the current state of protected areas.
+
+- **SAT - Spatial Amendment Table**
+A table of spatial amendments containing dated historical boundaries and internal zoning geometries that differ from the current WDPA representation.
+
+- **FAT — Feature Amendment Table**
+A table of attribute amendments containing dated legal and administrative modifications, such as changes in protection status, management delegation, designation, or governance arrangements.
+
+• **CAR - Consolidation and Auditing Rules**
+A stable and transparent set of consolidation rules, expressed as human readable and reproducible code, that specify how WDPA, SAT, and FAT are combined, how temporal segmentation is performed, and how precedence between sources is resolved and made auditable.
+
+Together, these components generate a derived dynamic state table in which each WDPA protected area is represented by a sequence of time bounded states. WDPA provides the default current state, while SAT and FAT only intervene when explicit dated information is available, triggering a segmentation of the timeline and, when relevant, a modification of geometry, legal status, or internal zoning as specified by CAR. In the absence of such information, WDPA data are simply extended backward or forward unchanged according to documented conventions.
+
+The resulting dataset remains fully compatible with WDPA identifiers and structure, while making temporal assumptions explicit, reproducible, and testable. The contribution therefore lies both in the publication of curated supplementary data on legal and spatial histories (SAT and FAT), and in the transparent consolidation and auditing procedures (CAR) that allow WDPA to be transformed into a time explicit conservation dataset suitable for longitudinal and impact analyses.
+
+## Composition of SAT
+

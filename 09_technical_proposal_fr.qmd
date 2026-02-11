@@ -1,0 +1,68 @@
+# Proposition technique
+
+La base de données constitue une extension temporellement explicite des données polygonales de la WDPA. Elle intègre, lorsque ces informations sont disponibles, l’historique juridique, les évolutions spatiales et le zonage interne des aires protégées. La WDPA fournit l’état courant de référence de chaque entité, mais cet état est modélisé comme un enregistrement particulier au sein d’une trajectoire spatio-temporelle plus longue, caractérisée par des changements de statut légal, de limites géographiques et d’organisation interne. Pour chaque WDPAID, la base reconstruit une série d’états successifs, chacun associé à une période de validité explicite, en mobilisant des sources juridiques et spatiales datées, tout en conservant une compatibilité complète avec le schéma WDPA lorsque ces informations ne sont pas disponibles.
+Le modèle de données repose sur un mécanisme de complétion par défaut combiné à des règles de précédence explicites et déterministes. En l’absence de sources alternatives, les attributs et la géométrie issus de la WDPA génèrent un état unique dont la validité débute à partir de STATUS_YR, interprété selon une convention de datation documentée, et s’étend jusqu’à la date de référence de la version WDPA utilisée. Lorsque des décisions juridiques antérieures, des périmètres historiques ou des dispositifs de zonage interne sont identifiés, la chronologie est segmentée en plusieurs intervalles de validité non chevauchants. Les enregistrements correspondant aux états antérieurs héritent par défaut des attributs WDPA, sauf lorsque des textes réglementaires, des délimitations datées ou des documents de zonage spécifient explicitement des différences, telles qu’un statut de protection temporaire, des limites alternatives, des changements de gouvernance ou une organisation interne distincte.
+L’historique juridique, l’évolution des limites et la création du zonage interne constituent des dimensions indépendantes de segmentation temporelle au sein du schéma. Les dates issues des actes juridiques, des instruments de zonage ou des modifications de périmètre structurent conjointement la ligne de temps de chaque entité. Chaque intervalle ainsi généré est renseigné avec l’information la plus précise disponible pour la période considérée, tant au niveau de l’aire protégée que de ses zones internes lorsque celles-ci existent. Les limites externes sont modélisées comme un type de zone spécifique, ce qui permet de traiter de manière homogène le zonage interne et les contours extérieurs dans une logique spatiale unifiée.
+
+Concrètement, le jeu de données ne remplace pas la WDPA. Il est construit à partir de quatre composantes complémentaires, chacune ayant un rôle clairement défini :
+
+**WDPA**   
+Le base de données mondial de polygones de la WDPA constitue le référentiel géospatial de référence décrivant l’état actualisé des aires protégées, structuré sous forme de base de données normalisée intégrant les limites spatiales, les attributs juridiques et les métadonnées associées à chaque entité..
+
+**SAT – Spatial Amendment Table**   
+Une table d’amendements spatiaux contenant des périmètres historiques datés et des géométries de zonage interne qui ne sont pas inclus dans le référentiel WDPA, afin d’assurer la traçabilité des évolutions spatiales.
+
+**FAT – Feature Amendment Table**   
+Une table d’amendements attributaires contenant des modifications juridiques et administratives datées, telles que des changements de statut de protection, des délégations de gestion, des désignations ou des modalités de gouvernance.
+
+**CAR – Consolidation and Auditing Rules**   
+Un ensemble stable et transparent de règles de consolidation, exprimées sous forme de code lisible par des humains et reproductible, qui précisent comment la WDPA, la SAT et la FAT sont combinées, comment la segmentation temporelle est effectuée, et comment les règles de priorité entre sources sont appliquées et rendues auditables.
+
+Pris ensemble, ces éléments permettent de produire une table d’états dynamiques dérivée, dans laquelle chaque aire protégée de la WDPA est représentée par une succession d’états délimités dans le temps. La WDPA fournit l’état courant par défaut, tandis que la SAT et la FAT n’interviennent que lorsque des informations datées explicites sont disponibles, entraînant un découpage de la chronologie et, le cas échéant, une modification de la géométrie, du statut juridique ou du zonage interne, conformément aux règles définies par la CAR. En l’absence de telles informations, les données de la WDPA sont simplement prolongées vers le passé ou vers le présent sans modification, selon des conventions documentées.
+
+La base de données résultant demeure pleinement compatible avec les identifiants et la structure de la WDPA, tout en rendant explicites, reproductibles et vérifiables les hypothèses temporelles sous-jacentes. La contribution réside ainsi à la fois dans la publication de données complémentaires soigneusement construites sur les trajectoires juridiques et spatiales (SAT et FAT), et dans les procédures transparentes de consolidation et d’audit (CAR) qui permettent de transformer la WDPA en un jeu de données de conservation explicitement temporel, adapté aux analyses longitudinales et aux évaluations d’impact.
+
+# Cas d'usage
+
+Outre l'exploration AP par AP, ces données permettent de servir plusieurs cas d'usages.
+
+**[Inclure un exemple sous chaque titre]**
+
+## Fiabiliser WDPA
+
+### Identifier et corriger des erreurs dans la base WDPA actuelle
+
+- Dates erronées ou absentes
+- Mauvais statut ou désignation
+- Périmètres inexacts ou doublons
+
+### Vérifier la robustesse d'études s'appuyant sur des bases WDPA passées 
+
+### Mesurer l'ampleur des améliorations apportées
+
+- Disposer d'un indicateur valorisant l'effort de fiabilisation des données
+
+## Enrichir WDPA
+
+### Histoire légale plus complexe : décrets temporaires et changements de statut
+
+- Intégration des protections temporaires, absentes de la WDPA
+- Traçabilité des reclassements ou abandons
+
+### Changements de statuts
+
+- Passage de réserve spéciale à parc national, ou inversement
+- Cas de statuts abrogés ou modifiés
+
+### Périmètres internes aux aires protégées
+
+- Ajout de périmètres partiels ou d’extensions intermédiaires
+- Documentation des aires non encore spatialement représentées
+
+## Documenter l’historique réglementaire réel
+
+### Restituer les étapes d’évolution d'une aire protégée
+
+### Associer chaque polygone à une source réglementaire vérifiable
+
+### Repérer les aires protégées documentées dans les textes mais absentes de WDPA

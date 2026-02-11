@@ -153,9 +153,58 @@ tm_shape(angap_2002) +
 
 Le résultat est présenté dans la carte ci-dessus.
 
+## MNP 2010
+
+Données historiques MNP fournies par le responsable des données spatiales de l'institution (coauteur du présent travail). Elles représentent un état des périmètres d’aires protégées autour de 2010. Le seul attribut pertinent est le nom.
+
+```{r}
+# Chargement des données historiques MNP
+mnp_2010 <- st_read(
+  "data/no_id/allAP_ap2000_2010_Merge_Lab/allAP_ap2000_2010_Merge_Lab.shp",
+  quiet = TRUE
+) %>%
+  st_set_crs(29701) %>% # CRS d’origine
+  st_transform(my_crs) # Harmonisation en Laborde
+
+# Nettoyage et standardisation des noms
+mnp_2010 <- mnp_2010 %>%
+  mutate(
+    NOM = NAME_BASE %>%
+      str_remove("\\s*-\\s*2000\\s*2010$") %>%
+      str_remove("\\s+[0-9]+$") %>% # remove trailing numeric part
+      str_replace_all("[\r\n\t]", " ") %>%
+      str_squish() %>%
+      str_trim()
+  )
+
+# Conservation des seuls attributs pertinents
+mnp_2010 <- mnp_2010 %>%
+  select(NOM)
+
+# Correction des géométries et consolidation par aire protégée
+mnp_2010 <- mnp_2010 %>%
+  st_make_valid() %>%
+  group_by(NOM) %>%
+  summarise(
+    geometry = st_union(geometry),
+    .groups = "drop"
+  ) %>%
+  st_collection_extract("POLYGON") %>%
+  st_cast("MULTIPOLYGON")
+
+# Sauvegarde du jeu de données harmonisé
+write_rds(mnp_2010, "data/no_id/mnp_2010.rds")
+
+# Visualisation rapide de contrôle
+tm_shape(mnp_2010) +
+  tm_borders(col = "black")
+```
+
+
+
 ## SAPM 2010
 
-Le site REBIOMA qui mettait en ligne les données du SAPM ne fonctionne plus depuis 2019 d'après les sauvegardes régulières effectuées par Internet Archive. Fort heureusement, une copie des données datées du 10/12/2010 a été sauvegardée par Ghislain Vieilledent et publié en accompagnement d'une publication [@vieilledent2020s].
+Le site REBIOMA qui mettait en ligne les données du SAPM ne fonctionne plus depuis 2019 d'après les sauvegardes régulières effectuées par Internet Archive. Heureusement, une copie des données datées du 10/12/2010 a été sauvegardée par Ghislain Vieilledent et publié en accompagnement d'une publication [@vieilledent2020s].
 
 ```{r}
 sapm_2010 <- st_read(

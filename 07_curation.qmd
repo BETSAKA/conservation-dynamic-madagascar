@@ -1077,7 +1077,7 @@ sat <- NULL |>
 ```
 
 
-## Analamazaotra 
+### Analamazaotra 
 
 
 @goodman2018 indique pour cette AP:
@@ -1141,7 +1141,7 @@ fat <- NULL |>
   )
 ```
 
-## Analamerana
+### Analamerana
 
 @goodman2018	indique	pour	cette	AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1183,7 +1183,7 @@ fat <- add_modif_fat(
 )
 ```
 
-## Andohahela 
+### Andohahela 
 
 @goodman2018 indique pour cette AP:
 
@@ -1274,7 +1274,7 @@ fat <- fat |>
 ```
 
 
-## Andranomena
+### Andranomena
 
 @goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1312,7 +1312,7 @@ fat <- add_modif_fat(
 )
 ```
 
-## Andringitra
+### Andringitra
 
 @goodman2018 indique pour cette AP:
 
@@ -1371,7 +1371,7 @@ fat <- fat |>
   )
 ```
 
-## Anjanaharibe_sud
+### Anjanaharibe_sud
 
 @goodman2018 indique pour cette AP:
 > Aspect	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1436,7 +1436,7 @@ fat <- fat |>
   )
 ```
 
-## Ankarafantsika
+### Ankarafantsika
 
 @goodman2018 indique pour cette AP:
 Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1526,7 +1526,7 @@ fat <- fat |>
   )
 ```
 
-## Ankarana
+### Ankarana
 
 Goodman	et	al.	[-@goodman2018]	indique	pour	cette	AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1566,7 +1566,7 @@ fat <- add_modif_fat(
 ```
 
 
-## Befotaka-Midongy du Sud
+### Befotaka-Midongy du Sud
 
 @goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1607,7 +1607,7 @@ fat <- add_modif_fat(
 ```
 
 
-## Bemaraha 
+### Bemaraha 
 
 @goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1683,7 +1683,7 @@ fat <- fat |>
   )
 ```
 
-## Betampona
+### Betampona
 
 @goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)
@@ -1719,7 +1719,7 @@ fat <- add_modif_fat(
 )
 ```
 
-## Beza Mahafaly
+### Beza Mahafaly
 
 @goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1760,7 +1760,7 @@ sat <- sat |>
   )
 ```
 
-## Bora
+### Bora
 
 @goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Ministère	de	l’Environnement,	de
@@ -1783,7 +1783,7 @@ décret	en	vigueur).
 :::
 
 
-## Cap Sainte Marie
+### Cap Sainte Marie
 
 @goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1845,7 +1845,7 @@ fat <- fat |>
 
 
 
-## Kirindy Mite
+### Kirindy Mite
 
 @goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1889,7 +1889,7 @@ sat <- sat |>
 ```
 
 
-## Lokobe
+### Lokobe
 
 @goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1973,7 +1973,7 @@ add_modif_fat(
 ```
 
 
-## Mangerivola
+### Mangerivola
 
 @goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -1990,7 +1990,7 @@ Les métadonnées confirment que cette aire protégée a été créée en 1958 c
 show_cnlegis_for_pa(5038, pa_decisions)
 ```
 
-## Manombo
+### Manombo
 
 @goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -2016,7 +2016,7 @@ show_cnlegis_for_pa("Manombo", pa_decisions)
 1967-01-31: modification des limites, mais pas de géométrie antérieure disponible pour documentation dans la SAT.
 :::
 
-## Manongarivo
+### Manongarivo
 
 @goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -2077,7 +2077,7 @@ fat <- fat |>
 ```
 
 
-## Mantadia
+### Mantadia
 
 @goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -2101,7 +2101,7 @@ Voir avec MNP s'il est possible de reconstituer la géométrie initiale de 1989.
 :::
 
 
-## Marojejy
+### Marojejy
 
 @goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -2152,7 +2152,7 @@ fat <- fat |>
   )
 ```
 
-## Masoala
+### Masoala
 
 @goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -2172,7 +2172,7 @@ décret	en	vigueur).
 Cette aire protégée a existé entre 1927 et 1964 sous le statut de RNI, avant d'être reclassée en Forêt Classée en 1964, mais on ne dispose pas de la géométrie de cette période.
 :::
 
-## Montagne d'Ambre
+### Montagne d'Ambre
 
 @goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -2361,7 +2361,7 @@ fat <- add_modif_fat(
 )
 ```
 
-## Namoroka
+### Namoroka
 
 @goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -2415,7 +2415,7 @@ fat <- add_modif_fat(
 )
 ```
 
-## Nosy Mangabe
+### Nosy Mangabe
 
 @goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -2516,7 +2516,7 @@ fat <- add_modif_fat(
 )
 ```
 
-## Ranomafana
+### Ranomafana
 
 @goodman2018 indique pour cette AP:
 Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -2539,7 +2539,7 @@ de	statut	:	suivant	le	Décret	n°	97-1042	du	7	août	1997	;	Surface	actuelle	:
 Une modification de limites a eu lieu en 1997. Malheureusement, nous ne disposons pas de source géométrique antérieure à 1997 pour cette AP.
 :::
 
-## Tsaratanàna
+### Tsaratanàna
 
 @goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -2649,7 +2649,7 @@ Pour l'instant, nous documentons les erreurs d'attributs (statut PN/II incorrect
 
  
 
-## Tsimanampesotse
+### Tsimanampesotse
 
 @goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -2723,7 +2723,7 @@ fat <- add_modif_fat(
 )
 ```
 
-## Zahamena
+### Zahamena
 
 @goodman2018 indique pour cette AP:
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
@@ -2858,11 +2858,11 @@ fat <- add_modif_fat(
 )
 ```
 
-# Export Amendments {#sec-export-amendments}
+## Export Amendments {#sec-export-amendments}
 
 The curation process has documented amendments to Madagascar's WDPA data. We now export these to the standardized YAML schema for the `dynamic_wdpa` registry.
 
-## Export to YAML Format
+### Export to YAML Format
 
 ```{r}
 #| label: export-amendments
@@ -2881,7 +2881,7 @@ saveRDS(sat, "data/sat_working.rds")
 saveRDS(fat, "data/fat_working.rds")
 ```
 
-## Export Summary
+### Export Summary
 
 ```{r}
 #| label: export-summary
@@ -2921,7 +2921,7 @@ if (nrow(exported) > 0) {
 }
 ```
 
-## Example Amendment Files
+### Example Amendment Files
 
 Let's view an example of each type:
 

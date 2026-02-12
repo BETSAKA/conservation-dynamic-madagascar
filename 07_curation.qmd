@@ -1,11 +1,6 @@
-﻿---
-title: "Untitled"
-format: html
----
+﻿# Curation
 
-# Curation
-
-La première porte d’entrée pour identifier des amendements spatiaux est constituée par les textes légaux recensés dans CNLEGIS. Certains types de décisions, en particulier celles qualifiées de modifiant, peuvent signaler une modification des limites ou du statut spatial d’une aire protégée.
+La première porte d’entrée pour identifier des amendements spatiaux est constituée par les textes légaux recensés dans CNLEGIS. Certains types de décisions, en particulier celles mentionnant le mot "modifiant" dans leur titre, signalent une modification des limites ou du statut spatial d’une aire protégée.
 
 Dans cette section, nous identifions les décisions légales qui mentionnent explicitement une modification, et les aires protégées concernées.
 
@@ -55,7 +50,7 @@ modification_decision_names
 
 Nous identifions ainsi `r length(modification_decision_names)`  aires protégées pour lesquelles au moins une décision légale mentionne explicitement une modification.
 
-Pour chaque décision légale identifiée comme potentiellement modificative, nous adoptons la logique suivante. Nous utilisons l'application interactive (Shiny) disponible dans le chapitre @sec-visual-verif. Nous observons la date et le contenu des décisions qui la concernent. Si les textes légaux indiquent bien une modification de périmètre, on passe en revue les données disponibles, afin d'identifier la source la plus crédible qui représente le périmètre précédent.
+Pour chaque décision légale identifiée comme potentiellement modificative, nous adoptons la logique suivante. Nous utilisons l'application interactive (Shiny) disponible dans @sec-visual-verif. Nous observons la date et le contenu des décisions qui la concernent. Si les textes légaux indiquent bien une modification de périmètre, on passe en revue les données disponibles, afin d'identifier la source la plus crédible qui représente le périmètre précédent.
 
 ```{r}
 tmap_mode("plot")
@@ -76,30 +71,39 @@ resolve_wdpaid <- function(wdpa_name_or_id, decisions) {
   wdpaid
 }
 
-show_cnlegis_for_pa <- function(wdpa_name_or_id, decisions, pattern = NULL) {
+show_cnlegis_for_pa <- function(
+  wdpa_name_or_id,
+  decisions,
+  pattern = NULL,
+  columns = c(
+    "date_texte",
+    "type_texte",
+    "num_texte",
+    "type_decision",
+    "id_texte",
+    "objet_texte"
+  )
+) {
   # English: show all CNLEGIS decisions for a PA, optionally filter by a pattern on type_decision
+  # Returns a gt table with specified columns
+  require(gt)
+
   wdpaid <- resolve_wdpaid(wdpa_name_or_id, decisions)
 
   out <- decisions |>
     filter(WDPAID == wdpaid) |>
-    select(
-      WDPA_NAME,
-      WDPAID,
-      date_texte,
-      type_texte,
-      num_texte,
-      type_decision,
-      id_texte,
-      objet_texte,
-      cnlegis_url
-    ) |>
     arrange(date_texte)
 
   if (!is.null(pattern)) {
     out <- out |> filter(str_detect(type_decision, pattern))
   }
 
-  out
+  # Select requested columns (only those that exist)
+  available_cols <- intersect(columns, names(out))
+  out <- out |> select(all_of(available_cols))
+
+  # Return as gt table
+  out |> gt()
 }
 
 plot_pa_sources <- function(
@@ -192,6 +196,9 @@ plot_pa_sources <- function(
 # a geometry from curated spatial sources to a legal decision that marks
 # when this geometry ceased to be valid.
 #
+# Working table format for efficient curation. Use export_amendments_to_yaml()
+# to convert to standardized YAML schema.
+#
 # Parameters:
 #   sat: Existing SAT table (sf object) or NULL to initialize
 #   data: Consolidated spatial dataset (e.g., all_PAs_conso) containing
@@ -203,15 +210,13 @@ plot_pa_sources <- function(
 #                    - type_decision_pattern: regex pattern for type_decision
 #                    - num_texte: exact legal instrument number
 #                    - id_texte: exact decision ID
+#   manual_decision: Optional named list for decisions not in CNLEGIS
 #   source_dataset_id: The dataset_id in 'data' containing the historical geometry
 #   amendment_type: Type of spatial amendment. Allowed values:
 #                   - "boundary_modification": Legal change to external boundaries
 #                   - "internal_zoning": Addition/modification of internal zones
 #                   - "correction": Data correction (wrong geometry in WDPA)
 #   valid_from: Optional start date (Date or character). If NULL, remains NA
-#   confidence: Confidence level ("high", "medium", "low")
-#   verification_method: Method used to verify the geometry
-#   verified_by: Who performed verification
 #   notes: Optional notes (defaults to decision object text)
 #
 # Returns:
@@ -226,9 +231,6 @@ add_modif_sat <- function(
   source_dataset_id,
   amendment_type = "boundary_modification",
   valid_from = NULL,
-  confidence = "medium",
-  verification_method = "visual_verification_shiny",
-  verified_by = "project_team",
   notes = NULL
 ) {
   # Helper: accept WDPAID (numeric) or WDPA_NAME (character) and return a single WDPAID
@@ -354,11 +356,7 @@ add_modif_sat <- function(
       } else {
         NA_character_
       },
-      verification_method = verification_method,
-      verified_by = verified_by,
-      verification_date = Sys.Date(),
-      notes = ifelse(is.null(notes), dec$objet_texte[1], notes),
-      confidence = confidence
+      notes = ifelse(is.null(notes), dec$objet_texte[1], notes)
     ) |>
     select(
       WDPAID,
@@ -370,11 +368,7 @@ add_modif_sat <- function(
       data_source,
       legal_source,
       cnlegis_url,
-      verification_method,
-      verified_by,
-      verification_date,
-      notes,
-      confidence
+      notes
     )
 
   # Initialize or append to SAT
@@ -392,6 +386,284 @@ add_modif_sat <- function(
   sat_new
 }
 
+# Export amendments to YAML format for dynamic_wdpa registry
+#
+# This function converts working tables (sat/fat) to standardized YAML files
+# following the dynamic_wdpa amendment schema. Spatial amendments include
+# separate GeoJSON geometry files.
+#
+# Parameters:
+#   spatial: SAT table (sf object) with spatial amendments, or NULL
+#   attribute: FAT table (tibble) with attribute amendments, or NULL
+#   output_dir: Directory for YAML files (default: "data/amendments")
+#   iso3: ISO3 country code (default: "MDG")
+#   wdpa_reference: WDPA dataset for PA name lookup (default: wdpa_mdg)
+#
+# Output structure:
+#   {output_dir}/{iso3}-{wdpaid}-{year}-{type}-{seq}.yml
+#   {output_dir}/geoms/{iso3}-{wdpaid}-{year}-{type}-{seq}.geojson
+#
+# Returns: tibble with amendment_id and file paths
+export_amendments_to_yaml <- function(
+  spatial = NULL,
+  attribute = NULL,
+  output_dir = "data/amendments",
+  iso3 = "MDG",
+  wdpa_reference = wdpa_mdg
+) {
+  require(yaml)
+  require(sf)
+  require(dplyr)
+  require(stringr)
+
+  # Create output directories
+  dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
+  geom_dir <- file.path(output_dir, "geoms")
+  dir.create(geom_dir, showWarnings = FALSE, recursive = TRUE)
+
+  # Helper: get PA name from WDPAID
+  get_wdpa_name <- function(wdpaid, wdpa_ref) {
+    name <- wdpa_ref |>
+      st_drop_geometry() |>
+      filter(WDPAID == wdpaid) |>
+      pull(NAME) |>
+      first()
+    if (is.na(name)) {
+      return(as.character(wdpaid))
+    }
+    name
+  }
+
+  # Helper: generate amendment_id
+  generate_amendment_id <- function(
+    iso3,
+    wdpaid,
+    valid_to,
+    amendment_type,
+    seq
+  ) {
+    year <- if (!is.na(valid_to)) {
+      lubridate::year(valid_to)
+    } else {
+      "NODATE"
+    }
+    sprintf("%s-%d-%s-%s-%03d", iso3, wdpaid, year, amendment_type, seq)
+  }
+
+  # Helper: create legal_instrument object
+  create_legal_instrument <- function(row) {
+    # Check if we have legal instrument data
+    if (all(is.na(c(row$legal_source, row$legal_instrument_number)))) {
+      return(NULL)
+    }
+
+    # Determine source and structure
+    if (
+      !is.null(row$legal_instrument_source) &&
+        !is.na(row$legal_instrument_source)
+    ) {
+      # FAT format
+      list(
+        source = row$legal_instrument_source,
+        type = row$legal_instrument_type,
+        number = row$legal_instrument_number,
+        date = as.character(row$legal_instrument_date),
+        id = if (!is.na(row$legal_instrument_id)) {
+          row$legal_instrument_id
+        } else {
+          NULL
+        },
+        url = if (!is.na(row$legal_instrument_url)) {
+          row$legal_instrument_url
+        } else {
+          NULL
+        }
+      )
+    } else {
+      # SAT format (simpler)
+      list(
+        source = "CNLEGIS",
+        type = "décret", # assume decree if not specified
+        number = row$legal_source,
+        date = NULL, # not available in SAT
+        id = NULL,
+        url = if (!is.na(row$cnlegis_url)) row$cnlegis_url else NULL
+      )
+    }
+  }
+
+  exported <- list()
+
+  # Process spatial amendments
+  if (!is.null(spatial) && nrow(spatial) > 0) {
+    spatial_grouped <- spatial |>
+      group_by(WDPAID, valid_to, amendment_type) |>
+      mutate(seq = row_number()) |>
+      ungroup()
+
+    for (i in seq_len(nrow(spatial_grouped))) {
+      row <- spatial_grouped[i, ]
+
+      amendment_id <- generate_amendment_id(
+        iso3,
+        row$WDPAID,
+        row$valid_to,
+        row$amendment_type,
+        row$seq
+      )
+
+      # Save geometry to GeoJSON
+      geom_filename <- paste0(amendment_id, ".geojson")
+      geom_path <- file.path(geom_dir, geom_filename)
+      geom_relative <- file.path("geoms", geom_filename)
+
+      row |>
+        select(geometry) |>
+        st_transform(4326) |>
+        st_write(geom_path, delete_dsn = TRUE, quiet = TRUE)
+
+      # Build YAML structure
+      amendment <- list(
+        amendment_id = amendment_id,
+        iso3 = iso3,
+        wdpaid = as.integer(row$WDPAID),
+        wdpa_name = get_wdpa_name(row$WDPAID, wdpa_reference),
+        amendment_kind = "spatial",
+        amendment_type = row$amendment_type,
+        valid_from = if (!is.na(row$valid_from)) {
+          as.character(row$valid_from)
+        } else {
+          NULL
+        },
+        valid_to = if (!is.na(row$valid_to)) {
+          as.character(row$valid_to)
+        } else {
+          NULL
+        },
+        legal_instrument = create_legal_instrument(row),
+        notes = if (!is.na(row$notes)) row$notes else NULL,
+        geometry_ref = geom_relative,
+        geometry_crs_epsg = 4326L,
+        geometry_source_dataset_id = row$data_source
+      )
+
+      # Remove NULL values
+      amendment <- amendment[!sapply(amendment, is.null)]
+
+      # Write YAML
+      yaml_filename <- paste0(amendment_id, ".yml")
+      yaml_path <- file.path(output_dir, yaml_filename)
+      write_yaml(amendment, yaml_path)
+
+      exported[[length(exported) + 1]] <- list(
+        amendment_id = amendment_id,
+        kind = "spatial",
+        yaml_path = yaml_path,
+        geom_path = geom_path
+      )
+    }
+  }
+
+  # Process attribute amendments
+  if (!is.null(attribute) && nrow(attribute) > 0) {
+    attribute_grouped <- attribute |>
+      group_by(WDPAID, valid_to, amendment_type) |>
+      mutate(seq = row_number()) |>
+      ungroup()
+
+    for (i in seq_len(nrow(attribute_grouped))) {
+      row <- attribute_grouped[i, ]
+
+      amendment_id <- generate_amendment_id(
+        iso3,
+        row$WDPAID,
+        row$valid_to,
+        row$amendment_type,
+        row$seq
+      )
+
+      # Extract non-NA WDPA attributes
+      wdpa_attributes <- c(
+        "WDPA_PID",
+        "PA_DEF",
+        "NAME",
+        "ORIG_NAME",
+        "DESIG",
+        "DESIG_ENG",
+        "DESIG_TYPE",
+        "IUCN_CAT",
+        "INT_CRIT",
+        "MARINE",
+        "REP_M_AREA",
+        "REP_AREA",
+        "NO_TAKE",
+        "NO_TK_AREA",
+        "STATUS",
+        "STATUS_YR",
+        "GOV_TYPE",
+        "OWN_TYPE",
+        "MANG_AUTH",
+        "MANG_PLAN",
+        "VERIF",
+        "METADATAID",
+        "SUB_LOC",
+        "PARENT_ISO3",
+        "ISO3",
+        "SUPP_INFO",
+        "CONS_OBJ"
+      )
+
+      attributes_list <- list()
+      for (attr in wdpa_attributes) {
+        if (attr %in% names(row) && !is.na(row[[attr]])) {
+          attributes_list[[attr]] <- row[[attr]]
+        }
+      }
+
+      # Build YAML structure
+      amendment <- list(
+        amendment_id = amendment_id,
+        iso3 = iso3,
+        wdpaid = as.integer(row$WDPAID),
+        wdpa_name = get_wdpa_name(row$WDPAID, wdpa_reference),
+        amendment_kind = "attribute",
+        amendment_type = row$amendment_type,
+        valid_from = if (!is.na(row$valid_from)) {
+          as.character(row$valid_from)
+        } else {
+          NULL
+        },
+        valid_to = if (!is.na(row$valid_to)) {
+          as.character(row$valid_to)
+        } else {
+          NULL
+        },
+        legal_instrument = create_legal_instrument(row),
+        notes = if (!is.na(row$notes)) row$notes else NULL,
+        attributes = if (length(attributes_list) > 0) attributes_list else NULL
+      )
+
+      # Remove NULL values
+      amendment <- amendment[!sapply(amendment, is.null)]
+
+      # Write YAML
+      yaml_filename <- paste0(amendment_id, ".yml")
+      yaml_path <- file.path(output_dir, yaml_filename)
+      write_yaml(amendment, yaml_path)
+
+      exported[[length(exported) + 1]] <- list(
+        amendment_id = amendment_id,
+        kind = "attribute",
+        yaml_path = yaml_path,
+        geom_path = NA_character_
+      )
+    }
+  }
+
+  # Return summary
+  bind_rows(exported)
+}
+
 # Add attribute amendments to FAT based on a legal decision
 #
 # This function creates FAT entries documenting historical attribute states
@@ -399,21 +671,15 @@ add_modif_sat <- function(
 # each amendment is a single row with one column per WDPA attribute that may
 # have changed.
 #
+# Working table format for efficient curation. Use export_amendments_to_yaml()
+# to convert to standardized YAML schema.
+#
 # Parameters:
 #   fat: Existing FAT table (tibble) or NULL to initialize
 #   decisions: Legal decisions table with WDPAID linkage (e.g., pa_decisions)
 #   wdpa_name_or_id: Either WDPAID (numeric) or WDPA_NAME (character)
-#   decision_filter: Named list to identify the legal decision (optional if using manual_decision), can include:
-#                    - year: numeric year of decision
-#                    - type_decision_pattern: regex pattern for type_decision
-#                    - num_texte: exact legal instrument number
-#                    - id_texte: exact decision ID
-#                    Set to NULL when using manual_decision.
-#   manual_decision: Optional named list for decisions not in CNLEGIS. Must include:
-#                    - date_texte: Date of the legal instrument (Date or character)
-#                    - type_texte: Type of legal instrument (e.g., "décret", "arrêté")
-#                    - num_texte: Legal instrument number
-#                    Optionally: id_texte, objet_texte
+#   decision_filter: Named list to identify the legal decision (optional if using manual_decision)
+#   manual_decision: Optional named list for decisions not in CNLEGIS
 #   attributes: Named list of attribute changes, e.g.:
 #               list(DESIG = "Réserve Naturelle Intégrale", IUCN_CAT = "Ia")
 #               Only attributes that differ from WDPA should be provided.
@@ -422,10 +688,6 @@ add_modif_sat <- function(
 #                   - "governance_change": Change in management authority
 #                   - "correction": Data correction (wrong attribute in WDPA)
 #   valid_from: Optional start date (Date or character). If NULL, remains NA
-#   confidence: Confidence level ("high", "medium", "low")
-#   verification_method: Method used to verify the attributes
-#   verified_by: Who performed verification
-#   secondary_reference: Optional citation (e.g., "Goodman et al. 2018" or URL)
 #   notes: Optional notes (defaults to decision object text)
 #
 # Returns:
@@ -441,10 +703,6 @@ add_modif_fat <- function(
   attributes,
   amendment_type = "status_change",
   valid_from = NULL,
-  confidence = "medium",
-  verification_method = "legal_text_analysis",
-  verified_by = "project_team",
-  secondary_reference = NULL,
   notes = NULL
 ) {
   resolve_wdpaid <- function(wdpa_name_or_id, decisions) {
@@ -615,16 +873,7 @@ add_modif_fat <- function(
     } else {
       NA_character_
     },
-    secondary_reference = ifelse(
-      is.null(secondary_reference),
-      NA_character_,
-      secondary_reference
-    ),
     amendment_type = amendment_type,
-    verification_method = verification_method,
-    verified_by = verified_by,
-    verification_date = Sys.Date(),
-    confidence = confidence,
     notes = ifelse(
       is.null(notes),
       if (!is.na(dec$objet_texte[1])) dec$objet_texte[1] else NA_character_,
@@ -664,12 +913,7 @@ add_modif_fat <- function(
       legal_instrument_source,
       legal_instrument_id,
       legal_instrument_url,
-      secondary_reference,
       amendment_type,
-      verification_method,
-      verified_by,
-      verification_date,
-      confidence,
       notes
     )
 
@@ -690,7 +934,104 @@ add_modif_fat <- function(
 
 ```
 
-## Ambatovaky
+## Amendment Schema {#sec-amendment-schema}
+
+This chapter documents amendments to WDPA data for Madagascar's protected areas. Amendments are identified through systematic review of legal texts (CNLEGIS), historical spatial data sources, and expert literature (primarily Goodman et al. 2018).
+
+## Output Format
+
+All amendments will be exported to a standardized YAML schema designed for the `dynamic_wdpa` registry. This format enables:
+
+- **Version control**: Each amendment is a standalone file tracked by git
+- **Tool-agnostic editing**: YAML and GeoJSON can be edited with any text editor
+- **Interoperability**: Standard formats facilitate data exchange and validation
+- **Transparency**: Clear documentation of corrections with legal references
+
+## Amendment Schema Structure
+
+Each amendment is stored as a YAML file with the following structure:
+
+### Spatial Amendment Example
+
+```yaml
+amendment_id: "MDG-2314-2015-boundary_modification-001"
+iso3: "MDG"
+wdpaid: 2314
+wdpa_name: "Montagne d'Ambre"
+amendment_kind: "spatial"
+amendment_type: "boundary_modification"
+valid_from: "1958-06-08"
+valid_to: "2015-05-06"
+
+legal_instrument:
+  source: "CNLEGIS"
+  type: "décret"
+  number: "2015-776"
+  date: "2015-05-06"
+  id: "00123456"
+  url: "https://cnlegis.gov.mg/..."
+
+notes: "Historical boundary 1958-2015 before extension via Décret 2015-776."
+
+geometry_ref: "geoms/MDG-2314-2015-boundary_modification-001.geojson"
+geometry_crs_epsg: 4326
+geometry_source_dataset_id: "SAPM_2010"
+```
+
+### Attribute Amendment Example
+
+```yaml
+amendment_id: "MDG-5022-2015-correction-001"
+iso3: "MDG"
+wdpaid: 5022
+wdpa_name: "Analamerana"
+amendment_kind: "attribute"
+amendment_type: "correction"
+valid_from: "1956-02-20"
+valid_to: "2015-08-10"
+
+legal_instrument:
+  source: "CNLEGIS"
+  type: "décret"
+  number: "56-208"
+  date: "1956-02-20"
+
+notes: "WDPA incorrectly shows PN/II. Correct designation is RS/IV per Décret 56-208."
+
+attributes:
+  DESIG: "Réserve Spéciale"
+  DESIG_ENG: "Special Reserve"
+  IUCN_CAT: "IV"
+  STATUS_YR: "1956"
+```
+
+### Working Tables
+
+For efficient curation within R, this document builds two working tables:
+
+- **`sat`** (Spatial Amendment Table): sf object with geometries for spatial amendments
+- **`fat`** (Feature Attribute Table): tibble with wide format for attribute amendments
+
+These tables are optimized for R operations (geometry manipulation, filtering, validation) and are exported to the YAML schema at the end of the document using `export_amendments_to_yaml()`.
+
+### Amendment Types
+
+- **`boundary_modification`**: Legal change to PA external boundaries
+- **`internal_zoning`**: Core zones or other internal subdivisions
+- **`correction`**: Data error in WDPA (wrong geometry, wrong attribute value)
+- **`status_change`**: Change in designation type (RNI→PN, RS→PN, etc.)
+- **`governance_change`**: Change in management authority
+
+## Décisions modifiant les aires protégées
+
+For each PA, we:
+
+1. Review legal history via CNLEGIS and Goodman et al. (2018)
+2. Compare WDPA attributes with legal documentation
+3. Verify boundaries using visual verification tool (@sec-visual-verif)
+4. Document amendments when discrepancies are found
+
+### Ambatovaky
 
 @goodman2018 indique pour cette AP:
 
@@ -708,15 +1049,7 @@ Surface	actuelle	:	78	139	ha	(selon	le	décret	en	vigueur).
 L'attibut STATUS_YR d'Ambatovaky indiquent qu'elle a été créée en 1958, mais au moins une décision a modifié son statut depuis : 
 
 ```{r}
-show_cnlegis_for_pa("Ambatovaky", pa_decisions, pattern = "modifiant") |>
-  select(
-    date_texte,
-    type_texte,
-    num_texte,
-    type_decision,
-    id_texte,
-    objet_texte
-  )
+show_cnlegis_for_pa("Ambatovaky", pa_decisions)
 ```
 
 Le périmètre correspondant à l'étendue de l'AP avant 2015 est celui fourni par de MNP.
@@ -764,15 +1097,7 @@ suivant	le	Décret	n°	2015-732	du	21	avril	2015	;	Surface	actuelle	:	874	ha
 Les métadonnées indiquent que cette aire protégée a été créée en 1970 (Arrêté 2778/70), puis modifiée en 2015 :
 
 ```{r}
-show_cnlegis_for_pa(5021, pa_decisions) |>
-  select(
-    date_texte,
-    type_texte,
-    num_texte,
-    type_decision,
-    id_texte,
-    objet_texte
-  )
+show_cnlegis_for_pa(5021, pa_decisions)
 ```
 
 Après inspection visuelle des différentes sources disponibles, on retient SAPM 2010 comme source des limites avant la modification de 2015.
@@ -828,15 +1153,7 @@ modification	de	statut	:	aucune	;	Surface	actuelle	:	34	700	ha	(selon	le	décret
 en	vigueur).
 
 ```{r}
-show_cnlegis_for_pa(5022, pa_decisions) |>
-  select(
-    date_texte,
-    type_texte,
-    num_texte,
-    type_decision,
-    id_texte,
-    objet_texte
-  )
+show_cnlegis_for_pa(5022, pa_decisions)
 ```
 
 Le Décret 56-208 du 20 février 1956 créant la Réserve Spéciale d'Analamerana n'apparaît pas dans CNLEGIS (pré-2000). WDPA 2025 montre des erreurs majeures : DESIG="Parc National" au lieu de "Reserve Speciale", IUCN_CAT=II au lieu de IV, et STATUS_YR=2015 au lieu de 1956. Goodman confirme qu'aucune modification de statut n'a eu lieu.
@@ -893,15 +1210,7 @@ Les sources secondaires indiquent qu’Andohahela a connu plusieurs évolutions 
 Les textes réglementaires récents identifiés dans CNLEGIS confirment en revanche une modification explicite des limites en 2015, par l’Arrêté n°2015-785 du 28 avril 2015, portant modification des limites du Parc National d’Andohahela. On la retrouve bien dans nos données CNLEGIS :
 
 ```{r}
-show_cnlegis_for_pa("Andohahela", pa_decisions) |>
-  select(
-    date_texte,
-    type_texte,
-    num_texte,
-    type_decision,
-    id_texte,
-    objet_texte
-  )
+show_cnlegis_for_pa("Andohahela", pa_decisions)
 ```
 
 Cette décision juridique constitue un déclencheur clair pour l’introduction d’un amendement spatial dans la SAT.
@@ -949,8 +1258,7 @@ fat <- fat |>
     ),
     amendment_type = "status_change",
     valid_from = "1966-06-01",
-    secondary_reference = "https://archive.org/details/decret-n-97-1043-du-07-aout-1997-pn-andoahahela",
-    notes = "RNI #11 transformed to PN in 1997 (Décret 97-1043 du 7 août 1997). Three-parcel structure maintained. Decree not in CNLEGIS but archived independently."
+    notes = "RNI #11 transformed to PN in 1997 (Décret 97-1043 du 7 août 1997). Three-parcel structure maintained. Decree not in CNLEGIS but archived independently. Reference: https://archive.org/details/decret-n-97-1043-du-07-aout-1997-pn-andoahahela"
   ) |>
   add_modif_fat(
     decisions = pa_decisions,
@@ -983,15 +1291,7 @@ règlementations	y	afférant	;	Dernière	modification	de	statut	:	aucune	;
 Surface	actuelle	:	6420	ha	(selon	le	décret	en	vigueur).
 
 ```{r}
-show_cnlegis_for_pa(5040, pa_decisions) |>
-  select(
-    date_texte,
-    type_texte,
-    num_texte,
-    type_decision,
-    id_texte,
-    objet_texte
-  )
+show_cnlegis_for_pa(5040, pa_decisions)
 ```
 
 WDPA 2025 montre STATUS_YR=2015, qui correspond à la création du Paysage Harmonieux Protégé de Menabe Antimena. Cependant, Goodman précise qu'Andranomena conserve ses propres statuts juridique et foncier. La Réserve Spéciale d'Andranomena a été créée en 1958 par le Décret 58-13, qui apparaît dans CNLEGIS.
@@ -1092,15 +1392,7 @@ avril	2015	;	Surface	actuelle	:	26	903	ha	(selon	le	décret	en	vigueur).
 Les métadonnées indiquent que cette aire protégée a été créée en 1958 comme Réserve Spéciale, puis ses limites ont été modifiées en 2015:
 
 ```{r}
-show_cnlegis_for_pa(5023, pa_decisions) |>
-  select(
-    date_texte,
-    type_texte,
-    num_texte,
-    type_decision,
-    id_texte,
-    objet_texte
-  )
+show_cnlegis_for_pa(5023, pa_decisions)
 ```
 
 Après inspection visuelle des différentes sources disponibles, on retient MNP_2010 comme source des limites avant la modification de 2015. Cette géométrie représente le périmètre tel que géré par Madagascar National Parks avant l'entrée en vigueur du décret modificatif.
@@ -1172,15 +1464,7 @@ Dernière	modification	de	statut	:	suivant	le	Décret	n°	2015-730	du	21	avril
 Les sources secondaires indiquent qu'Ankarafantsika a connu une évolution complexe, avec la création de la RNI #7 en 1927, l'établissement de réserves forestières adjacentes en 1929, et la consolidation de l'ensemble en parc national en 2002, puis modification de statut et de frontières en 2015. 
 
 ```{r}
-show_cnlegis_for_pa("Ankarafantsika", pa_decisions) |>
-  select(
-    date_texte,
-    type_texte,
-    num_texte,
-    type_decision,
-    id_texte,
-    objet_texte
-  )
+show_cnlegis_for_pa("Ankarafantsika", pa_decisions)
 ```
 
 Après inspection visuelle des différentes sources disponibles, on retient ANGAP_2002 comme source des limites avant la modification de 2015.
@@ -1227,8 +1511,7 @@ fat <- fat |>
     ),
     amendment_type = "status_change",
     valid_from = "1927-12-31",
-    secondary_reference = "Alonso & Shuldenberg 2002",
-    notes = "RNI #7 created 1927, boundaries clarified 1966. RNI (+ forest reserves + Station Forestière Ampijoroa) consolidated into PN in 2002 (Décret 2002-798 du 7 août 2002). Major boundary expansion."
+    notes = "RNI #7 created 1927, boundaries clarified 1966. RNI (+ forest reserves + Station Forestière Ampijoroa) consolidated into PN in 2002 (Décret 2002-798 du 7 août 2002). Major boundary expansion. Reference: Alonso & Shuldenberg 2002"
   ) |>
   add_modif_fat(
     decisions = pa_decisions,
@@ -1256,15 +1539,7 @@ statut	:	aucune	;	Surface	actuelle	:	18	225	ha	(selon	le	décret	en	vigueur).
 Création en 1956 ou 2015 (dans WDPA 2025 c'est 2015) ?
 
 ```{r}
-show_cnlegis_for_pa(5024, pa_decisions) |>
-  select(
-    date_texte,
-    type_texte,
-    num_texte,
-    type_decision,
-    id_texte,
-    objet_texte
-  )
+show_cnlegis_for_pa(5024, pa_decisions)
 ```
 
 Le Décret 56-208 du 20 février 1956 créant la Réserve Spéciale d'Ankarana n'apparaît pas dans CNLEGIS (pré-2000). WDPA 2025 montre STATUS_YR=2015 au lieu de 1956. DESIG et IUCN_CAT sont corrects (Reserve Speciale, IV). Goodman confirme qu'aucune modification de statut n'a eu lieu.
@@ -1308,15 +1583,7 @@ modification	de	statut	:	aucune	;	Surface	actuelle	:	192	198	ha	(selon	le
 décret	en	vigueur).
 
 ```{r}
-show_cnlegis_for_pa(20272, pa_decisions) |>
-  select(
-    date_texte,
-    type_texte,
-    num_texte,
-    type_decision,
-    id_texte,
-    objet_texte
-  )
+show_cnlegis_for_pa(20272, pa_decisions)
 ```
 
 Le Décret 97-1451 du 18 décembre 1997 portant création du Parc National de Befotaka-Midongy du Sud apparaît bien dans la base CNLEGIS. Ce parc intègre des parties des forêts classées de Soarano et Befotaka créées en 1953.
@@ -1358,15 +1625,7 @@ Décret	n°	2011-498	du	6	septembre	2011	;	Surface	actuelle	:	157	710	ha
 Le texte de Goodman et al. omet la modification introduite par le décret 97-1045.
 
 ```{r}
-show_cnlegis_for_pa("Bemaraha", pa_decisions) |>
-  select(
-    date_texte,
-    type_texte,
-    num_texte,
-    type_decision,
-    id_texte,
-    objet_texte
-  )
+show_cnlegis_for_pa("Bemaraha", pa_decisions)
 ```
 
 Les textes légaux identifient deux décisions modificatives : 1997 (modification des limites) et 2011 (modification des limites + changement de statut RNI → PN). Nous documentons la modification de 2011, pour laquelle nous disposons d'une géométrie pré-modification. Les périmètres antérieurs à 1997 ne sont pas disponibles.
@@ -1474,15 +1733,7 @@ Dernière	modification	de	statut	:	suivant	le	Décret	n°	2015-733	du	21	avril
 2015	;	Surface	actuelle	:	4200	ha	(selon	le	décret	en	vigueur).
 
 ```{r}
-show_cnlegis_for_pa(10634, pa_decisions) |>
-  select(
-    date_texte,
-    type_texte,
-    num_texte,
-    type_decision,
-    id_texte,
-    objet_texte
-  )
+show_cnlegis_for_pa(10634, pa_decisions)
 ```
 
 Après inspection visuelle et croisement avec des cartes incluses dans des publications scientifiques [@sussman2012], on retient MNP_2010 comme source des limites avant la modification de 2015.
@@ -1548,15 +1799,7 @@ statut	:	suivant	le	Décret	n°	2015-734	du	21	avril	2015	;	Surface	actuelle	:
 Les métadonnées indiquent bien que cette aire protégée a été créée en 1962 comme Réserve Spéciale, puis ses limites ont été modifiées en 2015:
 
 ```{r}
-show_cnlegis_for_pa(5041, pa_decisions) |>
-  select(
-    date_texte,
-    type_texte,
-    num_texte,
-    type_decision,
-    id_texte,
-    objet_texte
-  )
+show_cnlegis_for_pa(5041, pa_decisions)
 ```
 
 Après inspection visuelle des différentes sources disponibles, on retient MNP_2010 comme source des limites avant la modification de 2015.
@@ -1618,15 +1861,7 @@ de	statut	:	suivant	le	Décret	n°	2015-735	du	21	avril	2015	;	Surface	actuelle	
 Les métadonnées indiquent que cette aire protégée a été créée en 1997, puis ses limites ont été modifiées en 2015:
 
 ```{r}
-show_cnlegis_for_pa(303700, pa_decisions) |>
-  select(
-    date_texte,
-    type_texte,
-    num_texte,
-    type_decision,
-    id_texte,
-    objet_texte
-  )
+show_cnlegis_for_pa(303700, pa_decisions)
 ```
 
 Après inspection visuelle des différentes sources disponibles, on retient MNP_2010 comme source des limites avant la modification de 2015.
@@ -1675,15 +1910,7 @@ statut	:	suivant	le	Décret	n°	2011-500	du	6	juillet	2011	;	Surface	actuelle	:
 Les textes légaux confirment que cette aire protégée a été transformée en parc national en 2011 avec modification des limites.
 
 ```{r}
-show_cnlegis_for_pa("Lokobe", pa_decisions) |>
-  select(
-    date_texte,
-    type_texte,
-    num_texte,
-    type_decision,
-    id_texte,
-    objet_texte
-  )
+show_cnlegis_for_pa("Lokobe", pa_decisions)
 ```
 
 
@@ -1725,9 +1952,6 @@ add_modif_sat(
   source_dataset_id = "SAPM_2010",
   amendment_type = "boundary_modification",
   valid_from = "1927-12-31",
-  confidence = "medium",
-  verification_method = "visual_verification_shiny",
-  verified_by = "project_team",
   notes = "Pre-2011 terrestrial RNI boundary before marine extension. SAPM_2010 'Lokobe' feature only (excluding 'Lokobe extension')."
 )
 
@@ -1744,9 +1968,6 @@ add_modif_fat(
   ),
   amendment_type = "status_change",
   valid_from = "1927-12-31",
-  confidence = "high",
-  verification_method = "legal_text_analysis",
-  verified_by = "project_team",
   notes = "Original RNI status from 1927 to 2011. Décret 1927-12-31 complemented by Décret 66-242 (1966-06-01)."
 )
 ```
@@ -1766,15 +1987,7 @@ le	décret	en	vigueur).
 Les métadonnées confirment que cette aire protégée a été créée en 1958 comme Réserve Spéciale, sans modification ultérieure:
 
 ```{r}
-show_cnlegis_for_pa(5038, pa_decisions) |>
-  select(
-    date_texte,
-    type_texte,
-    num_texte,
-    type_decision,
-    id_texte,
-    objet_texte
-  )
+show_cnlegis_for_pa(5038, pa_decisions)
 ```
 
 ## Manombo
@@ -1796,15 +2009,7 @@ statut	:	suivant	le	Décret	n°	67-051	du	31	janvier	1967	;	Surface	actuelle	:
 Les métadonnées confirment que cette aire protégée a été créée en 1962 comme Réserve Spéciale, puis ses limites ont été modifiées en 1967:
 
 ```{r}
-show_cnlegis_for_pa("Manombo", pa_decisions) |>
-  select(
-    date_texte,
-    type_texte,
-    num_texte,
-    type_decision,
-    id_texte,
-    objet_texte
-  )
+show_cnlegis_for_pa("Manombo", pa_decisions)
 ```
 
 ::: {.callout-note}
@@ -1827,15 +2032,7 @@ Surface	actuelle	:	51	568	ha	(selon	le	décret	en	vigueur).
 Les métadonnées indiquent que les limites de cette aire protégée aont été modifiées en 2015:
 
 ```{r}
-show_cnlegis_for_pa("Manongarivo", pa_decisions) |>
-  select(
-    date_texte,
-    type_texte,
-    num_texte,
-    type_decision,
-    id_texte,
-    objet_texte
-  )
+show_cnlegis_for_pa("Manongarivo", pa_decisions)
 ```
 
 Après inspection visuelle des différentes sources disponibles, on retient MNP_2010 comme source des limites avant la modification de 2015.
@@ -1894,15 +2091,7 @@ Dernière	modification	de	statut	:	suivant	le	Décret	n°	2002-790	du	7	août
 Les métadonnées confirment que cette aire protégée a été créée en 1989 comme Parc National, puis ses limites ont été étendues en 2002:
 
 ```{r}
-show_cnlegis_for_pa("Mantadia", pa_decisions) |>
-  select(
-    date_texte,
-    type_texte,
-    num_texte,
-    type_decision,
-    id_texte,
-    objet_texte
-  )
+show_cnlegis_for_pa("Mantadia", pa_decisions)
 ```
 
 Malheureusement, on ne dispose pas de source géométrique antérieure à 2002 pour cette AP.
@@ -1929,15 +2118,7 @@ mai	1998	;	Dernière	modification	de	statut	:	suivant	le	Décret	n°	98-375	du
 Les métadonnées confirment que cette aire protégée a été créée en 1952 comme RNI, puis reclassée en Parc National en 1998:
 
 ```{r}
-show_cnlegis_for_pa("Marojejy", pa_decisions) |>
-  select(
-    date_texte,
-    type_texte,
-    num_texte,
-    type_decision,
-    id_texte,
-    objet_texte
-  )
+show_cnlegis_for_pa("Marojejy", pa_decisions)
 ```
 
 La modification de 1998 ne porte que sur le statut (de RNI à PN), sans changement de limites. On documente le changement de statut dans FAT.
@@ -2018,15 +2199,7 @@ décret	en	vigueur).
 Les métadonnées confirment que les limites de cette aire protégée ont été modifiées en 2015:
 
 ```{r}
-show_cnlegis_for_pa("Montagne d'Ambre", pa_decisions) |>
-  select(
-    date_texte,
-    type_texte,
-    num_texte,
-    type_decision,
-    id_texte,
-    objet_texte
-  )
+show_cnlegis_for_pa("Montagne d'Ambre", pa_decisions)
 ```
 
 Le décret 2015-776 a fusionné **deux aires protégées distinctes** ayant chacune leur propre WDPAID :
@@ -2205,15 +2378,7 @@ du	7	août	2002	;	Surface	actuelle	:	22	227	ha	(selon	le	décret	en	vigueur).
 Les métadonnées confirment que cette aire protégée a été reclassée en Parc National en 2002:
 
 ```{r}
-show_cnlegis_for_pa("Namoroka", pa_decisions) |>
-  select(
-    date_texte,
-    type_texte,
-    num_texte,
-    type_decision,
-    id_texte,
-    objet_texte
-  )
+show_cnlegis_for_pa("Namoroka", pa_decisions)
 ```
 
 **Note de validation** : Namoroka a subi un changement de statut de RNI à PN en 2002, sans modification de limites. La WDPA 2025 indique incorrectement STATUS_YR=2004 alors que la création comme RNI date de 1927.
@@ -2267,15 +2432,7 @@ du	28	avril	2015	;	Surface	actuelle	:	729	ha	(selon	le	décret	en	vigueur).
 Les métadonnées confirment que cette aire protégée a été créée en 1965 comme Réserve Spéciale, puis reclassée en Parc National en 2015 avec modification des limites:
 
 ```{r}
-show_cnlegis_for_pa("Nosy Mangabe", pa_decisions) |>
-  select(
-    date_texte,
-    type_texte,
-    num_texte,
-    type_decision,
-    id_texte,
-    objet_texte
-  )
+show_cnlegis_for_pa("Nosy Mangabe", pa_decisions)
 ```
 
 L'inspection visuelle indique que seule la grande île au Nord faisait partie de l'AP avant 2015. Les petits îlots au Sud ont été ajoutés en 2015. 
@@ -2457,9 +2614,6 @@ fat <- add_modif_fat(
   ),
   amendment_type = "correction",
   valid_from = "1927-12-31",
-  confidence = "high",
-  verification_method = "legal_text_analysis",
-  verified_by = "project_team",
   notes = "WDPA 2025 incorrectly classifies Tsaratanàna as PN/II. Decree 2015-782 confirms it remains RNI/Ia (Strict Nature Reserve). The RNI has never changed status since creation in 1927. The 2015 decree created the CAPAM complex and added 59,279 ha extensions (also Ia), bringing total to 108,610 ha."
 )
 
@@ -2479,9 +2633,6 @@ fat <- add_modif_fat(
   ),
   amendment_type = "correction",
   valid_from = "2015-04-28",
-  confidence = "high",
-  verification_method = "legal_text_analysis",
-  verified_by = "project_team",
   notes = "WDPA 2025 shows STATUS_YR=1997 with no supporting decree. Setting to 2015 (date of extensions via Decree 2015-782). Original RNI creation was 1927-12-31."
 )
 ```
@@ -2521,15 +2672,7 @@ Dernière	modification	de	statut	:	suivant	le	Décret	n°	2015-736	du	21	avril
 Les métadonnées confirment que cette aire protégée a été reclassée en Parc National en 2002, puis ses limites ont été modifiées en 2015:
 
 ```{r}
-show_cnlegis_for_pa("Tsimanampesotse", pa_decisions) |>
-  select(
-    date_texte,
-    type_texte,
-    num_texte,
-    type_decision,
-    id_texte,
-    objet_texte
-  )
+show_cnlegis_for_pa("Tsimanampesotse", pa_decisions)
 ```
 
 **Note de validation** : Tsimanampesotse a subi deux modifications successives : changement de statut RNI vers PN en 2002 (Décret 2002-797), puis modification de limites en 2015 (Décret 2015-736) incluant l'extension d'Hatokaliotsy. La WDPA 2025 indique correctement STATUS_YR=1927 (création comme RNI).
@@ -2538,7 +2681,7 @@ Après inspection visuelle des différentes sources disponibles, on retient MNP_
 
 ```{r}
 plot_pa_sources(
-  2307,
+  "Tsimanampesotse",
   sources = c("MNP_2010", "WDPA_2025")
 )
 ```
@@ -2599,15 +2742,7 @@ Dernière	modification	de	statut	:	suivant	le	Décret	n°	2015-737	du	21	avril
 Les métadonnées et sources historiques confirment que cette aire protégée a connu une histoire complexe avec plusieurs modifications de limites et de statut:
 
 ```{r}
-show_cnlegis_for_pa("Zahamena", pa_decisions) |>
-  select(
-    date_texte,
-    type_texte,
-    num_texte,
-    type_decision,
-    id_texte,
-    objet_texte
-  )
+show_cnlegis_for_pa("Zahamena", pa_decisions)
 ```
 
 **Historique détaillé** (basé sur sources complémentaires) :
@@ -2623,7 +2758,7 @@ show_cnlegis_for_pa("Zahamena", pa_decisions) |>
 
 ```{r}
 plot_pa_sources(
-  354013,
+  "Zahamena",
   sources = c("SAPM_2010", "ANGAP_2002", "WDPA_2025")
 )
 ```
@@ -2723,28 +2858,100 @@ fat <- add_modif_fat(
 )
 ```
 
-# Save Curated Tables {#sec-save-curated}
+# Export Amendments {#sec-export-amendments}
 
-The manual curation process has generated two key tables:
+The curation process has documented amendments to Madagascar's WDPA data. We now export these to the standardized YAML schema for the `dynamic_wdpa` registry.
 
-- **SAT** (Site Attribute Table): Records all corrections to WDPA attributes (e.g., designation, IUCN category, status year)
-- **FAT** (Feature Attribute Table): Provides detailed feature-level attribute changes with legal documentation and temporal validity
-
-These curated tables will be used in subsequent analyses to produce corrected PA datasets that reflect accurate historical information for Madagascar's protected areas.
+## Export to YAML Format
 
 ```{r}
-#| label: save-curated-tables
+#| label: export-amendments
 
-# Save the Site Attribute Table
-write_rds(sat, "data/sat_curated.rds")
+# Export amendments to YAML + GeoJSON
+exported <- export_amendments_to_yaml(
+  spatial = sat,
+  attribute = fat,
+  output_dir = "data/amendments",
+  iso3 = "MDG",
+  wdpa_reference = wdpa_mdg
+)
 
-# Save the Feature Attribute Table
-write_rds(fat, "data/fat_curated.rds")
-
-# Summary of curation results
-cat("Curation complete!\n")
-cat("SAT entries:", nrow(sat), "\n")
-cat("FAT entries:", nrow(fat), "\n")
+# Also save R working tables for local analysis
+saveRDS(sat, "data/sat_working.rds")
+saveRDS(fat, "data/fat_working.rds")
 ```
+
+## Export Summary
+
+```{r}
+#| label: export-summary
+
+cat("Amendment export complete!\n\n")
+cat("Total amendments:", nrow(exported), "\n")
+cat("  Spatial amendments:", sum(exported$kind == "spatial"), "\n")
+cat("  Attribute amendments:", sum(exported$kind == "attribute"), "\n\n")
+
+cat("Output structure:\n")
+cat("  YAML files: data/amendments/*.yml\n")
+cat("  GeoJSON files: data/amendments/geoms/*.geojson\n\n")
+
+# Show breakdown by amendment type
+if (nrow(exported) > 0) {
+  cat("Amendments by type:\n")
+
+  # Get amendment types from original tables
+  # Spatial amendments are first in export (rows 1 to nrow(sat))
+  # Attribute amendments follow (rows nrow(sat)+1 to nrow(sat)+nrow(fat))
+  amendment_types <- bind_rows(
+    sat |>
+      st_drop_geometry() |>
+      mutate(seq = row_number()) |>
+      select(seq, amendment_type),
+    fat |>
+      mutate(seq = row_number() + nrow(sat)) |>
+      select(seq, amendment_type)
+  )
+
+  # Match with exported amendments and count
+  exported |>
+    mutate(seq = row_number()) |>
+    left_join(amendment_types, by = "seq") |>
+    count(amendment_type, kind, sort = TRUE) |>
+    print()
+}
+```
+
+## Example Amendment Files
+
+Let's view an example of each type:
+
+```{r}
+#| label: show-example-amendments
+
+# Show first spatial amendment
+if (any(exported$kind == "spatial")) {
+  spatial_example <- exported |> filter(kind == "spatial") |> slice(1)
+  cat("\n=== Example Spatial Amendment ===\n")
+  cat(readLines(spatial_example$yaml_path), sep = "\n")
+}
+
+# Show first attribute amendment
+if (any(exported$kind == "attribute")) {
+  attribute_example <- exported |> filter(kind == "attribute") |> slice(1)
+  cat("\n\n=== Example Attribute Amendment ===\n")
+  cat(readLines(attribute_example$yaml_path), sep = "\n")
+}
+```
+
+## Next Steps
+
+The exported YAML files in `data/amendments/` are ready to be:
+
+1. **Reviewed**: Check YAML syntax and content correctness
+2. **Committed**: Add to version control (git)
+3. **Submitted**: Transfer to `dynamic_wdpa` repository
+4. **Maintained**: Edit directly or regenerate from updated curation
+
+The R working tables (`*_working.rds`) remain available for local analysis and can be used to regenerate exports if the schema or data changes.
 
 

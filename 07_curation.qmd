@@ -938,7 +938,7 @@ add_modif_fat <- function(
 
 This chapter documents amendments to WDPA data for Madagascar's protected areas. Amendments are identified through systematic review of legal texts (CNLEGIS), historical spatial data sources, and expert literature (primarily Goodman et al. 2018).
 
-## Output Format
+### Output Format
 
 All amendments will be exported to a standardized YAML schema designed for the `dynamic_wdpa` registry. This format enables:
 
@@ -947,7 +947,7 @@ All amendments will be exported to a standardized YAML schema designed for the `
 - **Interoperability**: Standard formats facilitate data exchange and validation
 - **Transparency**: Clear documentation of corrections with legal references
 
-## Amendment Schema Structure
+### Amendment Schema Structure
 
 Each amendment is stored as a YAML file with the following structure:
 
@@ -1331,13 +1331,7 @@ Surface	actuelle	:	31	160	ha	(selon	le	décret	en	vigueur).
 Les métadonnées indiquent que cette aire protégée a été créée en 1927 comme RNI #5, puis ses limites ont été fixées en 1966, avant un changement de statut en 1998:
 
 ```{r}
-andringitra_decision <- pa_decisions |>
-  filter(WDPAID == 2308) |>
-  select(date_texte, type_texte, type_decision, id_texte, objet_texte)
-print(list(
-  select(andringitra_decision, -objet_texte),
-  andringitra_decision$objet_texte
-))
+show_cnlegis_for_pa(2308, pa_decisions)
 ```
 
 La modification survenue en 1998 ne porte pas sur un changement de frontière mais sur un changement de statut juridique (de RNI à PN). Aucun amendement spatial n'est donc nécessaire. On documente le changement de statut dans FAT.
@@ -1943,33 +1937,35 @@ WDPA 2025 rapporte 8,62 km² (862 ha comme indiqué dans le décret), reflétant
 
 ```{r}
 # SAT: Pre-2011 boundary (original RNI)
-add_modif_sat(
-  sat = sat,
-  data = lokobe_pre2011,
-  decisions = pa_decisions,
-  wdpa_name_or_id = "Lokobe",
-  decision_filter = list(num_texte = "2011-500"),
-  source_dataset_id = "SAPM_2010",
-  amendment_type = "boundary_modification",
-  valid_from = "1927-12-31",
-  notes = "Pre-2011 terrestrial RNI boundary before marine extension. SAPM_2010 'Lokobe' feature only (excluding 'Lokobe extension')."
-)
+sat <- sat |>
+  add_modif_sat(
+    sat = sat,
+    data = lokobe_pre2011,
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Lokobe",
+    decision_filter = list(num_texte = "2011-500"),
+    source_dataset_id = "SAPM_2010",
+    amendment_type = "boundary_modification",
+    valid_from = "1927-12-31",
+    notes = "Pre-2011 terrestrial RNI boundary before marine extension. SAPM_2010 'Lokobe' feature only (excluding 'Lokobe extension')."
+  )
 
 # FAT: Pre-2011 status (RNI/Ia)
-add_modif_fat(
-  fat = fat,
-  decisions = pa_decisions,
-  wdpa_name_or_id = "Lokobe",
-  decision_filter = list(num_texte = "2011-500"),
-  attributes = list(
-    DESIG = "Réserve Naturelle Intégrale",
-    DESIG_ENG = "Strict Nature Reserve",
-    IUCN_CAT = "Ia"
-  ),
-  amendment_type = "status_change",
-  valid_from = "1927-12-31",
-  notes = "Original RNI status from 1927 to 2011. Décret 1927-12-31 complemented by Décret 66-242 (1966-06-01)."
-)
+sat <- sat |>
+  add_modif_fat(
+    fat = fat,
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Lokobe",
+    decision_filter = list(num_texte = "2011-500"),
+    attributes = list(
+      DESIG = "Réserve Naturelle Intégrale",
+      DESIG_ENG = "Strict Nature Reserve",
+      IUCN_CAT = "Ia"
+    ),
+    amendment_type = "status_change",
+    valid_from = "1927-12-31",
+    notes = "Original RNI status from 1927 to 2011. Décret 1927-12-31 complemented by Décret 66-242 (1966-06-01)."
+  )
 ```
 
 
@@ -2920,38 +2916,3 @@ if (nrow(exported) > 0) {
     print()
 }
 ```
-
-### Example Amendment Files
-
-Let's view an example of each type:
-
-```{r}
-#| label: show-example-amendments
-
-# Show first spatial amendment
-if (any(exported$kind == "spatial")) {
-  spatial_example <- exported |> filter(kind == "spatial") |> slice(1)
-  cat("\n=== Example Spatial Amendment ===\n")
-  cat(readLines(spatial_example$yaml_path), sep = "\n")
-}
-
-# Show first attribute amendment
-if (any(exported$kind == "attribute")) {
-  attribute_example <- exported |> filter(kind == "attribute") |> slice(1)
-  cat("\n\n=== Example Attribute Amendment ===\n")
-  cat(readLines(attribute_example$yaml_path), sep = "\n")
-}
-```
-
-## Next Steps
-
-The exported YAML files in `data/amendments/` are ready to be:
-
-1. **Reviewed**: Check YAML syntax and content correctness
-2. **Committed**: Add to version control (git)
-3. **Submitted**: Transfer to `dynamic_wdpa` repository
-4. **Maintained**: Edit directly or regenerate from updated curation
-
-The R working tables (`*_working.rds`) remain available for local analysis and can be used to regenerate exports if the schema or data changes.
-
-

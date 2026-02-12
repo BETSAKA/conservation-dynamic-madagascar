@@ -2860,6 +2860,215 @@ fat <- add_modif_fat(
 )
 ```
 
+## Protections temporaires
+
+### Contexte juridique
+
+À Madagascar, le Code de Gestion des Aires Protégées (loi n°2001-005 du 11 février 2003) prévoit un mécanisme de **protection temporaire** via son article 20. Ce mécanisme permet de protéger légalement des sites en cours de création d'aire protégée, en attendant la publication du décret de classement définitif.
+
+Les protections temporaires sont établies par **Arrêté interministériel** et confèrent une protection juridiquement contraignante avec des mesures de conservation spécifiques (interdictions d'exploitation, de défrichement, etc.). Bien que temporaires par nature, ces désignations constituent des actes juridiques ayant force de loi dès leur signature.
+
+Dans la base de données WDPA, nous attribuons à ces aires protégées le statut `STATUS = "Designated"`, car elles bénéficient d'une reconnaissance juridique formelle avec engagement contraignant de conservation à long terme, conformément à la définition du manuel WDPA.
+
+### Identification et traitement
+
+Nous identifions les décisions CNLEGIS relatives aux protections temporaires, puis créons des entrées FAT documentant :
+
+1. La période de **protection temporaire** (depuis l'Arrêté jusqu'au Décret de classement définitif)
+2. Le **passage au statut permanent** lorsqu'un Décret de création définitive existe
+
+```{r filter-temporary-protections}
+# Filter decisions related to temporary creations
+temporary_protections <- pa_decisions |>
+  filter(
+    str_detect(type_decision, "mise_protection_temporaire")
+  )
+
+# Get permanent designations for the same PAs
+temp_wdpaids <- unique(temporary_protections$WDPAID)
+
+permanent_designations <- pa_decisions |>
+  filter(
+    WDPAID %in% temp_wdpaids,
+    type_decision == "creation_definitive"
+  ) |>
+  select(WDPAID, perm_date = date_texte, perm_texte = num_texte)
+
+# Join temporary with permanent info
+temp_full <- temporary_protections |>
+  select(
+    WDPAID,
+    WDPA_NAME,
+    temp_date = date_texte,
+    temp_texte = num_texte,
+    type_texte
+  ) |>
+  left_join(
+    permanent_designations,
+    by = "WDPAID",
+    relationship = "many-to-many"
+  ) |>
+  # Take earliest permanent date if multiple
+  group_by(WDPAID, WDPA_NAME, temp_date, temp_texte) |>
+  slice_min(perm_date, n = 1, with_ties = FALSE) |>
+  ungroup() |>
+  # Filter out rows with missing WDPAID
+  filter(!is.na(WDPAID))
+
+cat("Temporary protections to process:", nrow(temp_full), "\n")
+cat(
+  "  With later permanent designation:",
+  sum(!is.na(temp_full$perm_date)),
+  "\n"
+)
+cat("  Still temporary:", sum(is.na(temp_full$perm_date)), "\n")
+
+# Identify temporary protections excluded due to missing WDPAID
+excluded_temp_protections <- temporary_protections |>
+  filter(is.na(WDPAID)) |>
+  select(WDPA_NAME, date_texte, num_texte, objet_texte)
+
+if (nrow(excluded_temp_protections) > 0) {
+  cat("\nExcluded (no WDPAID):", nrow(excluded_temp_protections), "\n")
+}
+```
+
+Les résultats montrent le nombre d'aires protégées ayant bénéficié d'une protection temporaire, combien ont depuis obtenu un classement définitif, et combien demeurent en statut temporaire.
+
+### Aires protégées exclues du traitement
+
+Certaines décisions de protection temporaire ne peuvent être appariées à un WDPAID dans la base WDPA actuelle. Il s'agit vraisemblablement d'aires protégées qui ont reçu une protection temporaire mais n'ont jamais été finalisées, ou qui n'apparaissent pas dans le registre WDPA actuel. Le tableau suivant liste ces cas exclus du traitement FAT.
+
+```{r excluded-temporary-protections}
+#| label: tbl-excluded-temp-protections
+#| tbl-cap: "Temporary protections without WDPAID (excluded from FAT)"
+
+if (nrow(excluded_temp_protections) > 0) {
+  excluded_temp_protections |>
+    gt() |>
+    tab_header(
+      title = "Temporary Protections Without WDPAID",
+      subtitle = "Protected areas with temporary designation not found in current WDPA"
+    ) |>
+    cols_label(
+      WDPA_NAME = "PA Name",
+      date_texte = "Date",
+      num_texte = "Arrêté Number",
+      objet_texte = "Object"
+    ) |>
+    fmt_date(
+      columns = date_texte,
+      date_style = "yMMMd"
+    ) |>
+    cols_width(
+      WDPA_NAME ~ px(150),
+      date_texte ~ px(100),
+      num_texte ~ px(120),
+      objet_texte ~ px(400)
+    ) |>
+    tab_options(
+      table.font.size = px(12),
+      row.striping.include_table_body = TRUE
+    )
+} else {
+  cat("No temporary protections were excluded.\n")
+}
+```
+
+### Création des entrées FAT
+
+Pour chaque aire protégée ayant bénéficié d'une protection temporaire, nous créons jusqu'à deux entrées FAT successives documentant l'évolution du statut juridique :
+
+1. **Entrée de protection temporaire** : Documente la période de protection temporaire établie par Arrêté. Nous utilisons `STATUS = "Designated"` (reconnaissance juridique formelle) avec `STATUS_YR` correspondant à l'année de l'Arrêté, et `DESIG = "Protection Temporaire"`. Cette entrée capture un état historique qui n'existe plus dans la WDPA actuelle.
+
+2. **Entrée de désignation permanente** (si applicable) : Documente le passage au statut permanent via Décret. Le `STATUS_YR` est mis à jour avec l'année de la désignation permanente (conformément au manuel WDPA qui stipule que STATUS_YR reflète le statut actuel, non l'historique). Les attributs `DESIG`/`DESIG_ENG` sont également mis à jour selon la catégorie définitive (Parc National, Réserve Naturelle, etc.).
+
+**Important** : La WDPA actuelle ne conserve que le statut permanent (par exemple, PN désigné en 2012). Notre registre d'amendements FAT permet de reconstituer l'historique complet, incluant la période de protection temporaire antérieure (par exemple, protection temporaire de 2005 à 2012) que la WDPA ne documente pas.
+
+```{r process-temporary-protections}
+# Process each temporary protection into FAT entries
+for (i in seq_len(nrow(temp_full))) {
+  row <- temp_full[i, ]
+
+  # FAT entry for temporary protection period
+  fat <- add_modif_fat(
+    fat = fat,
+    decisions = pa_decisions,
+    wdpa_name_or_id = row$WDPAID,
+    manual_decision = list(
+      date_texte = row$temp_date,
+      type_texte = row$type_texte,
+      num_texte = row$temp_texte,
+      id_texte = NA,
+      objet_texte = paste("Mise en protection temporaire de", row$WDPA_NAME)
+    ),
+    attributes = list(
+      STATUS = "Designated",
+      STATUS_YR = format(row$temp_date, "%Y"),
+      DESIG = "Protection Temporaire",
+      DESIG_ENG = "Temporary Protection"
+    ),
+    amendment_type = "status_change",
+    valid_from = as.character(row$temp_date),
+    notes = paste0(
+      "Temporary protection via Arrêté ",
+      row$temp_texte,
+      " (",
+      row$temp_date,
+      "). ",
+      "Legal designation with binding protections pending permanent status via décret.",
+      if (!is.na(row$perm_date)) {
+        paste0(
+          " Permanent designation obtained on ",
+          row$perm_date,
+          " via ",
+          row$perm_texte,
+          "."
+        )
+      } else {
+        " Still in temporary protection status."
+      }
+    )
+  )
+
+  # If permanent designation exists, add FAT entry for status change
+  if (!is.na(row$perm_date)) {
+    fat <- add_modif_fat(
+      fat = fat,
+      decisions = pa_decisions,
+      wdpa_name_or_id = row$WDPAID,
+      decision_filter = list(
+        year = as.numeric(format(row$perm_date, "%Y")),
+        type_decision_pattern = "creation_definitive",
+        num_texte = row$perm_texte
+      ),
+      attributes = list(
+        STATUS_YR = format(row$perm_date, "%Y")
+        # DESIG and DESIG_ENG will be updated based on the décret
+      ),
+      amendment_type = "status_change",
+      valid_from = as.character(row$perm_date),
+      notes = paste0(
+        "Permanent designation via Décret ",
+        row$perm_texte,
+        " (",
+        row$perm_date,
+        "), ",
+        "replacing temporary protection status established on ",
+        row$temp_date,
+        "."
+      )
+    )
+  }
+}
+
+cat("\nFAT entries created for", nrow(temp_full), "temporary protections\n")
+cat("Total FAT entries:", nrow(fat), "\n")
+```
+
+Le traitement a permis de documenter l'historique de protection temporaire pour les aires protégées concernées. Chaque aire ayant reçu une protection temporaire dispose désormais d'une ou deux entrées FAT selon qu'elle a obtenu ou non une désignation permanente. Cet historique, absent de la WDPA actuelle, permet de reconstituer fidèlement l'évolution juridique de ces sites depuis leur mise en protection initiale.
+
+
 ## Export Amendments {#sec-export-amendments}
 
 The curation process has documented amendments to Madagascar's WDPA data. We now export these to the standardized YAML schema for the `dynamic_wdpa` registry.

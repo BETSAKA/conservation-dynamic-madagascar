@@ -3226,53 +3226,49 @@ noyaux_durs |>
 
 ### Intégration dans la table SAT
 
-Chaque noyau dur validé est ajouté à la table SAT avec le type d'amendement `secondary_zoning`. Ces zonages représentent l'état actuel documenté par les gestionnaires (transmission MEDD 2025) et n'ont pas de dates de validité temporelle spécifiques.
+Chaque noyau dur validé est ajouté à la table SAT avec le type d'amendement `secondary_zoning`. Ces zonages représentent l'état actuel documenté par les gestionnaires (transmission MEDD 2025) et n'ont pas de dates de validité temporelle spécifiques (date_texte et valid_from sont NULL).
 
 ```{r add-secondary-zones-to-sat}
-# Add each validated core zone to SAT as secondary_zoning amendment
-for (i in seq_len(nrow(noyaux_durs))) {
-  nd_row <- noyaux_durs[i, ]
+# Prepare geometries with required attributes (vectorized)
+nd_geoms <- noyaux_durs |>
+  select(geometry, WDPAID, NAME, pa_label) |>
+  mutate(dataset_id = "MEDD_subdivisions_2025")
 
-  # Extract geometry as sf object for add_modif_sat
-  nd_geom <- nd_row |>
-    select(geometry) |>
-    mutate(
-      WDPAID = nd_row$WDPAID,
-      NAME = nd_row$NAME,
-      dataset_id = "MEDD_subdivisions_2024"
-    )
+# Add all core zones to SAT as secondary_zoning amendments
+for (i in seq_len(nrow(nd_geoms))) {
+  nd_row <- nd_geoms[i, ]
 
   sat <- add_modif_sat(
     sat = sat,
-    data = nd_geom,
+    data = nd_row |> select(geometry, WDPAID, NAME, dataset_id),
     decisions = pa_decisions,
     wdpa_name_or_id = nd_row$WDPAID,
     manual_decision = list(
-      date_texte = as.Date("2024-01-01"),
-      type_texte = "Zonage validé",
+      date_texte = NA,
+      type_texte = "Zonage secondaire",
       num_texte = "MEDD-2024",
-      objet_texte = paste(
-        "Noyau dur validé pour",
+      objet_texte = paste0(
+        "Noyau dur validé pour ",
         nd_row$NAME,
-        "- données transmises au MEDD"
+        " - données transmises au MEDD"
       )
     ),
     source_dataset_id = "MEDD_subdivisions_2024",
     amendment_type = "secondary_zoning",
-    valid_from = NULL,
+    valid_from = NULL, # Non-temporal: represents current management zoning
     notes = paste0(
       "Core zone (noyau dur) validated from MEDD subdivision data. ",
       "Source: shapefile transmitted to MEDD, analyzed in 06_subdivisions.qmd. ",
       "PA label: ",
       nd_row$pa_label,
       ". ",
-      "This represents current management zoning, not a temporal amendment. ",
+      "This represents current management zoning without temporal validity. ",
       "17 PAs with exploitable core zones as of 2024."
     )
   )
 }
 
-cat("\nSAT entries created for", nrow(noyaux_durs), "core zones\n")
+cat("\nSAT entries created for", nrow(nd_geoms), "core zones\n")
 cat("Total SAT entries:", nrow(sat), "\n")
 ```
 

@@ -18,7 +18,7 @@ Les bases de données nationales et internationales incluent généralement les 
 
 Le jeu de données constitue une **extension temporellement explicite de la WDPA**. Il intègre, lorsque ces informations sont disponibles, l'historique juridique, les évolutions spatiales et le zonage secondaire des aires protégées. La WDPA fournit l'état courant de référence de chaque entité, mais cet état est modélisé comme un segment particulier au sein d'une trajectoire spatio-temporelle plus longue, caractérisée par des changements de statut légal, de limites géographiques et d'organisation interne.
 
-Pour chaque WDPAID, la base reconstruit une **série d'états successifs**, chacun associé à une période de validité explicite (`valid_from` → `valid_to`), en mobilisant des sources juridiques et spatiales datées, tout en conservant une compatibilité complète avec le schéma WDPA lorsque ces informations ne sont pas disponibles.
+Pour chaque WDPAID, la base reconstruit une **série d'états successifs**, chacun associé à une période de validité explicite (`valid_from` - `valid_to`), en mobilisant des sources juridiques et spatiales datées, tout en conservant une compatibilité complète avec le schéma WDPA lorsque ces informations ne sont pas disponibles.
 
 ### Principe de fonctionnement
 
@@ -41,12 +41,12 @@ Fichiers YAML lisibles par l'humain et versionnés contenant les métadonnées d
 
 Types d'amendements documentés :
 - `boundary_modification` : Changements légaux des limites externes
-- `status_change` : Modifications de désignation (RNI→PN, RS→PN, etc.)
+- `status_change` : Modifications de désignation (RNI to PN, RS to PN, etc.)
 - `correction` : Erreurs dans WDPA (dates, statuts, géométries)
 - `secondary_zoning` : Zonages secondaires (zones noyaux, zones tampons)
 
 **2. CAR (Consolidation and Auditing Rules)**  
-Ensemble transparent de règles de consolidation, exprimées sous forme de code R reproductible, qui lit le registre YAML et la WDPA, applique les règles de précédence, et génère les états temporels. Le CAR garantit que la transformation WDPA → états dynamiques est **auditable, déterministe et reproductible**.
+Ensemble transparent de règles de consolidation, exprimées sous forme de code R reproductible, qui lit le registre YAML et la WDPA, applique les règles de précédence, et génère les états temporels. Le CAR garantit que la transformation WDPA vers états dynamiques est **auditable, déterministe et reproductible**.
 
 **3. Tables de travail SAT/FAT (optionnelles)**  
 Pour faciliter la curation dans R, deux tables de travail sont utilisées durant la phase de documentation :
@@ -80,7 +80,7 @@ Formats d'export :
 6. **Traitement des zonages secondaires** : Identification et validation des subdivisions au sein des aires protégées.
 7. **Curation systématique** : Documentation exhaustive des amendements dans les tables SAT/FAT avec références légales.
 8. **Export vers registre YAML** : Transformation des tables de travail en registre canonique versionné.
-9. **Application des règles CAR** : Consolidation automatisée WDPA + amendements → états temporels.
+9. **Application des règles CAR** : Consolidation automatisée WDPA + amendements = états temporels.
 
 ## Guide de lecture
 
@@ -108,7 +108,7 @@ Ce modèle de données permet de :
 
 - **Identifier et corriger les erreurs** : Dates erronées ou absentes, mauvais statuts, périmètres inexacts
 - **Intégrer les protections temporaires** : Décrets temporaires absents de WDPA mais documentés dans CNLEGIS
-- **Documenter les changements de statut** : Traçabilité des reclassements (RS→PN) ou abandons
+- **Documenter les changements de statut** : Traçabilité des reclassements (p. ex. RS vers PN) ou abandons
 - **Vérifier la robustesse d'études antérieures** : Tester si les conclusions basées sur d'anciennes versions WDPA restent valides avec les données corrigées
 
 ### Analyses temporelles robustes

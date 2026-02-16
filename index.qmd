@@ -2,7 +2,7 @@
 
 ## Résumé
 
-Les données spatiales sur les aires protégées sont essentielles pour les études de conservation. Cependant, les bases existantes se limitent souvent aux frontières actuelles, ignorant les évolutions historiques. Cette lacune engendre des biais dans l'analyse de leur impact environnemental et social. Dans ce projet, nous proposons un modèle de données dynamique documentant l'évolution des aires protégées à Madagascar de 2000 à 2024. Ce modèle inclut chaque état successif avec ses périodes de validité, fournissant une base analytique plus robuste. Les données seront publiées en accès libre pour favoriser leur utilisation par la communauté scientifique et les praticiens.
+Les données spatiales sur les aires protégées sont essentielles pour les études de conservation. Cependant, les bases existantes se limitent souvent aux frontières actuelles, ignorant les évolutions historiques. Cette lacune engendre des biais dans l'analyse de leur impact environnemental et social. Dans ce projet, nous proposons un modèle de données dynamique documentant l'évolution des aires protégées à Madagascar de 2000 à 2024. Ce modèle inclut chaque état successif avec ses périodes de validité, fournissant une base analytique plus robuste. Les données seront publiées en accès libre pour favoriser leur utilisation par la communauté scientifique et les opérationnels.
 
 ## Contexte et enjeux
 
@@ -26,9 +26,9 @@ Le modèle repose sur un **mécanisme de complétion par défaut combiné à des
 
 1. **État par défaut (WDPA baseline)** : En l'absence de sources alternatives, les attributs et la géométrie issus de la WDPA génèrent un état unique dont la validité débute à partir de `STATUS_YR` et s'étend jusqu'à la date de référence de la version WDPA utilisée.
 
-2. **Segmentation temporelle** : Lorsque des décisions juridiques antérieures, des périmètres historiques ou des dispositifs de zonage secondaires sont identifiés, la chronologie est segmentée en plusieurs intervalles de validité non chevauchants.
+2. **Segmentation temporelle** : Lorsque des décisions juridiques antérieures, des périmètres historiques ou des dispositifs de zonage secondaires sont identifiés, la chronologie est segmentée en plusieurs intervalles de validité qui ne se chevauchent pas.
 
-3. **Héritage et surcharge** : Les états antérieurs héritent par défaut des attributs WDPA, sauf lorsque des textes réglementaires, des délimitations datées ou des documents de zonage spécifient explicitement des différences (statut de protection temporaire, limites alternatives, changements de gouvernance, organisation interne distincte).
+3. **Héritage et compléments** : Les états antérieurs héritent par défaut des attributs WDPA, sauf lorsque des textes réglementaires, des délimitations datées ou des documents de zonage spécifient explicitement des différences (statut de protection temporaire, limites alternatives, changements de gouvernance, organisation interne distincte).
 
 4. **Modèle de zones** : Les limites externes sont traitées comme un type de zone spécifique (`external_boundary`), permettant de représenter simultanément les contours extérieurs et les subdivisions secondaires (zones noyaux, zones tampons) dans une logique spatiale unifiée.
 
@@ -37,23 +37,23 @@ Le modèle repose sur un **mécanisme de complétion par défaut combiné à des
 Le système ne remplace pas la WDPA mais la complète par trois composantes :
 
 **1. Registre d'amendements YAML** (coeur du système)  
-Fichiers YAML lisibles par l'humain et versionnés contenant les métadonnées de chaque modification historique identifiée (dates, sources légales, types d'amendements). Les géométries associées sont stockées en GeoJSON. Ce registre constitue la **source de vérité canonique** pour toutes les corrections et informations temporelles.
+Les modifications apportées à WDPDA sont stockées sous forme de fichiers YAML. Nous avons choisi cette forme car c'est celle qui semble la plus facile à lire et amender manuellement. Ce format peut en outre être  versionnén afin que chaque modification soit tracée (dates, sources légales, types d'amendements). Les géométries associées sont stockées en GeoJSON. Ce registre constitue la référence centrale pour toutes les corrections et informations temporelles qui sont ensuite transposées.
 
 Types d'amendements documentés :
 - `boundary_modification` : Changements légaux des limites externes
-- `status_change` : Modifications de désignation (RNI to PN, RS to PN, etc.)
+- `status_change` : Modifications de désignation (RNI vers PN, RS vers PN, etc.)
 - `correction` : Erreurs dans WDPA (dates, statuts, géométries)
 - `secondary_zoning` : Zonages secondaires (zones noyaux, zones tampons)
 
 **2. CAR (Consolidation and Auditing Rules)**  
-Ensemble transparent de règles de consolidation, exprimées sous forme de code R reproductible, qui lit le registre YAML et la WDPA, applique les règles de précédence, et génère les états temporels. Le CAR garantit que la transformation WDPA vers états dynamiques est **auditable, déterministe et reproductible**.
+Ensemble transparent de règles de consolidation, exprimées sous forme de code R reproductible, qui lit le registre YAML et la WDPA, applique les règles de précédence, et génère les états temporels. Le CAR garantit que la transformation WDPA vers états dynamiques est auditable, déterministe et reproductible.
 
 **3. Tables de travail SAT/FAT (optionnelles)**  
 Pour faciliter la curation dans R, deux tables de travail sont utilisées durant la phase de documentation :
 - **SAT** (Spatial Amendment Table) : table sf pour manipuler les géométries
 - **FAT** (Feature Attribute Table) : tibble pour gérer les attributs
 
-Ces tables sont ensuite **exportées vers le registre YAML**, qui devient la référence unique. SAT/FAT ne sont donc que des outils de travail temporaires, non la source finale.
+Ces tables sont ensuite exportées vers le registre YAML, qui devient la référence unique. SAT/FAT ne sont donc que des outils de travail temporaires.
 
 ### Format de sortie
 
@@ -68,7 +68,7 @@ Chaque ligne représente **une zone dans un état temporel**. Une aire protégé
 Formats d'export :
 - **RDS** : Format natif R avec objets sf
 - **GeoPackage** : Standard OGC pour interopérabilité SIG
-- **Parquet + WKT** : Format columnar optimisé pour analyses big data
+- **GeoParquet** : Format orienté colonnes optimisé pour analyses big data
 
 ## Méthodologie
 

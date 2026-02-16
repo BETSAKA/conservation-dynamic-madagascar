@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>9&nbsp; CAR - Consolidation and Auditing Rules – Aires protégées de Madagascar : modèle de données dynamique</title>
+<title>9&nbsp; CAR - Règles de consolidation et d’audit – Aires protégées de Madagascar : modèle de données dynamique</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -118,7 +118,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./07_curation.html">Production des amendements</a></li><li class="breadcrumb-item"><a href="./08_consolidation_rules.html"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">CAR - Consolidation and Auditing Rules</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./07_curation.html">Production des amendements</a></li><li class="breadcrumb-item"><a href="./08_consolidation_rules.html"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">CAR - Règles de consolidation et d’audit</span></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -230,7 +230,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./08_consolidation_rules.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">CAR - Consolidation and Auditing Rules</span></span></a>
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">CAR - Règles de consolidation et d’audit</span></span></a>
   </div>
 </li>
       </ul>
@@ -251,28 +251,28 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview"><span class="header-section-number">10</span> Overview</a></li>
-  <li><a href="#read-amendment-registry" id="toc-read-amendment-registry" class="nav-link" data-scroll-target="#read-amendment-registry"><span class="header-section-number">11</span> Read Amendment Registry</a></li>
-  <li><a href="#consolidation-functions" id="toc-consolidation-functions" class="nav-link" data-scroll-target="#consolidation-functions"><span class="header-section-number">12</span> Consolidation Functions</a>
+  <li><a href="#vue-densemble" id="toc-vue-densemble" class="nav-link active" data-scroll-target="#vue-densemble"><span class="header-section-number">9.1</span> Vue d’ensemble</a></li>
+  <li><a href="#lecture-du-registre-damendements" id="toc-lecture-du-registre-damendements" class="nav-link" data-scroll-target="#lecture-du-registre-damendements"><span class="header-section-number">9.2</span> Lecture du registre d’amendements</a></li>
+  <li><a href="#fonctions-de-consolidationion" id="toc-fonctions-de-consolidationion" class="nav-link" data-scroll-target="#fonctions-de-consolidationion"><span class="header-section-number">9.3</span> Fonctions de consolidationion</a>
   <ul class="collapse">
-  <li><a href="#timeline-generation" id="toc-timeline-generation" class="nav-link" data-scroll-target="#timeline-generation"><span class="header-section-number">12.1</span> Timeline Generation</a></li>
-  <li><a href="#precedence-rules" id="toc-precedence-rules" class="nav-link" data-scroll-target="#precedence-rules"><span class="header-section-number">12.2</span> Precedence Rules</a></li>
-  <li><a href="#state-consolidation" id="toc-state-consolidation" class="nav-link" data-scroll-target="#state-consolidation"><span class="header-section-number">12.3</span> State Consolidation</a></li>
+  <li><a href="#génération-de-chronologie" id="toc-génération-de-chronologie" class="nav-link" data-scroll-target="#génération-de-chronologie"><span class="header-section-number">9.3.1</span> Génération de chronologie</a></li>
+  <li><a href="#règles-de-précédence" id="toc-règles-de-précédence" class="nav-link" data-scroll-target="#règles-de-précédence"><span class="header-section-number">9.3.2</span> Règles de précédence</a></li>
+  <li><a href="#consolidation-des-états" id="toc-consolidation-des-états" class="nav-link" data-scroll-target="#consolidation-des-états"><span class="header-section-number">9.3.3</span> Consolidation des états</a></li>
   </ul></li>
-  <li><a href="#auditability-timeline-printing" id="toc-auditability-timeline-printing" class="nav-link" data-scroll-target="#auditability-timeline-printing"><span class="header-section-number">13</span> Auditability: Timeline Printing</a></li>
-  <li><a href="#test-single-pa" id="toc-test-single-pa" class="nav-link" data-scroll-target="#test-single-pa"><span class="header-section-number">14</span> Test: single PA</a></li>
-  <li><a href="#generate-full-dataset" id="toc-generate-full-dataset" class="nav-link" data-scroll-target="#generate-full-dataset"><span class="header-section-number">15</span> Generate full dataset</a></li>
-  <li><a href="#export" id="toc-export" class="nav-link" data-scroll-target="#export"><span class="header-section-number">16</span> Export</a></li>
-  <li><a href="#example-timelines" id="toc-example-timelines" class="nav-link" data-scroll-target="#example-timelines"><span class="header-section-number">17</span> Example Timelines</a></li>
+  <li><a href="#auditabilité-affichage-de-chronologie" id="toc-auditabilité-affichage-de-chronologie" class="nav-link" data-scroll-target="#auditabilité-affichage-de-chronologie"><span class="header-section-number">9.4</span> Auditabilité : Affichage de chronologie</a></li>
+  <li><a href="#test-une-ap-unique" id="toc-test-une-ap-unique" class="nav-link" data-scroll-target="#test-une-ap-unique"><span class="header-section-number">9.5</span> Test : une AP unique</a></li>
+  <li><a href="#génération-du-jeu-de-données-complet" id="toc-génération-du-jeu-de-données-complet" class="nav-link" data-scroll-target="#génération-du-jeu-de-données-complet"><span class="header-section-number">9.6</span> Génération du jeu de données complet</a></li>
+  <li><a href="#export" id="toc-export" class="nav-link" data-scroll-target="#export"><span class="header-section-number">9.7</span> Export</a></li>
+  <li><a href="#exemples-de-chronologies" id="toc-exemples-de-chronologies" class="nav-link" data-scroll-target="#exemples-de-chronologies"><span class="header-section-number">9.8</span> Exemples de chronologies</a></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./07_curation.html">Production des amendements</a></li><li class="breadcrumb-item"><a href="./08_consolidation_rules.html"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">CAR - Consolidation and Auditing Rules</span></a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./07_curation.html">Production des amendements</a></li><li class="breadcrumb-item"><a href="./08_consolidation_rules.html"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">CAR - Règles de consolidation et d’audit</span></a></li></ol></nav>
 <div class="quarto-title">
-<h1 class="title"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">CAR - Consolidation and Auditing Rules</span></h1>
+<h1 class="title"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">CAR - Règles de consolidation et d’audit</span></h1>
 </div>
 
 
@@ -289,20 +289,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<section id="overview" class="level1" data-number="10">
-<h1 data-number="10"><span class="header-section-number">10</span> Overview</h1>
-<p>The CAR (Consolidation and Auditing Rules) transforms WDPA baseline data and YAML amendments into a temporal, spatially explicit dataset. Each protected area is represented as a sequence of time-bounded states, with each state potentially containing multiple zones (external boundary, core zones, buffer zones).</p>
-<p><strong>Core principles:</strong></p>
+<section id="vue-densemble" class="level2" data-number="9.1">
+<h2 data-number="9.1" class="anchored" data-anchor-id="vue-densemble"><span class="header-section-number">9.1</span> Vue d’ensemble</h2>
+<p>Le CAR (Consolidation and Auditing Rules) transforme les données de base WDPA et les amendements YAML en un jeu de données temporel et spatialement explicite. Chaque aire protégée est représentée comme une séquence d’états délimités dans le temps, chaque état pouvant contenir plusieurs zones (limite externe, noyaux durs, zones tampons).</p>
+<p><strong>Principes fondamentaux :</strong></p>
 <ol type="1">
-<li><strong>WDPA as baseline</strong>: Current state inherited by default</li>
-<li><strong>YAML amendments override</strong>: Explicit dated information takes precedence</li>
-<li><strong>Temporal segmentation</strong>: All dates (from WDPA and amendments) create non-overlapping intervals</li>
-<li><strong>Zone model</strong>: External boundaries and internal zones coexist</li>
-<li><strong>Fail-fast</strong>: Conflicts throw errors rather than silently resolve</li>
+<li><strong>WDPA comme base de référence</strong> : L’état actuel est hérité par défaut</li>
+<li><strong>Les amendements YAML prévalent</strong> : L’information datée explicite est prioritaire</li>
+<li><strong>Segmentation temporelle</strong> : Toutes les dates (WDPA et amendements) créent des intervalles non chevauchants</li>
+<li><strong>Modèle de zones</strong> : Limites externes et zonages secondaires coexistent</li>
+<li><strong>Fail-fast</strong> : Les conflits génèrent des erreurs plutôt que de se résoudre silencieusement</li>
 </ol>
-<p><strong>Output structure:</strong></p>
+<p><strong>Structure de sortie :</strong></p>
 <pre><code>state_id | WDPAID | valid_from | valid_to | zone_type | zone_name | geometry | [WDPA attributes] | amendment_source</code></pre>
-<p>Each row represents one zone in one temporal state. A PA with boundary changes and core zoning will have multiple rows per time period.</p>
+<p>Chaque ligne représente une zone dans un état temporel. Une AP avec des modifications de limites et un zonage secondaire aura plusieurs lignes par période.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Voir le code</summary>
@@ -317,9 +317,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </details>
 </div>
 </section>
-<section id="read-amendment-registry" class="level1" data-number="11">
-<h1 data-number="11"><span class="header-section-number">11</span> Read Amendment Registry</h1>
-<p>The amendment registry consists of YAML files (metadata) and GeoJSON files (geometries) created by <code>07_curation.qmd</code>.</p>
+<section id="lecture-du-registre-damendements" class="level2" data-number="9.2">
+<h2 data-number="9.2" class="anchored" data-anchor-id="lecture-du-registre-damendements"><span class="header-section-number">9.2</span> Lecture du registre d’amendements</h2>
+<p>Le registre d’amendements consiste en fichiers YAML (métadonnées) et fichiers GeoJSON (géométries) créés par <code>07_curation.qmd</code>.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Voir le code</summary>
@@ -467,11 +467,11 @@ Amendment types:</code></pre>
 </div>
 </div>
 </section>
-<section id="consolidation-functions" class="level1" data-number="12">
-<h1 data-number="12"><span class="header-section-number">12</span> Consolidation Functions</h1>
-<section id="timeline-generation" class="level2" data-number="12.1">
-<h2 data-number="12.1" class="anchored" data-anchor-id="timeline-generation"><span class="header-section-number">12.1</span> Timeline Generation</h2>
-<p>Create non-overlapping temporal intervals by combining all date markers from WDPA and amendments.</p>
+<section id="fonctions-de-consolidationion" class="level2" data-number="9.3">
+<h2 data-number="9.3" class="anchored" data-anchor-id="fonctions-de-consolidationion"><span class="header-section-number">9.3</span> Fonctions de consolidationion</h2>
+<section id="génération-de-chronologie" class="level3" data-number="9.3.1">
+<h3 data-number="9.3.1" class="anchored" data-anchor-id="génération-de-chronologie"><span class="header-section-number">9.3.1</span> Génération de chronologie</h3>
+<p>Création d’intervalles temporels non chevauchants en combinant tous les marqueurs de dates issus de WDPA et des amendements.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Voir le code</summary>
@@ -517,19 +517,19 @@ Amendment types:</code></pre>
 </details>
 </div>
 </section>
-<section id="precedence-rules" class="level2" data-number="12.2">
-<h2 data-number="12.2" class="anchored" data-anchor-id="precedence-rules"><span class="header-section-number">12.2</span> Precedence Rules</h2>
-<p><strong>Spatial precedence:</strong></p>
+<section id="règles-de-précédence" class="level3" data-number="9.3.2">
+<h3 data-number="9.3.2" class="anchored" data-anchor-id="règles-de-précédence"><span class="header-section-number">9.3.2</span> Règles de précédence</h3>
+<p><strong>Précédence spatiale :</strong></p>
 <ol type="1">
-<li>For <code>boundary_modification</code>: Amendment geometry overrides WDPA for its validity period</li>
-<li>For <code>secondary_zoning</code>: Additive (creates additional zones alongside boundary)</li>
-<li>Multiple boundary_modifications in same period : ERROR (conflict)</li>
+<li>Pour <code>boundary_modification</code> : La géométrie de l’amendement remplace WDPA pendant sa période de validité</li>
+<li>Pour <code>secondary_zoning</code> : Additif (crée des zones supplémentaires en plus de la limite)</li>
+<li>Plusieurs boundary_modifications dans la même période : ERREUR (conflit)</li>
 </ol>
-<p><strong>Attribute precedence:</strong></p>
+<p><strong>Précédence des attributs :</strong></p>
 <ol type="1">
-<li>Amendment attributes override WDPA for validity period</li>
-<li>Unspecified attributes inherit from WDPA</li>
-<li>Multiple attribute amendments with overlapping attributes in same period: ERROR</li>
+<li>Les attributs des amendements remplacent WDPA pendant la période de validité</li>
+<li>Les attributs non spécifiés héritent de WDPA</li>
+<li>Plusieurs amendements d’attributs avec des attributs chevauchants dans la même période : ERREUR</li>
 </ol>
 <div class="cell">
 <details class="code-fold">
@@ -616,9 +616,9 @@ Amendment types:</code></pre>
 </details>
 </div>
 </section>
-<section id="state-consolidation" class="level2" data-number="12.3">
-<h2 data-number="12.3" class="anchored" data-anchor-id="state-consolidation"><span class="header-section-number">12.3</span> State Consolidation</h2>
-<p>Apply amendments to WDPA baseline for each temporal interval, creating zone records.</p>
+<section id="consolidation-des-états" class="level3" data-number="9.3.3">
+<h3 data-number="9.3.3" class="anchored" data-anchor-id="consolidation-des-états"><span class="header-section-number">9.3.3</span> Consolidation des états</h3>
+<p>Application des amendements à la base WDPA pour chaque intervalle temporel, créant des enregistrements de zones.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Voir le code</summary>
@@ -782,9 +782,9 @@ Amendment types:</code></pre>
 </div>
 </section>
 </section>
-<section id="auditability-timeline-printing" class="level1" data-number="13">
-<h1 data-number="13"><span class="header-section-number">13</span> Auditability: Timeline Printing</h1>
-<p>Simple function to visualize the temporal evolution of a PA.</p>
+<section id="auditabilité-affichage-de-chronologie" class="level2" data-number="9.4">
+<h2 data-number="9.4" class="anchored" data-anchor-id="auditabilité-affichage-de-chronologie"><span class="header-section-number">9.4</span> Auditabilité : Affichage de chronologie</h2>
+<p>Fonction simple pour visualiser l’évolution temporelle d’une AP.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Voir le code</summary>
@@ -855,9 +855,9 @@ Amendment types:</code></pre>
 </details>
 </div>
 </section>
-<section id="test-single-pa" class="level1" data-number="14">
-<h1 data-number="14"><span class="header-section-number">14</span> Test: single PA</h1>
-<p>Test consolidation on Ankarafantsika (has status change and boundary modification).</p>
+<section id="test-une-ap-unique" class="level2" data-number="9.5">
+<h2 data-number="9.5" class="anchored" data-anchor-id="test-une-ap-unique"><span class="header-section-number">9.5</span> Test : une AP unique</h2>
+<p>Test de consolidation sur Ankarafantsika (a des changements de statut et modifications de limites).</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Voir le code</summary>
@@ -922,9 +922,9 @@ TIMELINE: Ankarafantsika (WDPAID: 1299 )
 </div>
 </div>
 </section>
-<section id="generate-full-dataset" class="level1" data-number="15">
-<h1 data-number="15"><span class="header-section-number">15</span> Generate full dataset</h1>
-<p>Apply to all Madagascar PAs.</p>
+<section id="génération-du-jeu-de-données-complet" class="level2" data-number="9.6">
+<h2 data-number="9.6" class="anchored" data-anchor-id="génération-du-jeu-de-données-complet"><span class="header-section-number">9.6</span> Génération du jeu de données complet</h2>
+<p>Application à toutes les AP de Madagascar.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Voir le code</summary>
@@ -1033,9 +1033,9 @@ Dynamic WDPA generated:</code></pre>
 </div>
 </div>
 </section>
-<section id="export" class="level1" data-number="16">
-<h1 data-number="16"><span class="header-section-number">16</span> Export</h1>
-<p>The result is an sf object. Users can export as needed:</p>
+<section id="export" class="level2" data-number="9.7">
+<h2 data-number="9.7" class="anchored" data-anchor-id="export"><span class="header-section-number">9.7</span> Export</h2>
+<p>Le résultat est un objet sf. Les utilisateurs peuvent l’exporter selon leurs besoins :</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Voir le code</summary>
@@ -1088,9 +1088,9 @@ Writing 226 features with 34 fields and geometry type Unknown (any).</code></pre
 </div>
 </div>
 </section>
-<section id="example-timelines" class="level1" data-number="17">
-<h1 data-number="17"><span class="header-section-number">17</span> Example Timelines</h1>
-<p>Print timelines for a few interesting cases:</p>
+<section id="exemples-de-chronologies" class="level2" data-number="9.8">
+<h2 data-number="9.8" class="anchored" data-anchor-id="exemples-de-chronologies"><span class="header-section-number">9.8</span> Exemples de chronologies</h2>
+<p>Affichage des chronologies pour quelques cas intéressants :</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Voir le code</summary>

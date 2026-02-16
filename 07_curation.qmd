@@ -710,7 +710,7 @@ export_amendments_to_yaml <- function(
 #               list(DESIG = "Réserve Naturelle Intégrale", IUCN_CAT = "Ia")
 #               Only attributes that differ from WDPA should be provided.
 #   amendment_type: Type of attribute amendment. Allowed values:
-#                   - "status_change": Change in designation type (RNI → PN, etc.)
+#                   - "status_change": Change in designation type (RNI to PN, etc.)
 #                   - "governance_change": Change in management authority
 #                   - "correction": Data correction (wrong attribute in WDPA)
 #   valid_from: Optional start date (Date or character). If NULL, remains NA
@@ -1050,7 +1050,7 @@ Ces tables sont optimisées pour les opérations R (manipulation de géométries
 - **`boundary_modification`** : Changement légal des limites externes de l'AP
 - **`secondary_zoning`** : Couches de zonage additionnelles (zones noyau, zones tampons) qui complètent la limite principale de l'AP
 - **`correction`** : Erreur de données dans WDPA (mauvaise géométrie, mauvaise valeur d'attribut)
-- **`status_change`** : Changement de type de désignation (RNI→PN, RS→PN, etc.)
+- **`status_change`** : Changement de type de désignation (RNI to PN, RS to PN, etc.)
 - **`governance_change`** : Changement d'autorité de gestion
 
 ## Décisions modifiant les aires protégées
@@ -1271,7 +1271,7 @@ sat <- sat |>
   )
 ```
 
-Le changement de statut de 1997 (RNI → PN) constitue un changement d'attributs à documenter dans FAT. Bien que ce décret ne soit pas référencé dans CNLEGIS, il a été retrouvé et archivé. Nous documentons deux périodes via FAT : la période RNI (1939-1997) avec `STATUS_YR=1939`, puis la période PN (1997-présent) avec `STATUS_YR=1997` conformément au manuel WDPA.
+Le changement de statut de 1997 (RNI to PN) constitue un changement d'attributs à documenter dans FAT. Bien que ce décret ne soit pas référencé dans CNLEGIS, il a été retrouvé et archivé. Nous documentons deux périodes via FAT : la période RNI (1939-1997) avec `STATUS_YR=1939`, puis la période PN (1997-présent) avec `STATUS_YR=1997` conformément au manuel WDPA.
 
 ```{r andohahela-fat}
 # FAT for historical status: RNI period (1939-1997)
@@ -1688,7 +1688,7 @@ Le texte de Goodman et al. omet la modification introduite par le décret 97-104
 show_cnlegis_for_pa("Bemaraha", pa_decisions)
 ```
 
-Les textes légaux identifient deux décisions modificatives : 1997 (modification des limites) et 2011 (modification des limites + changement de statut RNI → PN). Nous documentons la modification de 2011, pour laquelle nous disposons d'une géométrie pré-modification. Les périmètres antérieurs à 1997 ne sont pas disponibles.
+Les textes légaux identifient deux décisions modificatives : 1997 (modification des limites) et 2011 (modification des limites + changement de statut RNI to PN). Nous documentons la modification de 2011, pour laquelle nous disposons d'une géométrie pré-modification. Les périmètres antérieurs à 1997 ne sont pas disponibles.
 
 ```{r bemaraha-sources}
 plot_pa_sources(
@@ -2306,8 +2306,8 @@ plot_pa_sources(
 - De simplifier les requêtes temporelles : filtrer STATUS != "Dissolved" pour les AP actives
 
 **Géométries** : Le jeu MNP_2010 contient un multipolygone de 3 composantes représentant l'entité fusionnée. Ces polygones ont été réattribués comme suit :
-- Polygone 1 (232.47 km²) → WDPAID 2314 (Montagne d'Ambre PN)
-- Polygones 2+3 (45.60 km²) → WDPAID 5025 (Forêt d'Ambre RS)
+- Polygone 1 (232.47 km²) to WDPAID 2314 (Montagne d'Ambre PN)
+- Polygones 2+3 (45.60 km²) to WDPAID 5025 (Forêt d'Ambre RS)
 
 Les attributs pour WDPAID 5025 proviennent du WDPA 2010.
 
@@ -2577,7 +2577,7 @@ plot_pa_sources(
 
 Les polygones pré-2015 semblent toutefois souffrir d'une erreur de projection, aussi on va garder WDPA_2025 comme base pour le tracé pré-2015, en séparant les polygones.
 
-**Note de validation** : Le décret 2015-775 a modifié les limites ET le statut (RS → PN). La WDPA 2025 contient un multipolygone de 5 composantes (7.29 km² au total). Seul le polygone 5 (5.70 km²) existait avant 2015. Les polygones 1-4 (petits îlots totalisant ~0.28 km²) ont été ajoutés lors de la modification de 2015. Nous documentons deux périodes via FAT : la période RS (1965-2015) avec `STATUS_YR=1965`, puis la période PN (2015-présent) avec `STATUS_YR=2015`.
+**Note de validation** : Le décret 2015-775 a modifié les limites ET le statut (RS to PN). La WDPA 2025 contient un multipolygone de 5 composantes (7.29 km² au total). Seul le polygone 5 (5.70 km²) existait avant 2015. Les polygones 1-4 (petits îlots totalisant ~0.28 km²) ont été ajoutés lors de la modification de 2015. Nous documentons deux périodes via FAT : la période RS (1965-2015) avec `STATUS_YR=1965`, puis la période PN (2015-présent) avec `STATUS_YR=2015`.
 
 ```{r nosy-mangabe-split}
 # Split WDPA 2025 multipolygon to extract pre-2015 geometry

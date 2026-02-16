@@ -1,0 +1,230 @@
+# Registre des amendements YAML
+
+## Vue d'ensemble
+
+Ce chapitre présente le registre complet des amendements YAML créés lors de la curation. Chaque amendement est affiché dans son format YAML brut pour permettre une inspection directe avant la consolidation.
+
+```{r setup}
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(yaml)
+library(sf)
+library(DT)
+library(knitr)
+
+# Répertoire des amendements
+amendments_dir <- "data/amendments"
+```
+
+## Statistiques du registre
+
+```{r stats}
+# Lister tous les fichiers YAML
+yaml_files <- list.files(amendments_dir, pattern = "\\.yml$", full.names = TRUE)
+
+cat("Nombre total d'amendements :", length(yaml_files), "\n\n")
+
+# Lire tous les amendements pour statistiques
+amendments_list <- map(yaml_files, ~ yaml::read_yaml(.x))
+
+# Extraire les types
+types_summary <- map_chr(amendments_list, ~ .x$amendment_type) |>
+  table() |>
+  as.data.frame() |>
+  setNames(c("Type d'amendement", "Nombre"))
+
+kable(types_summary, caption = "Distribution des types d'amendements")
+
+# Extraire les kinds
+kinds_summary <- map_chr(amendments_list, ~ .x$amendment_kind) |>
+  table() |>
+  as.data.frame() |>
+  setNames(c("Nature", "Nombre"))
+
+kable(kinds_summary, caption = "Distribution par nature d'amendement")
+```
+
+## Liste interactive des amendements
+
+```{r table}
+# Créer un tableau résumé pour navigation
+amendments_summary <- map_dfr(yaml_files, function(yaml_path) {
+  a <- yaml::read_yaml(yaml_path)
+  
+  tibble(
+    Fichier = basename(yaml_path),
+    amendment_id = a$amendment_id,
+    WDPAID = a$wdpaid,
+    Nom_AP = a$wdpa_name %||% NA_character_,
+    Nature = a$amendment_kind,
+    Type = a$amendment_type,
+    Date_debut = a$valid_from %||% NA_character_,
+    Date_fin = a$valid_to %||% NA_character_,
+    Source_legale = a$legal_instrument$source %||% NA_character_
+  )
+})
+
+datatable(
+  amendments_summary,
+  filter = "top",
+  options = list(
+    pageLength = 25,
+    autoWidth = TRUE,
+    scrollX = TRUE
+  ),
+  caption = "Registre complet des amendements (filtrable par colonne)"
+)
+```
+
+## Contenu YAML brut
+
+Affichage du contenu de chaque fichier YAML dans son format original.
+
+```{r display-yaml, results='asis'}
+# Trier les fichiers par amendment_id
+yaml_files_sorted <- yaml_files[order(basename(yaml_files))]
+
+for (yaml_path in yaml_files_sorted) {
+  # Lire le contenu brut
+  yaml_content <- readLines(yaml_path, warn = FALSE)
+  
+  # Extraire l'amendment_id pour le titre
+  a <- yaml::read_yaml(yaml_path)
+  amendment_id <- a$amendment_id
+  wdpaid <- a$wdpaid
+  wdpa_name <- a$wdpa_name %||% "Sans nom"
+  
+  # Afficher le titre
+  cat("\n### ", amendment_id, " - ", wdpa_name, " (WDPAID: ", wdpaid, ")\n\n", sep = "")
+  
+  # Afficher le fichier
+  cat("**Fichier :** `", basename(yaml_path), "`\n\n", sep = "")
+  
+  # Afficher le YAML brut dans un bloc de code
+  cat("```yaml\n")
+  cat(paste(yaml_content, collapse = "\n"))
+  cat("\n```\n\n")
+  
+  # Si géométrie existe, afficher info
+  if (!is.null(a$geometry_ref)) {
+    geom_path <- file.path(amendments_dir, a$geometry_ref)
+    if (file.exists(geom_path)) {
+      geom <- st_read(geom_path, quiet = TRUE)
+      cat("**Géométrie associée :** `", a$geometry_ref, "` (", 
+          nrow(geom), " feature(s), ",
+          st_geometry_type(geom)[1], ")\n\n", sep = "")
+    }
+  }
+  
+  cat("---\n\n")
+}
+```
+
+## Validation du registre
+
+Vérifications de cohérence avant consolidation.
+
+```{r validation}
+# Charger tous les amendements
+all_amendments <- map_dfr(yaml_files, function(yaml_path) {
+  a <- yaml::read_yaml(yaml_path)
+  
+  tibble(
+    amendment_id = a$amendment_id,
+    wdpaid = a$wdpaid,
+    amendment_kind = a$amendment_kind,
+    amendment_type = a$amendment_type,
+    valid_from = a$valid_from %||% NA_character_,
+    valid_to = a$valid_to %||% NA_character_,
+    geometry_ref = a$geometry_ref %||% NA_character_,
+    yaml_path = yaml_path
+  )
+})
+
+cat("### Vérifications\n\n")
+
+# 1. Doublons d'amendment_id
+duplicates <- all_amendments |>
+  count(amendment_id) |>
+  filter(n > 1)
+
+if (nrow(duplicates) > 0) {
+  cat("⚠️ **ATTENTION : amendment_id dupliqués**\n\n")
+  print(kable(duplicates))
+} else {
+  cat("✓ Pas de doublons d'amendment_id\n\n")
+}
+
+# 2. Fichiers géométrie manquants
+missing_geom <- all_amendments |>
+  filter(!is.na(geometry_ref)) |>
+  mutate(
+    geom_path = file.path(amendments_dir, geometry_ref),
+    exists = file.exists(geom_path)
+  ) |>
+  filter(!exists)
+
+if (nrow(missing_geom) > 0) {
+  cat("⚠️ **ATTENTION : Fichiers géométrie manquants**\n\n")
+  print(kable(missing_geom |> select(amendment_id, geometry_ref)))
+} else {
+  cat("✓ Tous les fichiers géométrie existent\n\n")
+}
+
+# 3. Chevauchements temporels par WDPAID et type
+overlaps <- all_amendments |>
+  filter(!is.na(valid_from)) |>
+  mutate(
+    valid_from = as.Date(valid_from),
+    valid_to = if_else(is.na(valid_to), as.Date("2100-01-01"), as.Date(valid_to))
+  ) |>
+  group_by(wdpaid, amendment_type) |>
+  filter(n() > 1) |>
+  arrange(wdpaid, valid_from)
+
+if (nrow(overlaps) > 0) {
+  cat("ℹ️ **Aires avec plusieurs amendements du même type (vérifier chevauchements)**\n\n")
+  print(kable(overlaps |> select(amendment_id, wdpaid, amendment_type, valid_from, valid_to)))
+} else {
+  cat("✓ Pas de chevauchements détectés\n\n")
+}
+
+# 4. Dates incohérentes (valid_to < valid_from)
+invalid_dates <- all_amendments |>
+  filter(!is.na(valid_from), !is.na(valid_to)) |>
+  mutate(
+    valid_from = as.Date(valid_from),
+    valid_to = as.Date(valid_to)
+  ) |>
+  filter(valid_to < valid_from)
+
+if (nrow(invalid_dates) > 0) {
+  cat("⚠️ **ATTENTION : Dates incohérentes (fin < début)**\n\n")
+  print(kable(invalid_dates |> select(amendment_id, valid_from, valid_to)))
+} else {
+  cat("✓ Pas de dates incohérentes\n\n")
+}
+```
+
+## Résumé par aire protégée
+
+```{r summary-by-pa}
+pa_summary <- all_amendments |>
+  group_by(wdpaid) |>
+  summarise(
+    Nombre_amendements = n(),
+    Types = paste(unique(amendment_type), collapse = ", "),
+    Spatiaux = sum(amendment_kind == "spatial"),
+    Attributs = sum(amendment_kind == "attribute"),
+    .groups = "drop"
+  ) |>
+  arrange(desc(Nombre_amendements))
+
+datatable(
+  pa_summary,
+  options = list(pageLength = 10),
+  caption = "Nombre d'amendements par aire protégée"
+)
+```

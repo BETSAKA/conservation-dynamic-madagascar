@@ -200,7 +200,7 @@ plot_pa_sources <- function(
 # Add a spatial amendment to SAT based on a legal decision
 #
 # This function creates a SAT entry documenting a historical boundary or
-# internal zone that differs from the current WDPA representation. It links
+# secondary zone that differs from the current WDPA representation. It links
 # a geometry from curated spatial sources to a legal decision that marks
 # when this geometry ceased to be valid.
 #
@@ -222,7 +222,6 @@ plot_pa_sources <- function(
 #   source_dataset_id: The dataset_id in 'data' containing the historical geometry
 #   amendment_type: Type of spatial amendment. Allowed values:
 #                   - "boundary_modification": Legal change to external boundaries
-#                   - "internal_zoning": Addition/modification of internal zones
 #                   - "secondary_zoning": Additional zoning (core zones, buffers)
 #                   - "correction": Data correction (wrong geometry in WDPA)
 #   valid_from: Optional start date (Date or character). If NULL, remains NA
@@ -260,7 +259,6 @@ add_modif_sat <- function(
   # Validate amendment_type for SAT
   allowed_types_sat <- c(
     "boundary_modification",
-    "internal_zoning",
     "secondary_zoning",
     "correction"
   )
@@ -462,14 +460,32 @@ export_amendments_to_yaml <- function(
 
   # Helper: create legal_instrument object
   create_legal_instrument <- function(row) {
-    # Check if we have legal instrument data
-    if (all(is.na(c(row$legal_source, row$legal_instrument_number)))) {
+    # Check if we have legal instrument data (check column existence first)
+    has_fat_cols <- "legal_instrument_number" %in% names(row)
+    has_sat_cols <- "legal_source" %in% names(row)
+
+    if (!has_fat_cols && !has_sat_cols) {
+      return(NULL)
+    }
+
+    # If we have neither SAT nor FAT data populated, return NULL
+    if (
+      has_fat_cols &&
+        is.na(row$legal_instrument_number) &&
+        has_sat_cols &&
+        is.na(row$legal_source)
+    ) {
+      return(NULL)
+    }
+
+    if (!has_fat_cols && has_sat_cols && is.na(row$legal_source)) {
       return(NULL)
     }
 
     # Determine source and structure
     if (
-      !is.null(row$legal_instrument_source) &&
+      has_fat_cols &&
+        !is.null(row$legal_instrument_source) &&
         !is.na(row$legal_instrument_source)
     ) {
       # FAT format
@@ -867,7 +883,7 @@ add_modif_fat <- function(
     valid_to = if (!is.null(valid_to)) {
       as.Date(valid_to)
     } else {
-      dec$date_texte[1]
+      as.Date(NA) # NULL valid_to stays NA (no end date)
     },
     date_precision = date_precision,
     legal_instrument_type = tolower(dec$type_texte[1]),
@@ -949,24 +965,24 @@ add_modif_fat <- function(
 
 ```
 
-## Amendment Schema {#sec-amendment-schema}
+## Schéma des amendements {#sec-amendment-schema}
 
-This chapter documents amendments to WDPA data for Madagascar's protected areas. Amendments are identified through systematic review of legal texts (CNLEGIS), historical spatial data sources, and expert literature (primarily Goodman et al. 2018).
+Ce chapitre documente les amendements aux données WDPA pour les aires protégées de Madagascar. Les amendements sont identifiés par une revue systématique des textes légaux (CNLEGIS), des sources de données spatiales historiques, et de la littérature experte (principalement Goodman et al. 2018).
 
-### Output Format
+### Format de sortie
 
-All amendments will be exported to a standardized YAML schema designed for the `dynamic_wdpa` registry. This format enables:
+Tous les amendements seront exportés vers un schéma YAML standardisé conçu pour le registre `dynamic_wdpa`. Ce format permet :
 
-- **Version control**: Each amendment is a standalone file tracked by git
-- **Tool-agnostic editing**: YAML and GeoJSON can be edited with any text editor
-- **Interoperability**: Standard formats facilitate data exchange and validation
-- **Transparency**: Clear documentation of corrections with legal references
+- **Contrôle de version** : Chaque amendement est un fichier autonome suivi par git
+- **Édition indépendante des outils** : YAML et GeoJSON peuvent être édités avec n'importe quel éditeur de texte
+- **Interopérabilité** : Les formats standard facilitent l'échange de données et la validation
+- **Transparence** : Documentation claire des corrections avec références légales
 
-### Amendment Schema Structure
+### Structure du schéma d'amendement
 
-Each amendment is stored as a YAML file with the following structure:
+Chaque amendement est stocké dans un fichier YAML avec la structure suivante :
 
-### Spatial Amendment Example
+### Exemple d'amendement spatial
 
 ```yaml
 amendment_id: "MDG-2314-2015-boundary_modification-001"
@@ -993,7 +1009,7 @@ geometry_crs_epsg: 4326
 geometry_source_dataset_id: "SAPM_2010"
 ```
 
-### Attribute Amendment Example
+### Exemple d'amendement d'attributs
 
 ```yaml
 amendment_id: "MDG-5022-2015-correction-001"
@@ -1020,32 +1036,31 @@ attributes:
   STATUS_YR: "1956"
 ```
 
-### Working Tables
+### Tables de travail
 
-For efficient curation within R, this document builds two working tables:
+Pour une curation efficace dans R, ce document construit deux tables de travail :
 
-- **`sat`** (Spatial Amendment Table): sf object with geometries for spatial amendments
-- **`fat`** (Feature Attribute Table): tibble with wide format for attribute amendments
+- **`sat`** (Spatial Amendment Table) : objet sf avec géométries pour les amendements spatiaux
+- **`fat`** (Feature Attribute Table) : tibble en format large pour les amendements d'attributs
 
-These tables are optimized for R operations (geometry manipulation, filtering, validation) and are exported to the YAML schema at the end of the document using `export_amendments_to_yaml()`.
+Ces tables sont optimisées pour les opérations R (manipulation de géométries, filtrage, validation) et sont exportées vers le schéma YAML à la fin du document en utilisant `export_amendments_to_yaml()`.
 
-### Amendment Types
+### Amendment Typesents
 
-- **`boundary_modification`**: Legal change to PA external boundaries
-- **`internal_zoning`**: Core zones or other internal subdivisions
-- **`secondary_zoning`**: Additional zoning layers (core zones, buffer zones) that complement the main PA boundary
-- **`correction`**: Data error in WDPA (wrong geometry, wrong attribute value)
-- **`status_change`**: Change in designation type (RNI→PN, RS→PN, etc.)
-- **`governance_change`**: Change in management authority
+- **`boundary_modification`** : Changement légal des limites externes de l'AP
+- **`secondary_zoning`** : Couches de zonage additionnelles (zones noyau, zones tampons) qui complètent la limite principale de l'AP
+- **`correction`** : Erreur de données dans WDPA (mauvaise géométrie, mauvaise valeur d'attribut)
+- **`status_change`** : Changement de type de désignation (RNI→PN, RS→PN, etc.)
+- **`governance_change`** : Changement d'autorité de gestion
 
 ## Décisions modifiant les aires protégées
 
-For each PA, we:
+Pour chaque AP, nous :
 
-1. Review legal history via CNLEGIS and Goodman et al. (2018)
-2. Compare WDPA attributes with legal documentation
-3. Verify boundaries using visual verification tool (@sec-visual-verif)
-4. Document amendments when discrepancies are found
+1. Révisons l'historique légal via CNLEGIS et Goodman et al. (2018)
+2. Comparons les attributs WDPA avec la documentation légale
+3. Vérifions les limites en utilisant l'outil de vérification visuelle (@sec-visual-verif)
+4. Documentons les amendements lorsque des divergences sont trouvées
 
 ### Ambatovaky
 
@@ -1169,7 +1184,10 @@ modification	de	statut	:	aucune	;	Surface	actuelle	:	34	700	ha	(selon	le	décret
 en	vigueur).
 
 ```{r analamerana-cnlegis}
-show_cnlegis_for_pa(5022, pa_decisions)
+show_cnlegis_for_pa(5022, pa_decisions) |>
+  tab_header(
+    title = paste0("Entrées pour l'AP Analamerana dans la base CNLEGIS")
+  )
 ```
 
 Le Décret 56-208 du 20 février 1956 créant la Réserve Spéciale d'Analamerana n'apparaît pas dans CNLEGIS (pré-2000). WDPA 2025 montre des erreurs majeures : DESIG="Parc National" au lieu de "Reserve Speciale", IUCN_CAT=II au lieu de IV, et STATUS_YR=2015 au lieu de 1956. Goodman confirme qu'aucune modification de statut n'a eu lieu.
@@ -1303,7 +1321,8 @@ fat <- fat |>
 
 ### Andranomena
 
-@goodman2018 indique pour cette AP:
+@goodman2018 indique pour cette AP: 
+
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d'Antananarivo	et	la	Circonscription	Forestière	de
@@ -1400,7 +1419,8 @@ fat <- fat |>
 
 ### Anjanaharibe_sud
 
-@goodman2018 indique pour cette AP:
+@goodman2018 indique pour cette AP:  
+
 > Aspect	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d’Antananarivo	et	le	Cantonnement	Forestier	d’Andapa).	Le
@@ -1465,7 +1485,8 @@ fat <- fat |>
 
 ### Ankarafantsika
 
-@goodman2018 indique pour cette AP:
+@goodman2018 indique pour cette AP: 
+
 Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d’Antananarivo	et	le	Service	Provincial	des	Eaux	et	Forêts	de
@@ -1561,7 +1582,8 @@ fat <- fat |>
 
 ### Ankarana
 
-Goodman	et	al.	[-@goodman2018]	indique	pour	cette	AP:
+Goodman	et	al.	[-@goodman2018]	indique	pour	cette	AP: 
+
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d’Antananarivo	et	Triage	Forestier	d’Anivorano)	;	Création	:
@@ -1572,7 +1594,10 @@ statut	:	aucune	;	Surface	actuelle	:	18	225	ha	(selon	le	décret	en	vigueur).
 Création en 1956 ou 2015 (dans WDPA 2025 c'est 2015) ?
 
 ```{r ankarana-cnlegis}
-show_cnlegis_for_pa(5024, pa_decisions)
+show_cnlegis_for_pa(5024, pa_decisions) |>
+  tab_header(
+    title = paste0("Entrées pour l'AP Ankarana dans la base CNLEGIS")
+  )
 ```
 
 Le Décret 56-208 du 20 février 1956 créant la Réserve Spéciale d'Ankarana n'apparaît pas dans CNLEGIS (pré-2000). WDPA 2025 montre STATUS_YR=2015 au lieu de 1956. DESIG et IUCN_CAT sont corrects (Reserve Speciale, IV). Goodman confirme qu'aucune modification de statut n'a eu lieu.
@@ -1601,7 +1626,8 @@ fat <- add_modif_fat(
 
 ### Befotaka-Midongy du Sud
 
-@goodman2018 indique pour cette AP:
+@goodman2018 indique pour cette AP: 
+
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d'Antananarivo	;	le	Cantonnement	Forestier	de	Midongy	du
@@ -1642,7 +1668,8 @@ fat <- add_modif_fat(
 
 ### Bemaraha 
 
-@goodman2018 indique pour cette AP:
+@goodman2018 indique pour cette AP: 
+
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d’Antananarivo)	;	Création	:	selon	le	Décret	du	31	décembre
@@ -1724,7 +1751,8 @@ fat <- fat |>
 
 ### Betampona
 
-@goodman2018 indique pour cette AP:
+@goodman2018 indique pour cette AP: 
+
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)
 depuis	1996	;	Gestion	antérieure	:	Service	des	Eaux	&	Forêts	de	Toamasina
 &	SAF/FJKM	;	Création	:	selon	le	Décret	du	31	décembre	1927	(Création
@@ -1760,7 +1788,8 @@ fat <- add_modif_fat(
 
 ### Beza Mahafaly
 
-@goodman2018 indique pour cette AP:
+@goodman2018 indique pour cette AP:   
+
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d’Antananarivo)	et	Ecole	Supérieure	des	Sciences
@@ -1801,7 +1830,8 @@ sat <- sat |>
 
 ### Bora
 
-@goodman2018 indique pour cette AP:
+@goodman2018 indique pour cette AP:   
+
 > Aspects	légaux	:	Gestionnaire	actuel	:	Ministère	de	l’Environnement,	de
 l’Ecologie	et	des	Forêts	(MEEF)	;	Gestion	antérieure	:	Direction	des	Eaux	et
 Forêts	(Service	de	la	Protection	de	la	Nature	d’Antananarivo	et	la
@@ -1824,7 +1854,8 @@ décret	en	vigueur).
 
 ### Cap Sainte Marie
 
-@goodman2018 indique pour cette AP:
+@goodman2018 indique pour cette AP:   
+
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d’Antananarivo	et	Cantonnement	Forestier	de	Tsihombe)	;
@@ -1886,7 +1917,8 @@ fat <- fat |>
 
 ### Kirindy Mite
 
-@goodman2018 indique pour cette AP:
+@goodman2018 indique pour cette AP: 
+
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	aucune	;	Création	:	selon	le	Décret	n°	97-1453	du	18
 décembre	1997	;	Modification	de	statut	:	une	partie	de	la	Forêt	Classée	de
@@ -1930,7 +1962,8 @@ sat <- sat |>
 
 ### Lokobe
 
-@goodman2018 indique pour cette AP:
+@goodman2018 indique pour cette AP:   
+
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d’Antananarivo	et	le	Cantonnement	Forestier	de	Nosy	Be	à
@@ -2057,7 +2090,8 @@ show_cnlegis_for_pa("Manombo", pa_decisions)
 
 ### Manongarivo
 
-@goodman2018 indique pour cette AP:
+@goodman2018 indique pour cette AP: 
+
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d’Antananarivo	et	le	Cantonnement	Forestier	d’Ambanja)	;
@@ -2119,6 +2153,7 @@ fat <- fat |>
 ### Mantadia
 
 @goodman2018 indique pour cette AP:
+
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	aucune	;	Création	:	selon	le	Décret	n°	89-011	du	11
 janvier	1989	;	Modification	de	statut	:	le	Parc	National	de	Mantadia	fut	créé
@@ -2143,6 +2178,7 @@ Voir avec MNP s'il est possible de reconstituer la géométrie initiale de 1989.
 ### Marojejy
 
 @goodman2018 indique pour cette AP:
+
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d’Antananarivo)	et	World	Wide	Fund	for	Nature	(WWF)	;
@@ -2200,6 +2236,7 @@ fat <- fat |>
 ### Masoala
 
 @goodman2018 indique pour cette AP:
+
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	aucune	;	Création	:	selon	le	Décret	du	31	décembre
 1927	(Création	de	la	Réserve	Naturelle	Intégrale	n°	2)	;	Modification	de
@@ -2220,6 +2257,7 @@ Cette aire protégée a existé entre 1927 et 1964 sous le statut de RNI, avant 
 ### Montagne d'Ambre
 
 @goodman2018 indique pour cette AP:
+
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d’Antananarivo	et	Service	Provincial	des	Eaux	et	Forêts
@@ -2449,7 +2487,8 @@ fat <- add_modif_fat(
 
 ### Namoroka
 
-@goodman2018 indique pour cette AP:
+@goodman2018 indique pour cette AP: 
+
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d’Antananarivo	et	le	Service	Provincial	des	Eaux	et	Forêts	de
@@ -2508,7 +2547,8 @@ fat <- add_modif_fat(
 
 ### Nosy Mangabe
 
-@goodman2018 indique pour cette AP:
+@goodman2018 indique pour cette AP: 
+
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d’Antananarivo	et	le	Cantonnement	Forestier	de
@@ -2614,7 +2654,8 @@ fat <- add_modif_fat(
 
 ### Ranomafana
 
-@goodman2018 indique pour cette AP:
+@goodman2018 indique pour cette AP: 
+
 Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	aucune	;	Création	:	selon	le	Décret	n°	91-250	du	7	mai
 1991	;	Modification	de	statut	:	Ranomafana	fut	décrit	comme	Site	d’Intérêt
@@ -2637,7 +2678,8 @@ Une modification de limites a eu lieu en 1997. Malheureusement, nous ne disposon
 
 ### Tsaratanàna
 
-@goodman2018 indique pour cette AP:
+@goodman2018 indique pour cette AP: 
+
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d’Antananarivo	;	le	Service	Provincial	des	Eaux	et	Forêts
@@ -2747,7 +2789,8 @@ Pour l'instant, nous documentons les erreurs d'attributs (statut PN/II incorrect
 
 ### Tsimanampesotse
 
-@goodman2018 indique pour cette AP:
+@goodman2018 indique pour cette AP: 
+
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d’Antananarivo	et	Cantonnement	Forestier	de	Betioky)	;
@@ -2844,7 +2887,8 @@ fat <- add_modif_fat(
 
 ### Zahamena
 
-@goodman2018 indique pour cette AP:
+@goodman2018 indique pour cette AP: 
+
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d’Antananarivo)	;	Création	:	selon	le	Décret	du	31	décembre
@@ -3220,8 +3264,7 @@ cat("Zones concernées:\n")
 noyaux_durs |>
   st_drop_geometry() |>
   select(pa_label, NAME, WDPAID) |>
-  arrange(pa_label) |>
-  print(n = Inf)
+  arrange(pa_label)
 ```
 
 ### Intégration dans la table SAT
@@ -3232,7 +3275,7 @@ Chaque noyau dur validé est ajouté à la table SAT avec le type d'amendement `
 # Prepare geometries with required attributes (vectorized)
 nd_geoms <- noyaux_durs |>
   select(geometry, WDPAID, NAME, pa_label) |>
-  mutate(dataset_id = "MEDD_subdivisions_2025")
+  mutate(dataset_id = "MEDD_subdivisions_2024")
 
 # Add all core zones to SAT as secondary_zoning amendments
 for (i in seq_len(nrow(nd_geoms))) {
@@ -3240,7 +3283,7 @@ for (i in seq_len(nrow(nd_geoms))) {
 
   sat <- add_modif_sat(
     sat = sat,
-    data = nd_row |> select(geometry, WDPAID, NAME, dataset_id),
+    data = nd_geoms, # Pass full dataset so function can filter by WDPAID and dataset_id
     decisions = pa_decisions,
     wdpa_name_or_id = nd_row$WDPAID,
     manual_decision = list(
@@ -3297,11 +3340,11 @@ sat |>
 
 Les zonages secondaires sont maintenant documentés dans la table SAT aux côtés des amendements temporels (modifications de frontières, corrections). Lors de l'export YAML, ces entrées seront distinguées par `amendment_type: secondary_zoning` et pourront être filtrées selon les besoins d'analyse.
 
-## Export Amendments {#sec-export-amendments}
+## Export des amendements {#sec-export-amendments}
 
-The curation process has documented amendments to Madagascar's WDPA data. We now export these to the standardized YAML schema for the `dynamic_wdpa` registry.
+Le processus de curation a documenté les amendements aux données WDPA de Madagascar. Nous exportons maintenant ces amendements vers le schéma YAML standardisé pour le registre `dynamic_wdpa`.
 
-### Export to YAML Format
+### Export au format YAML
 
 ```{r}
 #| label: export-amendments
@@ -3320,23 +3363,23 @@ saveRDS(sat, "data/sat_working.rds")
 saveRDS(fat, "data/fat_working.rds")
 ```
 
-### Export Summary
+### Résumé de l'export
 
 ```{r}
 #| label: export-summary
 
-cat("Amendment export complete!\n\n")
-cat("Total amendments:", nrow(exported), "\n")
-cat("  Spatial amendments:", sum(exported$kind == "spatial"), "\n")
-cat("  Attribute amendments:", sum(exported$kind == "attribute"), "\n\n")
+cat("Export des amendements terminé !\n\n")
+cat("Total des amendements :", nrow(exported), "\n")
+cat("  Amendements spatiaux :", sum(exported$kind == "spatial"), "\n")
+cat("  Amendements d'attributs :", sum(exported$kind == "attribute"), "\n\n")
 
-cat("Output structure:\n")
-cat("  YAML files: data/amendments/*.yml\n")
-cat("  GeoJSON files: data/amendments/geoms/*.geojson\n\n")
+cat("Structure de sortie :\n")
+cat("  Fichiers YAML : data/amendments/*.yml\n")
+cat("  Fichiers GeoJSON : data/amendments/geoms/*.geojson\n\n")
 
 # Show breakdown by amendment type
 if (nrow(exported) > 0) {
-  cat("Amendments by type:\n")
+  cat("Amendements par type :\n")
 
   # Get amendment types from original tables
   # Spatial amendments are first in export (rows 1 to nrow(sat))

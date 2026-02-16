@@ -1,4 +1,4 @@
-# Conserver l'histoire des aires protégées à Madagascar : un modèle de données dynamique (2000-2024)
+# Introduction
 
 ## Résumé
 
@@ -8,33 +8,124 @@ Les données spatiales sur les aires protégées sont essentielles pour les étu
 
 ### Importance des données ouvertes
 
-Madagascar, confronté à une extrême pauvreté, dispose de ressources limitées pour gérer ses données administratives, notamment dans le domaine de la conservation. Par exemple, les données relatives à la conservation à Madagascar ont longtemps été rendues accessibles sur le portail "Redbioma", mais ce dernier aujourd'hui hors ligne et les jeux de données qu'il contenait sont introuvables. La mise à disposition de données sur un portail open data pérenne adossé à des procédures d'archivage renforce leur accessibilité, transparence, reproductibilité, et surtout leur persistance.
+Madagascar, confronté à une extrême pauvreté, dispose de ressources limitées pour gérer ses données administratives, notamment dans le domaine de la conservation. Par exemple, les données relatives à la conservation à Madagascar ont longtemps été rendues accessibles sur le portail "Redbioma", mais ce dernier est aujourd'hui hors ligne et les jeux de données qu'il contenait sont introuvables. La mise à disposition de données sur un portail open data pérenne adossé à des procédures d'archivage renforce leur accessibilité, transparence, reproductibilité, et surtout leur persistance.
 
 ### Limites des approches actuelles
 
 Les bases de données nationales et internationales incluent généralement les caractéristiques actuelles des aires protégées sans tenir compte des modifications passées. Cette approche statique entraîne des pertes d'informations et des biais dans l'évaluation des impacts ou l'étude des dynamiques historiques, notamment dans le contexte des changements de limites ("degazetting").
 
-## Originalité de la solution
+## Architecture du modèle de données
 
-Notre méthodologie repose sur :
+Le jeu de données constitue une **extension temporellement explicite de la WDPA**. Il intègre, lorsque ces informations sont disponibles, l'historique juridique, les évolutions spatiales et le zonage secondaires des aires protégées. La WDPA fournit l'état courant de référence de chaque entité, mais cet état est modélisé comme un segment particulier au sein d'une trajectoire spatio-temporelle plus longue, caractérisée par des changements de statut légal, de limites géographiques et d'organisation interne.
 
-- **Une documentation exhaustive** : Compilation de données issues de cartographies historiques, décrets, gestionnaires d'aires protégées, et autres sources.
-- **Traçabilité et contrôle de version** : Chaque modification est documentée dans un système de gestion de version pour garantir une transparence totale.
-- **Formats adaptés** : Les données sont proposées au format GeoParquet pour les analyses standard et en GML ou OGC Moving Features pour des besoins avancés.
-- **Construction rétrospective** : La base est reconstruite à partir des états récents vers les états passés.
+Pour chaque WDPAID, la base reconstruit une **série d'états successifs**, chacun associé à une période de validité explicite (`valid_from` → `valid_to`), en mobilisant des sources juridiques et spatiales datées, tout en conservant une compatibilité complète avec le schéma WDPA lorsque ces informations ne sont pas disponibles.
+
+### Principe de fonctionnement
+
+Le modèle repose sur un **mécanisme de complétion par défaut combiné à des règles de précédence explicites et déterministes** :
+
+1. **État par défaut (WDPA baseline)** : En l'absence de sources alternatives, les attributs et la géométrie issus de la WDPA génèrent un état unique dont la validité débute à partir de `STATUS_YR` et s'étend jusqu'à la date de référence de la version WDPA utilisée.
+
+2. **Segmentation temporelle** : Lorsque des décisions juridiques antérieures, des périmètres historiques ou des dispositifs de zonage secondaires sont identifiés, la chronologie est segmentée en plusieurs intervalles de validité non chevauchants.
+
+3. **Héritage et surcharge** : Les états antérieurs héritent par défaut des attributs WDPA, sauf lorsque des textes réglementaires, des délimitations datées ou des documents de zonage spécifient explicitement des différences (statut de protection temporaire, limites alternatives, changements de gouvernance, organisation interne distincte).
+
+4. **Modèle de zones** : Les limites externes sont traitées comme un type de zone spécifique (`external_boundary`), permettant de représenter simultanément les contours extérieurs et les subdivisions secondaires (zones noyaux, zones tampons) dans une logique spatiale unifiée.
+
+### Composantes du système
+
+Le système ne remplace pas la WDPA mais la complète par trois composantes :
+
+**1. Registre d'amendements YAML** (coeur du système)  
+Fichiers YAML lisibles par l'humain et versionnés contenant les métadonnées de chaque modification historique identifiée (dates, sources légales, types d'amendements). Les géométries associées sont stockées en GeoJSON. Ce registre constitue la **source de vérité canonique** pour toutes les corrections et informations temporelles.
+
+Types d'amendements documentés :
+- `boundary_modification` : Changements légaux des limites externes
+- `status_change` : Modifications de désignation (RNI→PN, RS→PN, etc.)
+- `correction` : Erreurs dans WDPA (dates, statuts, géométries)
+- `secondary_zoning` : Zonages secondaire (zones noyaux, zones tampons)
+
+**2. CAR (Consolidation and Auditing Rules)**  
+Ensemble transparent de règles de consolidation, exprimées sous forme de code R reproductible, qui lit le registre YAML et la WDPA, applique les règles de précédence, et génère les états temporels. Le CAR garantit que la transformation WDPA → états dynamiques est **auditable, déterministe et reproductible**.
+
+**3. Tables de travail SAT/FAT (optionnelles)**  
+Pour faciliter la curation dans R, deux tables de travail sont utilisées durant la phase de documentation :
+- **SAT** (Spatial Amendment Table) : table sf pour manipuler les géométries
+- **FAT** (Feature Attribute Table) : tibble pour gérer les attributs
+
+Ces tables sont ensuite **exportées vers le registre YAML**, qui devient la référence unique. SAT/FAT ne sont donc que des outils de travail temporaires, non la source finale.
+
+### Format de sortie
+
+Le résultat final est une table d'états temporels en format long :
+
+```
+state_id | WDPAID | valid_from | valid_to | zone_type | zone_name | geometry | [attributs WDPA] | amendment_source
+```
+
+Chaque ligne représente **une zone dans un état temporel**. Une aire protégée avec changements de limites et zonage secondaire aura plusieurs lignes par période.
+
+Formats d'export :
+- **RDS** : Format natif R avec objets sf
+- **GeoPackage** : Standard OGC pour interopérabilité SIG
+- **Parquet + WKT** : Format columnar optimisé pour analyses big data
 
 ## Méthodologie
 
-1. **Harmonisation des données SAPM** : Consolidation des versions successives, notamment entre 2002 et 2011.
-2. **Harmonisation des données WDPA** : Intégration des données internationales selon la même approche.
-3. **Création d'une base réglementaire** : Extraction et structuration des textes juridiques via la base CNLEGIS.
-4. **Analyse et consolidation** : Croisement des sources pour produire un ensemble cohérent.
-5. **Outil de vérification visuelle** : Développement d'un outil interactif pour valider la qualité et la traçabilité des données consolidées.
+1. **Harmonisation des données SAPM** : Consolidation des versions successives du système national (2002-2024).
+2. **Harmonisation des données WDPA** : Construction d'une série temporelle mondiale (2010-2024) puis extraction Madagascar.
+3. **Création d'une base réglementaire** : Extraction et structuration des textes juridiques via CNLEGIS.
+4. **Consolidation et appariement** : Croisement spatial et textuel des sources multiples avec identification WDPAID.
+5. **Validation visuelle interactive** : Outil Shiny permettant de comparer visuellement les sources et valider les correspondances.
+6. **Traitement des zonages secondaires** : Identification et validation des subdivisions au sein des aires protégées.
+7. **Curation systématique** : Documentation exhaustive des amendements dans les tables SAT/FAT avec références légales.
+8. **Export vers registre YAML** : Transformation des tables de travail en registre canonique versionné.
+9. **Application des règles CAR** : Consolidation automatisée WDPA + amendements → états temporels.
 
-## Résultats attendus
+## Guide de lecture
 
-Nous publions un jeu de données couvrant Madagascar entre 2000 et 2024, accessible via un portail pérenne. Ce modèle permettra de corriger des biais observés dans des études emblématiques, offrant des conclusions plus fiables sur l'impact de la conservation.
+Ce document est organisé en trois parties :
+
+**Partie 1 - Sources de données** : Présentation et harmonisation des différentes sources spatiales (SAPM, WDPA) et juridiques (CNLEGIS) mobilisées pour reconstituer l'historique des aires protégées. Construction de séries temporelles cohérentes et appariement des identifiants.
+
+**Partie 2 - Consolidation et validation** : Méthodologie d'appariement spatial et textuel des sources multiples, développement d'un outil de validation visuelle interactive (Shiny), et traitement systématique des zonages secondiares documentés par les gestionnaires.
+
+**Partie 3 - Production des amendements** : Documentation exhaustive et systématique des corrections apportées aux données WDPA (erreurs de dates, statuts, géométries, protections temporaires). Export vers le registre YAML canonique. Mise en œuvre des règles de consolidation temporelle (CAR) pour générer automatiquement les états successifs à partir de WDPA et du registre d'amendements.
+
+## Données et reproductibilité
+
+Les données sources (SAPM, WDPA, CNLEGIS) et les données produites (registre YAML d'amendements, états temporels) ne sont pas hébergées dans ce dépôt GitHub mais peuvent être intégralement reproduites en suivant les procédures décrites dans chaque chapitre. Le code R est entièrement documenté et exécutable. 
+
+Le registre YAML d'amendements est versionné avec Git, permettant de tracer l'historique complet de chaque correction et de revenir à tout état antérieur. Les règles CAR étant codées explicitement, toute modification de la logique de consolidation est également tracée.
+
+Pour toute question sur l'accès aux données ou la reproduction des résultats, consulter le [README](https://github.com/BETSAKA/conservation-dynamic-madagascar).
+
+## Cas d'usage
+
+Ce modèle de données permet de :
+
+### Fiabiliser et enrichir WDPA
+
+- **Identifier et corriger les erreurs** : Dates erronées ou absentes, mauvais statuts, périmètres inexacts
+- **Intégrer les protections temporaires** : Décrets temporaires absents de WDPA mais documentés dans CNLEGIS
+- **Documenter les changements de statut** : Traçabilité des reclassements (RS→PN) ou abandons
+- **Vérifier la robustesse d'études antérieures** : Tester si les conclusions basées sur d'anciennes versions WDPA restent valides avec les données corrigées
+
+### Analyses temporelles robustes
+
+- **Études d'impact rigoureuses** : Associer les interventions de conservation aux limites historiquement exactes
+- **Analyses de déclassement** : Quantifier et cartographier les réductions de surface ("degazetting") avec dates précises
+- **Évaluation de l'efficacité par zone** : Comparer l'effet des zones noyaux vs zones tampons au fil du temps
+- **Trajectoires de conservation** : Retracer l'évolution complète du système d'aires protégées sur 24 ans
+
+### Gouvernance et transparence
+
+- **Associer chaque état à sa source réglementaire** : Lien direct entre géométrie et texte juridique dans CNLEGIS
+- **Auditabilité complète** : Chaque modification documentée et traçable via Git et registre YAML
+- **Reproductibilité scientifique** : Code ouvert permettant de vérifier et critiquer les hypothèses temporelles
 
 ## Perspectives
 
-Ce projet contribue à une meilleure compréhension des dynamiques de conservation et propose un cadre méthodologique réplicable dans d'autres contextes. En intégrant des pratiques ouvertes et transparentes, il répond aux défis de la gestion des données dans les pays en développement tout en offrant des outils adaptés aux besoins des chercheurs et gestionnaires.
+Ce projet contribue à une meilleure compréhension des dynamiques de conservation et propose un cadre méthodologique réplicable dans d'autres contextes. En intégrant des pratiques ouvertes et transparentes (registre YAML versionné, règles CAR auditables), il répond aux défis de la gestion des données dans les pays en développement tout en offrant des outils adaptés aux besoins des chercheurs et gestionnaires.
+
+L'architecture YAML + CAR permet une **extension collaborative** : d'autres chercheurs peuvent proposer des amendements via pull requests GitHub, qui seront automatiquement intégrés lors de la prochaine génération des états temporels.

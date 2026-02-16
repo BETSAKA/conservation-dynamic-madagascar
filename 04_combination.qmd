@@ -4,9 +4,9 @@ editor_options:
   chunk_output_type: console
 ---
 
-# Harmonisation des données SAPM
+# Consolidation et appariement des sources
 
-Dans cette section, nous passons en revue plusieurs jeux de données ayant documenté les aires protégées à Madagascar à différentes périodes. Ces données, issues de sources officielles, ont été produites et mises à jour par différentes institutions. Nous les harmonisons en appliquant un ensemble de traitements standardisés :
+Dans cette section, nous consolidons et apparions les différents jeux de données harmonisés dans les chapitres précédents (SAPM, WDPA, textes juridiques). L'objectif est d'identifier les correspondances entre les aires protégées documentées dans ces sources multiples et de construire une base unifiée avec des identifiants stables. Nous appliquons un ensemble de traitements standardisés :
 
 -   Correction des erreurs topologiques.
 

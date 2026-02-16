@@ -211,11 +211,19 @@ ul.task-list li input[type="checkbox"] {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#fonctionnalités" id="toc-fonctionnalités" class="nav-link active" data-scroll-target="#fonctionnalités"><span class="header-section-number">6.1</span> Fonctionnalités</a></li>
+  <li><a href="#accès-en-ligne" id="toc-accès-en-ligne" class="nav-link" data-scroll-target="#accès-en-ligne"><span class="header-section-number">6.2</span> Accès en ligne</a></li>
+  <li><a href="#code-source" id="toc-code-source" class="nav-link" data-scroll-target="#code-source"><span class="header-section-number">6.3</span> Code source</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
-<main class="content column-page-right" id="quarto-document-content">
+<main class="content column-body" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./04_combination.html">Consolidation et validation</a></li><li class="breadcrumb-item"><a href="./05_visual_verif.html"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Visualisation interactive</span></a></li></ol></nav>
 <div class="quarto-title">
@@ -224,7 +232,7 @@ ul.task-list li input[type="checkbox"] {
 
 
 
-<div class="quarto-title-meta column-page-right">
+<div class="quarto-title-meta column-body">
 
     
   
@@ -236,12 +244,39 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
+<p>Une application Shiny interactive permet d’explorer les données consolidées des aires protégées de Madagascar. Elle croise les informations spatiales issues de multiples sources (SAPM, WDPA, CNLEGIS) et facilite la validation visuelle des appariements.</p>
+<section id="fonctionnalités" class="level2" data-number="6.1">
+<h2 data-number="6.1" class="anchored" data-anchor-id="fonctionnalités"><span class="header-section-number">6.1</span> Fonctionnalités</h2>
+<p>L’application permet :</p>
+<ul>
+<li><strong>Sélection par catégorie</strong> : Filtrer les aires protégées selon leur présence dans WDPA et/ou d’autres sources</li>
+<li><strong>Visualisation de la présence</strong> : Graphique montrant dans quels jeux de données chaque AP apparaît</li>
+<li><strong>Informations consolidées</strong> : Tableau récapitulatif avec désignations, statuts, dates, identifiants</li>
+<li><strong>Textes CNLEGIS</strong> : Accès direct aux décrets et arrêtés associés à chaque aire protégée</li>
+<li><strong>Carte interactive</strong> : Superposition des géométries provenant de différentes sources et périodes</li>
+</ul>
+</section>
+<section id="accès-en-ligne" class="level2" data-number="6.2">
+<h2 data-number="6.2" class="anchored" data-anchor-id="accès-en-ligne"><span class="header-section-number">6.2</span> Accès en ligne</h2>
+<p>L’application est déployée sur shinyapps.io et accessible à l’adresse suivante :</p>
 <div class="iframe-container">
 <iframe src="https://workbench.shinyapps.io/conservation-madascar-dashboard/" width="100%" height="800px" frameborder="0" allowfullscreen="">
 </iframe>
 </div>
+</section>
+<section id="code-source" class="level2" data-number="6.3">
+<h2 data-number="6.3" class="anchored" data-anchor-id="code-source"><span class="header-section-number">6.3</span> Code source</h2>
+<p>Le code source de l’application est disponible dans le dossier <code>shiny_app/</code> du dépôt. Pour l’exécuter localement ou la déployer :</p>
+<ol type="1">
+<li><strong>Générer les données</strong> : Exécuter les chapitres 02, 03 et 04 pour produire les fichiers nécessaires</li>
+<li><strong>Copier les données</strong> : Placer les fichiers <code>.rds</code> et <code>.parquet</code> dans <code>shiny_app/data/</code></li>
+<li><strong>Lancer localement</strong> : <code>shiny::runApp("shiny_app")</code></li>
+<li><strong>Déployer</strong> : Suivre les instructions dans <code>shiny_app/README.md</code></li>
+</ol>
+<p>Voir le <a href="https://github.com/BETSAKA/conservation-dynamic-madagascar/tree/main/shiny_app">dépôt GitHub</a> pour plus de détails.</p>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -644,7 +679,7 @@ ul.task-list li input[type="checkbox"] {
     }
   });
   </script>
-<nav class="page-navigation column-page-right">
+<nav class="page-navigation column-body">
   <div class="nav-page nav-page-previous">
       <a href="./04_combination.html" class="pagination-link" aria-label="Consolidation et appariement des sources">
         <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Consolidation et appariement des sources</span></span>

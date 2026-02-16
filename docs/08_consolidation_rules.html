@@ -260,8 +260,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#state-consolidation" id="toc-state-consolidation" class="nav-link" data-scroll-target="#state-consolidation"><span class="header-section-number">12.3</span> State Consolidation</a></li>
   </ul></li>
   <li><a href="#auditability-timeline-printing" id="toc-auditability-timeline-printing" class="nav-link" data-scroll-target="#auditability-timeline-printing"><span class="header-section-number">13</span> Auditability: Timeline Printing</a></li>
-  <li><a href="#test-single-pa" id="toc-test-single-pa" class="nav-link" data-scroll-target="#test-single-pa"><span class="header-section-number">14</span> Test: Single PA</a></li>
-  <li><a href="#generate-full-dataset" id="toc-generate-full-dataset" class="nav-link" data-scroll-target="#generate-full-dataset"><span class="header-section-number">15</span> Generate Full Dataset</a></li>
+  <li><a href="#test-single-pa" id="toc-test-single-pa" class="nav-link" data-scroll-target="#test-single-pa"><span class="header-section-number">14</span> Test: single PA</a></li>
+  <li><a href="#generate-full-dataset" id="toc-generate-full-dataset" class="nav-link" data-scroll-target="#generate-full-dataset"><span class="header-section-number">15</span> Generate full dataset</a></li>
   <li><a href="#export" id="toc-export" class="nav-link" data-scroll-target="#export"><span class="header-section-number">16</span> Export</a></li>
   <li><a href="#example-timelines" id="toc-example-timelines" class="nav-link" data-scroll-target="#example-timelines"><span class="header-section-number">17</span> Example Timelines</a></li>
   </ul>
@@ -523,13 +523,13 @@ Amendment types:</code></pre>
 <ol type="1">
 <li>For <code>boundary_modification</code>: Amendment geometry overrides WDPA for its validity period</li>
 <li>For <code>secondary_zoning</code>: Additive (creates additional zones alongside boundary)</li>
-<li>Multiple boundary_modifications in same period → ERROR (conflict)</li>
+<li>Multiple boundary_modifications in same period : ERROR (conflict)</li>
 </ol>
 <p><strong>Attribute precedence:</strong></p>
 <ol type="1">
 <li>Amendment attributes override WDPA for validity period</li>
 <li>Unspecified attributes inherit from WDPA</li>
-<li>Multiple attribute amendments with overlapping attributes in same period → ERROR</li>
+<li>Multiple attribute amendments with overlapping attributes in same period: ERROR</li>
 </ol>
 <div class="cell">
 <details class="code-fold">
@@ -822,11 +822,11 @@ Amendment types:</code></pre>
 <span id="cb18-32"><a href="#cb18-32" aria-hidden="true" tabindex="-1"></a>      current_state_id <span class="ot">&lt;-</span> row<span class="sc">$</span>state_id</span>
 <span id="cb18-33"><a href="#cb18-33" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb18-34"><a href="#cb18-34" aria-hidden="true" tabindex="-1"></a>      period <span class="ot">&lt;-</span> <span class="cf">if</span> (<span class="fu">is.na</span>(row<span class="sc">$</span>valid_to)) {</span>
-<span id="cb18-35"><a href="#cb18-35" aria-hidden="true" tabindex="-1"></a>        <span class="fu">paste0</span>(<span class="fu">format</span>(row<span class="sc">$</span>valid_from, <span class="st">"%Y-%m-%d"</span>), <span class="st">" → present"</span>)</span>
+<span id="cb18-35"><a href="#cb18-35" aria-hidden="true" tabindex="-1"></a>        <span class="fu">paste0</span>(<span class="fu">format</span>(row<span class="sc">$</span>valid_from, <span class="st">"%Y-%m-%d"</span>), <span class="st">" to present"</span>)</span>
 <span id="cb18-36"><a href="#cb18-36" aria-hidden="true" tabindex="-1"></a>      } <span class="cf">else</span> {</span>
 <span id="cb18-37"><a href="#cb18-37" aria-hidden="true" tabindex="-1"></a>        <span class="fu">paste0</span>(</span>
 <span id="cb18-38"><a href="#cb18-38" aria-hidden="true" tabindex="-1"></a>          <span class="fu">format</span>(row<span class="sc">$</span>valid_from, <span class="st">"%Y-%m-%d"</span>),</span>
-<span id="cb18-39"><a href="#cb18-39" aria-hidden="true" tabindex="-1"></a>          <span class="st">" → "</span>,</span>
+<span id="cb18-39"><a href="#cb18-39" aria-hidden="true" tabindex="-1"></a>          <span class="st">" to "</span>,</span>
 <span id="cb18-40"><a href="#cb18-40" aria-hidden="true" tabindex="-1"></a>          <span class="fu">format</span>(row<span class="sc">$</span>valid_to, <span class="st">"%Y-%m-%d"</span>)</span>
 <span id="cb18-41"><a href="#cb18-41" aria-hidden="true" tabindex="-1"></a>        )</span>
 <span id="cb18-42"><a href="#cb18-42" aria-hidden="true" tabindex="-1"></a>      }</span>
@@ -856,7 +856,7 @@ Amendment types:</code></pre>
 </div>
 </section>
 <section id="test-single-pa" class="level1" data-number="14">
-<h1 data-number="14"><span class="header-section-number">14</span> Test: Single PA</h1>
+<h1 data-number="14"><span class="header-section-number">14</span> Test: single PA</h1>
 <p>Test consolidation on Ankarafantsika (has status change and boundary modification).</p>
 <div class="cell">
 <details class="code-fold">
@@ -877,17 +877,17 @@ Amendment types:</code></pre>
 TIMELINE: Ankarafantsika (WDPAID: 1299 )
 ═══════════════════════════════════════════════════════════════
 
-┌─ 1927-12-31 → 2002-08-07 
+┌─ 1927-12-31 to 2002-08-07 
 │ Status: Réserve Naturelle Intégrale ( Ia )
 │ STATUS_YR: 1927 
 │ ├─ Zone: external_boundary
 │ │  Source: WDPA 
-┌─ 2002-08-07 → 2015-01-01 
+┌─ 2002-08-07 to 2015-01-01 
 │ Status: Parc National ( II )
 │ STATUS_YR: 2002 
 │ ├─ Zone: external_boundary
 │ │  Source: MDG-1299-2015-boundary_modification-001 
-┌─ 2015-01-01 → 2015-04-21 
+┌─ 2015-01-01 to 2015-04-21 
 │ Status: Parc National ( II )
 │ STATUS_YR: 2002 
 │ ├─ Zone: external_boundary
@@ -923,7 +923,7 @@ TIMELINE: Ankarafantsika (WDPAID: 1299 )
 </div>
 </section>
 <section id="generate-full-dataset" class="level1" data-number="15">
-<h1 data-number="15"><span class="header-section-number">15</span> Generate Full Dataset</h1>
+<h1 data-number="15"><span class="header-section-number">15</span> Generate full dataset</h1>
 <p>Apply to all Madagascar PAs.</p>
 <div class="cell">
 <details class="code-fold">
@@ -1095,7 +1095,7 @@ Writing 226 features with 34 fields and geometry type Unknown (any).</code></pre
 <details class="code-fold">
 <summary>Voir le code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Status change example</span></span>
-<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print_timeline</span>(<span class="dv">1299</span>, dynamic_wdpa_full) <span class="co"># Ankarafantsika (RNI → PN)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print_timeline</span>(<span class="dv">1299</span>, dynamic_wdpa_full) <span class="co"># Ankarafantsika (RNI to PN)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>
@@ -1103,17 +1103,17 @@ Writing 226 features with 34 fields and geometry type Unknown (any).</code></pre
 TIMELINE: Ankarafantsika (WDPAID: 1299 )
 ═══════════════════════════════════════════════════════════════
 
-┌─ 1927-12-31 → 2002-08-07 
+┌─ 1927-12-31 to 2002-08-07 
 │ Status: Réserve Naturelle Intégrale ( Ia )
 │ STATUS_YR: 1927 
 │ ├─ Zone: external_boundary
 │ │  Source: WDPA 
-┌─ 2002-08-07 → 2015-01-01 
+┌─ 2002-08-07 to 2015-01-01 
 │ Status: Parc National ( II )
 │ STATUS_YR: 2002 
 │ ├─ Zone: external_boundary
 │ │  Source: MDG-1299-2015-boundary_modification-001 
-┌─ 2015-01-01 → 2015-04-21 
+┌─ 2015-01-01 to 2015-04-21 
 │ Status: Parc National ( II )
 │ STATUS_YR: 2002 
 │ ├─ Zone: external_boundary
@@ -1133,14 +1133,14 @@ TIMELINE: Ankarafantsika (WDPAID: 1299 )
 TIMELINE: Beza Mahafaly (WDPAID: 10634 )
 ═══════════════════════════════════════════════════════════════
 
-┌─ 1986-01-01 → 1986-06-04 
+┌─ 1986-01-01 to 1986-06-04 
 │ Status: Reserve Speciale ( IV )
 │ STATUS_YR: 1986 
 │ ├─ Zone: external_boundary
 │ │  Source: WDPA 
 │ ├─ Zone: external_boundary
 │ │  Source: MDG-10634-2015-boundary_modification-001 
-┌─ 2015-04-21 → present 
+┌─ 2015-04-21 to present 
 │ Status: Reserve Speciale ( IV )
 │ STATUS_YR: 1986 
 │ ├─ Zone: external_boundary
@@ -1158,19 +1158,19 @@ TIMELINE: Beza Mahafaly (WDPAID: 10634 )
 TIMELINE: Tsimanampesotse (WDPAID: 2307 )
 ═══════════════════════════════════════════════════════════════
 
-┌─ 1927-01-01 → 1927-12-31 
+┌─ 1927-01-01 to 1927-12-31 
 │ Status: Parc National ( II )
 │ STATUS_YR: 1927 
 │ ├─ Zone: external_boundary
 │ │  Source: WDPA 
 │ ├─ Zone: external_boundary
 │ │  Source: MDG-2307-2015-boundary_modification-001 
-┌─ 2002-08-07 → 2015-04-21 
+┌─ 2002-08-07 to 2015-04-21 
 │ Status: Parc National ( II )
 │ STATUS_YR: 2002 
 │ ├─ Zone: external_boundary
 │ │  Source: MDG-2307-2015-boundary_modification-001 
-┌─ 2015-04-21 → present 
+┌─ 2015-04-21 to present 
 │ Status: Parc National ( II )
 │ STATUS_YR: 1927 
 │ ├─ Zone: external_boundary

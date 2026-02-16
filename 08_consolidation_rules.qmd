@@ -1,24 +1,24 @@
-# CAR - Consolidation and Auditing Rules
+# CAR - Règles de consolidation et d'audit
 
-## Overview
+## Vue d'ensemble
 
-The CAR (Consolidation and Auditing Rules) transforms WDPA baseline data and YAML amendments into a temporal, spatially explicit dataset. Each protected area is represented as a sequence of time-bounded states, with each state potentially containing multiple zones (external boundary, core zones, buffer zones).
+Le CAR (Consolidation and Auditing Rules) transforme les données de base WDPA et les amendements YAML en un jeu de données temporel et spatialement explicite. Chaque aire protégée est représentée comme une séquence d'états délimités dans le temps, chaque état pouvant contenir plusieurs zones (limite externe, noyaux durs, zones tampons).
 
-**Core principles:**
+**Principes fondamentaux :**
 
-1. **WDPA as baseline**: Current state inherited by default
-2. **YAML amendments override**: Explicit dated information takes precedence
-3. **Temporal segmentation**: All dates (from WDPA and amendments) create non-overlapping intervals
-4. **Zone model**: External boundaries and internal zones coexist
-5. **Fail-fast**: Conflicts throw errors rather than silently resolve
+1. **WDPA comme base de référence** : L'état actuel est hérité par défaut
+2. **Les amendements YAML prévalent** : L'information datée explicite est prioritaire
+3. **Segmentation temporelle** : Toutes les dates (WDPA et amendements) créent des intervalles non chevauchants
+4. **Modèle de zones** : Limites externes et zonages secondaires coexistent
+5. **Fail-fast** : Les conflits génèrent des erreurs plutôt que de se résoudre silencieusement
 
-**Output structure:**
+**Structure de sortie :**
 
 ```
 state_id | WDPAID | valid_from | valid_to | zone_type | zone_name | geometry | [WDPA attributes] | amendment_source
 ```
 
-Each row represents one zone in one temporal state. A PA with boundary changes and core zoning will have multiple rows per time period.
+Chaque ligne représente une zone dans un état temporel. Une AP avec des modifications de limites et un zonage secondaire aura plusieurs lignes par période.
 
 ```{r setup}
 #| message: false
@@ -34,9 +34,9 @@ library(lubridate)
 wdpa_mdg <- wdpa_read("data/WDPA_WDOECM_Nov2025_Public_MDG.zip")
 ```
 
-## Read Amendment Registry
+## Lecture du registre d'amendements
 
-The amendment registry consists of YAML files (metadata) and GeoJSON files (geometries) created by `07_curation.qmd`.
+Le registre d'amendements consiste en fichiers YAML (métadonnées) et fichiers GeoJSON (géométries) créés par `07_curation.qmd`.
 
 ```{r read-amendments}
 #' Read YAML amendment registry
@@ -142,11 +142,11 @@ amendments$all |>
   print()
 ```
 
-## Consolidation Functions
+## Fonctions de consolidationion
 
-### Timeline Generation
+### Génération de chronologie
 
-Create non-overlapping temporal intervals by combining all date markers from WDPA and amendments.
+Création d'intervalles temporels non chevauchants en combinant tous les marqueurs de dates issus de WDPA et des amendements.
 
 ```{r timeline}
 #' Generate timeline breakpoints for a protected area
@@ -190,19 +190,19 @@ generate_timeline <- function(wdpaid, wdpa, amendments) {
 }
 ```
 
-### Precedence Rules
+### Règles de précédence
 
-**Spatial precedence:**
+**Précédence spatiale :**
 
-1. For `boundary_modification`: Amendment geometry overrides WDPA for its validity period
-2. For `secondary_zoning`: Additive (creates additional zones alongside boundary)
-3. Multiple boundary_modifications in same period : ERROR (conflict)
+1. Pour `boundary_modification` : La géométrie de l'amendement remplace WDPA pendant sa période de validité
+2. Pour `secondary_zoning` : Additif (crée des zones supplémentaires en plus de la limite)
+3. Plusieurs boundary_modifications dans la même période : ERREUR (conflit)
 
-**Attribute precedence:**
+**Précédence des attributs :**
 
-1. Amendment attributes override WDPA for validity period
-2. Unspecified attributes inherit from WDPA
-3. Multiple attribute amendments with overlapping attributes in same period: ERROR
+1. Les attributs des amendements remplacent WDPA pendant la période de validité
+2. Les attributs non spécifiés héritent de WDPA
+3. Plusieurs amendements d'attributs avec des attributs chevauchants dans la même période : ERREUR
 
 ```{r precedence}
 #' Find active amendments for a time interval
@@ -286,9 +286,9 @@ check_conflicts <- function(amendments, type = "boundary") {
 }
 ```
 
-### State Consolidation
+### Consolidation des états
 
-Apply amendments to WDPA baseline for each temporal interval, creating zone records.
+Application des amendements à la base WDPA pour chaque intervalle temporel, créant des enregistrements de zones.
 
 ```{r consolidate}
 #' Standardize types for dynamic WDPA states
@@ -449,9 +449,9 @@ consolidate_pa_states <- function(wdpaid, wdpa, amendments) {
 }
 ```
 
-## Auditability: Timeline Printing
+## Auditabilité : Affichage de chronologie
 
-Simple function to visualize the temporal evolution of a PA.
+Fonction simple pour visualiser l'évolution temporelle d'une AP.
 
 ```{r audit}
 #' Print timeline for a protected area
@@ -520,9 +520,9 @@ print_timeline <- function(wdpaid, states) {
 }
 ```
 
-## Test: single PA
+## Test : une AP unique
 
-Test consolidation on Ankarafantsika (has status change and boundary modification).
+Test de consolidation sur Ankarafantsika (a des changements de statut et modifications de limites).
 
 ```{r test-single}
 # Consolidate one PA
@@ -549,9 +549,9 @@ test_states |>
   )
 ```
 
-## Generate full dataset
+## Génération du jeu de données complet
 
-Apply to all Madagascar PAs.
+Application à toutes les AP de Madagascar.
 
 ```{r generate-all}
 # Get unique WDPAIDs that have amendments
@@ -609,7 +609,7 @@ dynamic_wdpa_full |>
 
 ## Export
 
-The result is an sf object. Users can export as needed:
+Le résultat est un objet sf. Les utilisateurs peuvent l'exporter selon leurs besoins :
 
 ```{r export}
 # Save as RDS (preserves R structure)
@@ -631,9 +631,9 @@ cat("  - data/dynamic_wdpa.gpkg\n")
 cat("  - data/dynamic_wdpa.parquet (with WKT geometry)\n")
 ```
 
-## Example Timelines
+## Exemples de chronologies
 
-Print timelines for a few interesting cases:
+Affichage des chronologies pour quelques cas intéressants :
 
 ```{r example-timelines}
 # Status change example

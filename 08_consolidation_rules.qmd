@@ -1,9 +1,6 @@
----
-title: "CAR - Consolidation and Auditing Rules"
-format: html
----
+# CAR - Consolidation and Auditing Rules
 
-# Overview
+## Overview
 
 The CAR (Consolidation and Auditing Rules) transforms WDPA baseline data and YAML amendments into a temporal, spatially explicit dataset. Each protected area is represented as a sequence of time-bounded states, with each state potentially containing multiple zones (external boundary, core zones, buffer zones).
 
@@ -37,7 +34,7 @@ library(lubridate)
 wdpa_mdg <- wdpa_read("data/WDPA_WDOECM_Nov2025_Public_MDG.zip")
 ```
 
-# Read Amendment Registry
+## Read Amendment Registry
 
 The amendment registry consists of YAML files (metadata) and GeoJSON files (geometries) created by `07_curation.qmd`.
 
@@ -145,9 +142,9 @@ amendments$all |>
   print()
 ```
 
-# Consolidation Functions
+## Consolidation Functions
 
-## Timeline Generation
+### Timeline Generation
 
 Create non-overlapping temporal intervals by combining all date markers from WDPA and amendments.
 
@@ -193,19 +190,19 @@ generate_timeline <- function(wdpaid, wdpa, amendments) {
 }
 ```
 
-## Precedence Rules
+### Precedence Rules
 
 **Spatial precedence:**
 
 1. For `boundary_modification`: Amendment geometry overrides WDPA for its validity period
 2. For `secondary_zoning`: Additive (creates additional zones alongside boundary)
-3. Multiple boundary_modifications in same period → ERROR (conflict)
+3. Multiple boundary_modifications in same period : ERROR (conflict)
 
 **Attribute precedence:**
 
 1. Amendment attributes override WDPA for validity period
 2. Unspecified attributes inherit from WDPA
-3. Multiple attribute amendments with overlapping attributes in same period → ERROR
+3. Multiple attribute amendments with overlapping attributes in same period: ERROR
 
 ```{r precedence}
 #' Find active amendments for a time interval
@@ -289,7 +286,7 @@ check_conflicts <- function(amendments, type = "boundary") {
 }
 ```
 
-## State Consolidation
+### State Consolidation
 
 Apply amendments to WDPA baseline for each temporal interval, creating zone records.
 
@@ -452,7 +449,7 @@ consolidate_pa_states <- function(wdpaid, wdpa, amendments) {
 }
 ```
 
-# Auditability: Timeline Printing
+## Auditability: Timeline Printing
 
 Simple function to visualize the temporal evolution of a PA.
 
@@ -491,11 +488,11 @@ print_timeline <- function(wdpaid, states) {
       current_state_id <- row$state_id
 
       period <- if (is.na(row$valid_to)) {
-        paste0(format(row$valid_from, "%Y-%m-%d"), " → present")
+        paste0(format(row$valid_from, "%Y-%m-%d"), " to present")
       } else {
         paste0(
           format(row$valid_from, "%Y-%m-%d"),
-          " → ",
+          " to ",
           format(row$valid_to, "%Y-%m-%d")
         )
       }
@@ -523,7 +520,7 @@ print_timeline <- function(wdpaid, states) {
 }
 ```
 
-# Test: Single PA
+## Test: single PA
 
 Test consolidation on Ankarafantsika (has status change and boundary modification).
 
@@ -552,7 +549,7 @@ test_states |>
   )
 ```
 
-# Generate Full Dataset
+## Generate full dataset
 
 Apply to all Madagascar PAs.
 
@@ -610,7 +607,7 @@ dynamic_wdpa_full |>
   print()
 ```
 
-# Export
+## Export
 
 The result is an sf object. Users can export as needed:
 
@@ -634,13 +631,13 @@ cat("  - data/dynamic_wdpa.gpkg\n")
 cat("  - data/dynamic_wdpa.parquet (with WKT geometry)\n")
 ```
 
-# Example Timelines
+## Example Timelines
 
 Print timelines for a few interesting cases:
 
 ```{r example-timelines}
 # Status change example
-print_timeline(1299, dynamic_wdpa_full) # Ankarafantsika (RNI → PN)
+print_timeline(1299, dynamic_wdpa_full) # Ankarafantsika (RNI to PN)
 
 # Boundary modification example
 print_timeline(10634, dynamic_wdpa_full) # Beza Mahafaly

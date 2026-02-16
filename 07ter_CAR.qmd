@@ -1,10 +1,650 @@
 ---
-title: "Untitled"
+title: "CAR - Consolidation and Auditing Rules"
 format: html
 ---
 
-# CAR
+# Overview
 
-## Prise en compte des dates
+The CAR (Consolidation and Auditing Rules) transforms WDPA baseline data and YAML amendments into a temporal, spatially explicit dataset. Each protected area is represented as a sequence of time-bounded states, with each state potentially containing multiple zones (external boundary, core zones, buffer zones).
 
-Préséance à définir : STATUS_YR dans FAT ou valid_from dans SAT
+**Core principles:**
+
+1. **WDPA as baseline**: Current state inherited by default
+2. **YAML amendments override**: Explicit dated information takes precedence
+3. **Temporal segmentation**: All dates (from WDPA and amendments) create non-overlapping intervals
+4. **Zone model**: External boundaries and internal zones coexist
+5. **Fail-fast**: Conflicts throw errors rather than silently resolve
+
+**Output structure:**
+
+```
+state_id | WDPAID | valid_from | valid_to | zone_type | zone_name | geometry | [WDPA attributes] | amendment_source
+```
+
+Each row represents one zone in one temporal state. A PA with boundary changes and core zoning will have multiple rows per time period.
+
+```{r setup}
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(sf)
+library(yaml)
+library(wdpar)
+library(lubridate)
+
+# Load WDPA reference
+wdpa_mdg <- wdpa_read("data/WDPA_WDOECM_Nov2025_Public_MDG.zip")
+```
+
+# Read Amendment Registry
+
+The amendment registry consists of YAML files (metadata) and GeoJSON files (geometries) created by `07_curation.qmd`.
+
+```{r read-amendments}
+#' Read YAML amendment registry
+#'
+#' Parses all YAML files in the amendments directory and returns a structured
+#' tibble with amendment metadata. Spatial amendments include geometry references.
+#'
+#' @param dir Path to amendments directory
+#' @return List with components:
+#'   - all: All amendments as tibble
+#'   - spatial: Spatial amendments only
+#'   - attribute: Attribute amendments only
+read_yaml_amendments <- function(dir = "data/amendments") {
+  yaml_files <- list.files(dir, pattern = "\\.yml$", full.names = TRUE)
+
+  if (length(yaml_files) == 0) {
+    stop("No YAML files found in ", dir)
+  }
+
+  # Parse each YAML
+  amendments <- map_dfr(yaml_files, function(yaml_path) {
+    a <- yaml::read_yaml(yaml_path)
+
+    # Required fields validation
+    required <- c("amendment_id", "wdpaid", "amendment_kind", "amendment_type")
+    missing <- setdiff(required, names(a))
+    if (length(missing) > 0) {
+      stop(
+        "Missing required fields in ",
+        basename(yaml_path),
+        ": ",
+        paste(missing, collapse = ", ")
+      )
+    }
+
+    tibble(
+      amendment_id = a$amendment_id,
+      wdpaid = a$wdpaid,
+      wdpa_name = a$wdpa_name %||% NA_character_,
+      amendment_kind = a$amendment_kind,
+      amendment_type = a$amendment_type,
+
+      # Temporal bounds
+      valid_from = if (!is.null(a$valid_from)) {
+        as.Date(a$valid_from)
+      } else {
+        as.Date(NA)
+      },
+      valid_to = if (!is.null(a$valid_to)) as.Date(a$valid_to) else as.Date(NA),
+
+      # Legal instrument
+      legal_source = a$legal_instrument$source %||% NA_character_,
+      legal_number = a$legal_instrument$number %||% NA_character_,
+      legal_date = if (!is.null(a$legal_instrument$date)) {
+        as.Date(a$legal_instrument$date)
+      } else {
+        as.Date(NA)
+      },
+      legal_url = a$legal_instrument$url %||% NA_character_,
+
+      notes = a$notes %||% NA_character_,
+
+      # Spatial-specific fields
+      geometry_ref = a$geometry_ref %||% NA_character_,
+      geometry_source_dataset = a$geometry_source_dataset_id %||% NA_character_,
+      geom_file = if (!is.null(a$geometry_ref)) {
+        file.path(dir, a$geometry_ref)
+      } else {
+        NA_character_
+      },
+
+      # Attribute-specific fields (store as list column)
+      attributes = if (!is.null(a$attributes)) {
+        list(a$attributes)
+      } else {
+        list(NULL)
+      },
+
+      # Provenance
+      yaml_path = yaml_path
+    )
+  })
+
+  # Split by kind
+  list(
+    all = amendments,
+    spatial = amendments |> filter(amendment_kind == "spatial"),
+    attribute = amendments |> filter(amendment_kind == "attribute")
+  )
+}
+
+# Load amendments
+amendments <- read_yaml_amendments("data/amendments")
+
+# Summary
+cat("Amendment registry loaded:\n")
+cat("  Total amendments:", nrow(amendments$all), "\n")
+cat("  Spatial:", nrow(amendments$spatial), "\n")
+cat("  Attribute:", nrow(amendments$attribute), "\n")
+cat("\nAmendment types:\n")
+amendments$all |>
+  count(amendment_kind, amendment_type) |>
+  print()
+```
+
+# Consolidation Functions
+
+## Timeline Generation
+
+Create non-overlapping temporal intervals by combining all date markers from WDPA and amendments.
+
+```{r timeline}
+#' Generate timeline breakpoints for a protected area
+#'
+#' Collects all temporal markers (STATUS_YR from WDPA, valid_from/valid_to from
+#' amendments) and creates non-overlapping intervals.
+#'
+#' @param wdpaid WDPAID to generate timeline for
+#' @param wdpa WDPA reference dataset
+#' @param amendments Amendment registry (from read_yaml_amendments)
+#' @return Tibble with interval_start and interval_end columns
+generate_timeline <- function(wdpaid, wdpa, amendments) {
+  # Get WDPA STATUS_YR
+  wdpa_record <- wdpa |> filter(WDPAID == wdpaid)
+
+  if (nrow(wdpa_record) == 0) {
+    stop("WDPAID ", wdpaid, " not found in WDPA")
+  }
+
+  status_yr <- wdpa_record$STATUS_YR[1]
+
+  # Collect all dates from amendments
+  pa_amendments <- amendments$all |> filter(wdpaid == !!wdpaid)
+
+  dates <- c(
+    # WDPA baseline (interpret STATUS_YR as January 1st)
+    as.Date(paste0(status_yr, "-01-01")),
+
+    # Amendment temporal bounds
+    pa_amendments$valid_from[!is.na(pa_amendments$valid_from)],
+    pa_amendments$valid_to[!is.na(pa_amendments$valid_to)]
+  ) |>
+    unique() |>
+    sort()
+
+  # Create intervals
+  tibble(
+    interval_start = dates,
+    interval_end = c(dates[-1], as.Date(NA)) # Last interval is open-ended
+  )
+}
+```
+
+## Precedence Rules
+
+**Spatial precedence:**
+
+1. For `boundary_modification`: Amendment geometry overrides WDPA for its validity period
+2. For `secondary_zoning`: Additive (creates additional zones alongside boundary)
+3. Multiple boundary_modifications in same period → ERROR (conflict)
+
+**Attribute precedence:**
+
+1. Amendment attributes override WDPA for validity period
+2. Unspecified attributes inherit from WDPA
+3. Multiple attribute amendments with overlapping attributes in same period → ERROR
+
+```{r precedence}
+#' Find active amendments for a time interval
+#'
+#' Returns amendments whose validity period overlaps with [interval_start, interval_end).
+#'
+#' @param amendments Amendment registry subset (spatial or attribute)
+#' @param wdpaid WDPAID to filter
+#' @param interval_start Start of interval (inclusive)
+#' @param interval_end End of interval (exclusive), NA for open-ended
+#' @return Filtered tibble of active amendments
+find_active_amendments <- function(
+  amendments,
+  wdpaid,
+  interval_start,
+  interval_end
+) {
+  amendments |>
+    filter(wdpaid == !!wdpaid) |>
+    filter(
+      # Amendment must overlap with interval
+      # Amendment starts before interval ends (or interval is open-ended)
+      (is.na(valid_from) |
+        valid_from < (interval_end %||% as.Date("2100-01-01"))) &
+        # Amendment ends after interval starts (or amendment is open-ended)
+        (is.na(valid_to) | valid_to > interval_start)
+    )
+}
+
+#' Check for conflicts in amendments
+#'
+#' Detects multiple amendments affecting the same attribute/geometry in the same period.
+#'
+#' @param amendments Active amendments for an interval
+#' @param type "boundary" or "attribute"
+#' @return TRUE if conflict detected (throws error)
+check_conflicts <- function(amendments, type = "boundary") {
+  if (type == "boundary") {
+    # Multiple boundary_modifications in same period
+    boundary_mods <- amendments |>
+      filter(amendment_type == "boundary_modification")
+
+    if (nrow(boundary_mods) > 1) {
+      stop(
+        "Conflict: Multiple boundary_modification amendments active in same period:\n",
+        paste(boundary_mods$amendment_id, collapse = "\n")
+      )
+    }
+  } else if (type == "attribute") {
+    # Multiple amendments modifying same attribute
+    attr_amendments <- amendments |>
+      filter(!is.na(attributes))
+
+    if (nrow(attr_amendments) > 1) {
+      # Check for overlapping attributes
+      all_attrs <- map(attr_amendments$attributes, names) |>
+        unlist() |>
+        unique()
+
+      for (attr in all_attrs) {
+        count <- sum(map_lgl(attr_amendments$attributes, ~ attr %in% names(.x)))
+        if (count > 1) {
+          stop(
+            "Conflict: Multiple amendments modify attribute '",
+            attr,
+            "' in same period:\n",
+            paste(
+              attr_amendments$amendment_id[map_lgl(
+                attr_amendments$attributes,
+                ~ attr %in% names(.x)
+              )],
+              collapse = "\n"
+            )
+          )
+        }
+      }
+    }
+  }
+
+  FALSE
+}
+```
+
+## State Consolidation
+
+Apply amendments to WDPA baseline for each temporal interval, creating zone records.
+
+```{r consolidate}
+#' Standardize types for dynamic WDPA states
+#'
+#' Converts all WDPA attribute columns to character for consistency across
+#' amended and non-amended states. Preserves special columns (dates, IDs, geometry).
+#'
+#' @param df A data frame or sf object with WDPA columns
+#' @return Same object with standardized types
+standardize_types <- function(df) {
+  # Columns that should remain as-is (dates, identifiers, geometry)
+  preserve_cols <- c(
+    "valid_from",
+    "valid_to",
+    "state_id",
+    "zone_type",
+    "zone_name",
+    "amendment_source",
+    "geometry"
+  )
+
+  # Convert all WDPA columns (not in preserve list) to character
+  df |>
+    mutate(across(
+      .cols = where(is.numeric) & !any_of(preserve_cols),
+      .fns = as.character
+    )) |>
+    mutate(across(
+      .cols = where(is.integer) & !any_of(preserve_cols),
+      .fns = as.character
+    ))
+}
+
+#' Consolidate PA states by applying amendments
+#'
+#' Main function that generates temporal states with zones for a single protected area.
+#'
+#' @param wdpaid WDPAID to process
+#' @param wdpa WDPA reference dataset
+#' @param amendments Amendment registry
+#' @return sf object with one row per zone per temporal state
+consolidate_pa_states <- function(wdpaid, wdpa, amendments) {
+  # Get WDPA baseline
+  wdpa_record <- wdpa |> filter(WDPAID == wdpaid)
+
+  # Generate timeline
+  timeline <- generate_timeline(wdpaid, wdpa, amendments)
+
+  # For each interval, create state(s)
+  states <- map_dfr(seq_len(nrow(timeline)), function(i) {
+    interval_start <- timeline$interval_start[i]
+    interval_end <- timeline$interval_end[i]
+
+    # Find active amendments
+    active_spatial <- find_active_amendments(
+      amendments$spatial,
+      wdpaid,
+      interval_start,
+      interval_end
+    )
+    active_attribute <- find_active_amendments(
+      amendments$attribute,
+      wdpaid,
+      interval_start,
+      interval_end
+    )
+
+    # Check conflicts
+    check_conflicts(active_spatial, "boundary")
+    check_conflicts(active_attribute, "attribute")
+
+    # Start with WDPA attributes and standardize types
+    state_attrs <- wdpa_record |>
+      st_drop_geometry() |>
+      standardize_types()
+
+    # Apply attribute amendments (already character from YAML)
+    if (nrow(active_attribute) > 0) {
+      for (j in seq_len(nrow(active_attribute))) {
+        attrs <- active_attribute$attributes[[j]]
+        if (!is.null(attrs)) {
+          for (attr_name in names(attrs)) {
+            state_attrs[[attr_name]] <- as.character(attrs[[attr_name]])
+          }
+        }
+      }
+    } # Create zones
+    zones <- list()
+
+    # Zone 1: External boundary
+    boundary_mod <- active_spatial |>
+      filter(amendment_type == "boundary_modification")
+
+    if (nrow(boundary_mod) > 0) {
+      # Use amended boundary
+      geom <- st_read(boundary_mod$geom_file[1], quiet = TRUE)
+      zones[[1]] <- state_attrs |>
+        mutate(
+          state_id = paste0(WDPAID, "_", format(interval_start, "%Y")),
+          valid_from = interval_start,
+          valid_to = interval_end,
+          zone_type = "external_boundary",
+          zone_name = NA_character_,
+          amendment_source = boundary_mod$amendment_id[1],
+          geometry = st_geometry(geom)[1]
+        ) |>
+        st_as_sf()
+    } else {
+      # Use WDPA boundary with standardized types
+      zones[[1]] <- wdpa_record |>
+        standardize_types() |>
+        mutate(
+          state_id = paste0(WDPAID, "_", format(interval_start, "%Y")),
+          valid_from = interval_start,
+          valid_to = interval_end,
+          zone_type = "external_boundary",
+          zone_name = NA_character_,
+          amendment_source = "WDPA"
+        )
+    }
+
+    # Inherit amended attributes into boundary zone
+    for (col in names(state_attrs)) {
+      if (col %in% names(zones[[1]]) && col != "WDPAID") {
+        zones[[1]][[col]] <- state_attrs[[col]]
+      }
+    }
+
+    # Additional zones: Secondary zoning
+    secondary_zones <- active_spatial |>
+      filter(amendment_type == "secondary_zoning")
+
+    if (nrow(secondary_zones) > 0) {
+      for (j in seq_len(nrow(secondary_zones))) {
+        geom <- st_read(secondary_zones$geom_file[j], quiet = TRUE)
+
+        zone <- state_attrs |>
+          mutate(
+            state_id = paste0(WDPAID, "_", format(interval_start, "%Y")),
+            valid_from = interval_start,
+            valid_to = interval_end,
+            zone_type = secondary_zones$amendment_type[j],
+            zone_name = secondary_zones$notes[j], # Could extract from notes
+            amendment_source = secondary_zones$amendment_id[j],
+            geometry = st_geometry(geom)[1]
+          ) |>
+          st_as_sf()
+
+        zones[[length(zones) + 1]] <- zone
+      }
+    }
+
+    # Combine all zones for this state
+    bind_rows(zones)
+  })
+
+  states
+}
+```
+
+# Auditability: Timeline Printing
+
+Simple function to visualize the temporal evolution of a PA.
+
+```{r audit}
+#' Print timeline for a protected area
+#'
+#' Shows temporal states and amendments in chronological order for human review.
+#'
+#' @param wdpaid WDPAID to print timeline for
+#' @param states Consolidated states (output from consolidate_pa_states)
+#' @return Prints formatted timeline to console
+print_timeline <- function(wdpaid, states) {
+  pa_states <- states |>
+    filter(WDPAID == wdpaid) |>
+    st_drop_geometry() |>
+    arrange(valid_from, zone_type)
+
+  if (nrow(pa_states) == 0) {
+    cat("No states found for WDPAID", wdpaid, "\n")
+    return(invisible(NULL))
+  }
+
+  pa_name <- pa_states$NAME[1]
+  cat("\n")
+  cat("═══════════════════════════════════════════════════════════════\n")
+  cat("TIMELINE:", pa_name, "(WDPAID:", wdpaid, ")\n")
+  cat("═══════════════════════════════════════════════════════════════\n\n")
+
+  current_state_id <- NULL
+
+  for (i in seq_len(nrow(pa_states))) {
+    row <- pa_states[i, ]
+
+    # Print state header if new state
+    if (is.null(current_state_id) || row$state_id != current_state_id) {
+      current_state_id <- row$state_id
+
+      period <- if (is.na(row$valid_to)) {
+        paste0(format(row$valid_from, "%Y-%m-%d"), " → present")
+      } else {
+        paste0(
+          format(row$valid_from, "%Y-%m-%d"),
+          " → ",
+          format(row$valid_to, "%Y-%m-%d")
+        )
+      }
+
+      cat("┌─", period, "\n")
+      cat("│ Status:", row$DESIG, "(", row$IUCN_CAT, ")\n")
+
+      if (!is.na(row$STATUS_YR)) {
+        cat("│ STATUS_YR:", row$STATUS_YR, "\n")
+      }
+    }
+
+    # Print zone info
+    cat("│ ├─ Zone:", row$zone_type)
+    if (!is.na(row$zone_name)) {
+      cat(" (", row$zone_name, ")")
+    }
+    cat("\n")
+    cat("│ │  Source:", row$amendment_source, "\n")
+  }
+
+  cat("└─────────────────────────────────────────────────────────────\n\n")
+
+  invisible(NULL)
+}
+```
+
+# Test: Single PA
+
+Test consolidation on Ankarafantsika (has status change and boundary modification).
+
+```{r test-single}
+# Consolidate one PA
+test_states <- consolidate_pa_states(
+  wdpaid = 1299, # Ankarafantsika
+  wdpa = wdpa_mdg,
+  amendments = amendments
+)
+
+# Print timeline
+print_timeline(1299, test_states)
+
+# Inspect structure
+test_states |>
+  st_drop_geometry() |>
+  select(
+    state_id,
+    valid_from,
+    valid_to,
+    zone_type,
+    DESIG,
+    STATUS_YR,
+    amendment_source
+  )
+```
+
+# Generate Full Dataset
+
+Apply to all Madagascar PAs.
+
+```{r generate-all}
+# Get unique WDPAIDs that have amendments
+wdpaids_with_amendments <- unique(amendments$all$wdpaid)
+
+cat("Processing", length(wdpaids_with_amendments), "PAs with amendments...\n")
+
+# Consolidate all
+dynamic_wdpa <- map_dfr(
+  wdpaids_with_amendments,
+  function(wdpaid) {
+    tryCatch(
+      {
+        consolidate_pa_states(wdpaid, wdpa_mdg, amendments)
+      },
+      error = function(e) {
+        warning("Error processing WDPAID ", wdpaid, ": ", e$message)
+        NULL
+      }
+    )
+  },
+  .progress = TRUE
+)
+
+# Add PAs without amendments (just WDPA baseline)
+wdpaids_without_amendments <- setdiff(wdpa_mdg$WDPAID, wdpaids_with_amendments)
+
+baseline_states <- wdpa_mdg |>
+  filter(WDPAID %in% wdpaids_without_amendments) |>
+  standardize_types() |> # Use standard type conversion
+  mutate(
+    state_id = paste0(WDPAID, "_", STATUS_YR),
+    valid_from = as.Date(paste0(STATUS_YR, "-01-01")),
+    valid_to = as.Date(NA),
+    zone_type = "external_boundary",
+    zone_name = NA_character_,
+    amendment_source = "WDPA"
+  )
+
+# Combine
+dynamic_wdpa_full <- bind_rows(dynamic_wdpa, baseline_states)
+
+# Summary
+cat("\nDynamic WDPA generated:\n")
+cat("  Total states:", n_distinct(dynamic_wdpa_full$state_id), "\n")
+cat("  Total zones:", nrow(dynamic_wdpa_full), "\n")
+cat("  PAs with amendments:", length(wdpaids_with_amendments), "\n")
+cat("  PAs baseline only:", length(wdpaids_without_amendments), "\n")
+
+dynamic_wdpa_full |>
+  st_drop_geometry() |>
+  count(amendment_source) |>
+  print()
+```
+
+# Export
+
+The result is an sf object. Users can export as needed:
+
+```{r export}
+# Save as RDS (preserves R structure)
+saveRDS(dynamic_wdpa_full, "data/dynamic_wdpa.rds")
+
+# Export as GeoPackage (interoperable)
+st_write(dynamic_wdpa_full, "data/dynamic_wdpa.gpkg", delete_dsn = TRUE)
+
+# Export as Parquet (efficient for analysis)
+# Note: Convert to regular tibble with WKT geometry for Parquet compatibility
+dynamic_wdpa_full |>
+  mutate(geometry_wkt = st_as_text(geometry)) |>
+  st_drop_geometry() |>
+  arrow::write_parquet("data/dynamic_wdpa.parquet")
+
+cat("Exported to:\n")
+cat("  - data/dynamic_wdpa.rds\n")
+cat("  - data/dynamic_wdpa.gpkg\n")
+cat("  - data/dynamic_wdpa.parquet (with WKT geometry)\n")
+```
+
+# Example Timelines
+
+Print timelines for a few interesting cases:
+
+```{r example-timelines}
+# Status change example
+print_timeline(1299, dynamic_wdpa_full) # Ankarafantsika (RNI → PN)
+
+# Boundary modification example
+print_timeline(10634, dynamic_wdpa_full) # Beza Mahafaly
+
+# Complex case (multiple amendments)
+print_timeline(2307, dynamic_wdpa_full) # Zahamena
+```

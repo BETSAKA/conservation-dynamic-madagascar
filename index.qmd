@@ -16,7 +16,7 @@ Les bases de données nationales et internationales incluent généralement les 
 
 ## Architecture du modèle de données
 
-Le jeu de données constitue une **extension temporellement explicite de la WDPA**. Il intègre, lorsque ces informations sont disponibles, l'historique juridique, les évolutions spatiales et le zonage secondaires des aires protégées. La WDPA fournit l'état courant de référence de chaque entité, mais cet état est modélisé comme un segment particulier au sein d'une trajectoire spatio-temporelle plus longue, caractérisée par des changements de statut légal, de limites géographiques et d'organisation interne.
+Le jeu de données constitue une **extension temporellement explicite de la WDPA**. Il intègre, lorsque ces informations sont disponibles, l'historique juridique, les évolutions spatiales et le zonage secondaire des aires protégées. La WDPA fournit l'état courant de référence de chaque entité, mais cet état est modélisé comme un segment particulier au sein d'une trajectoire spatio-temporelle plus longue, caractérisée par des changements de statut légal, de limites géographiques et d'organisation interne.
 
 Pour chaque WDPAID, la base reconstruit une **série d'états successifs**, chacun associé à une période de validité explicite (`valid_from` → `valid_to`), en mobilisant des sources juridiques et spatiales datées, tout en conservant une compatibilité complète avec le schéma WDPA lorsque ces informations ne sont pas disponibles.
 
@@ -43,7 +43,7 @@ Types d'amendements documentés :
 - `boundary_modification` : Changements légaux des limites externes
 - `status_change` : Modifications de désignation (RNI→PN, RS→PN, etc.)
 - `correction` : Erreurs dans WDPA (dates, statuts, géométries)
-- `secondary_zoning` : Zonages secondaire (zones noyaux, zones tampons)
+- `secondary_zoning` : Zonages secondaires (zones noyaux, zones tampons)
 
 **2. CAR (Consolidation and Auditing Rules)**  
 Ensemble transparent de règles de consolidation, exprimées sous forme de code R reproductible, qui lit le registre YAML et la WDPA, applique les règles de précédence, et génère les états temporels. Le CAR garantit que la transformation WDPA → états dynamiques est **auditable, déterministe et reproductible**.
@@ -88,7 +88,7 @@ Ce document est organisé en trois parties :
 
 **Partie 1 - Sources de données** : Présentation et harmonisation des différentes sources spatiales (SAPM, WDPA) et juridiques (CNLEGIS) mobilisées pour reconstituer l'historique des aires protégées. Construction de séries temporelles cohérentes et appariement des identifiants.
 
-**Partie 2 - Consolidation et validation** : Méthodologie d'appariement spatial et textuel des sources multiples, développement d'un outil de validation visuelle interactive (Shiny), et traitement systématique des zonages secondiares documentés par les gestionnaires.
+**Partie 2 - Consolidation et validation** : Méthodologie d'appariement spatial et textuel des sources multiples, développement d'un outil de validation visuelle interactive (Shiny), et traitement systématique des zonages secondaires documentés par les gestionnaires.
 
 **Partie 3 - Production des amendements** : Documentation exhaustive et systématique des corrections apportées aux données WDPA (erreurs de dates, statuts, géométries, protections temporaires). Export vers le registre YAML canonique. Mise en œuvre des règles de consolidation temporelle (CAR) pour générer automatiquement les états successifs à partir de WDPA et du registre d'amendements.
 

@@ -3,22 +3,29 @@ project:
   output-dir: docs
 
 book:
-  title: "Données des aires protégées à Madagascar"
+  title: "Aires protégées de Madagascar : modèle de données dynamique"
+  subtitle: "Documentation méthodologique (2000-2024)"
   author: "Florent Bédécarrats, Seheno Ramanantsoa, Ollier D. Andrianambinina"
-  date: "09/12/2024"
+  date: last-modified
   repo-url: https://github.com/BETSAKA/conservation-dynamic-madagascar
   license: "CC-BY 4.0"
+  
   chapters:
     - index.qmd
-    - 01_sapm_data.qmd
-    - 02_wdpa_data.qmd
-    - 03_legal_docs.qmd
-    - 04_combination.qmd
-    - 05_visual_verif.qmd
-    - 06_subdivisions.qmd
-    - 07_curation.qmd
-    - 08_technical_proposal_en.qmd
-    - 09_technical_proposal_fr.qmd
+    - part: "Sources de données"
+      chapters:
+        - 01_sapm_data.qmd
+        - 02_wdpa_data.qmd
+        - 03_legal_docs.qmd
+    - part: "Consolidation et validation"
+      chapters:
+        - 04_combination.qmd
+        - 05_visual_verif.qmd
+        - 06_subdivisions.qmd
+    - part: "Production des amendements"
+      chapters:
+        - 07_curation.qmd
+        - 08_consolidation_rules.qmd
     - 10_references.qmd
 
 bibliography: references.bib
@@ -27,7 +34,15 @@ format:
   html:
     theme: cosmo
     code-fold: true
+    code-summary: "Voir le code"
+    toc: true
+    toc-depth: 3
+    number-sections: true
 
 execute:
   warning: false
   error: false
+  
+language:
+  title-block-author-single: "Auteurs"
+  title-block-published: "Dernière mise à jour"

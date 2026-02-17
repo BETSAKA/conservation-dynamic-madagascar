@@ -1289,8 +1289,8 @@ fat <- fat |>
       DESIG = "Réserve Naturelle Intégrale",
       DESIG_ENG = "Strict Nature Reserve",
       DESIG_TYPE = "National",
-      IUCN_CAT = "Ia",
-      STATUS_YR = "1939"
+      IUCN_CAT = "Ia"
+      # STATUS_YR deleted  (deduced from valid_from)
     ),
     amendment_type = "status_change",
     valid_from = "1939-06-11",
@@ -1309,8 +1309,8 @@ fat <- fat |>
     attributes = list(
       DESIG = "Parc National",
       DESIG_ENG = "National Park",
-      IUCN_CAT = "II",
-      STATUS_YR = "1997"
+      IUCN_CAT = "II"
+      # STATUS_YR deleted  (deduced from valid_from)
     ),
     amendment_type = "status_change",
     valid_from = "1997-08-07",
@@ -1393,8 +1393,8 @@ fat <- fat |>
       DESIG = "Réserve Naturelle Intégrale",
       DESIG_ENG = "Strict Nature Reserve",
       DESIG_TYPE = "National",
-      IUCN_CAT = "Ia",
-      STATUS_YR = "1927"
+      IUCN_CAT = "Ia"
+      # STATUS_YR deleted  (deduced from valid_from)
     ),
     amendment_type = "status_change",
     valid_from = "1927-12-31",
@@ -1408,8 +1408,8 @@ fat <- fat |>
     attributes = list(
       DESIG = "Parc National",
       DESIG_ENG = "National Park",
-      IUCN_CAT = "II",
-      STATUS_YR = "1998"
+      IUCN_CAT = "II"
+      # STATUS_YR deleted  (deduced from valid_from)
     ),
     amendment_type = "status_change",
     valid_from = "1998-08-19",
@@ -1557,7 +1557,7 @@ fat <- fat %>%
       DESIG_ENG = "Strict Nature Reserve",
       DESIG_TYPE = "National",
       IUCN_CAT = "Ia"
-      # STATUS_YR supprimé - sera déduit de valid_from
+      # STATUS_YR deleted  (deduced from valid_from)
     ),
     amendment_type = "status_change",
     valid_from = "1927-12-31",
@@ -1711,8 +1711,8 @@ fat <- fat |>
       DESIG = "Réserve Naturelle Intégrale",
       DESIG_ENG = "Strict Nature Reserve",
       DESIG_TYPE = "National",
-      IUCN_CAT = "Ia",
-      STATUS_YR = "1927"
+      IUCN_CAT = "Ia"
+      # STATUS_YR deleted  (deduced from valid_from)
     ),
     amendment_type = "status_change",
     valid_from = "1927-12-31",
@@ -1726,8 +1726,8 @@ fat <- fat |>
     attributes = list(
       DESIG = "Parc National",
       DESIG_ENG = "National Park",
-      IUCN_CAT = "II",
-      STATUS_YR = "2011"
+      IUCN_CAT = "II"
+      # STATUS_YR deleted  (deduced from valid_from)
     ),
     amendment_type = "status_change",
     valid_from = "2011-09-06",
@@ -2195,8 +2195,8 @@ fat <- fat |>
       DESIG = "Réserve Naturelle Intégrale",
       DESIG_ENG = "Strict Nature Reserve",
       DESIG_TYPE = "National",
-      IUCN_CAT = "Ia",
-      STATUS_YR = "1952"
+      IUCN_CAT = "Ia"
+      # STATUS_YR deleted  (deduced from valid_from)
     ),
     amendment_type = "status_change",
     valid_from = "1952-01-03",
@@ -2210,8 +2210,8 @@ fat <- fat |>
     attributes = list(
       DESIG = "Parc National",
       DESIG_ENG = "National Park",
-      IUCN_CAT = "II",
-      STATUS_YR = "1998"
+      IUCN_CAT = "II"
+      # STATUS_YR deleted  (deduced from valid_from)
     ),
     amendment_type = "status_change",
     valid_from = "1998-05-19",
@@ -2404,8 +2404,8 @@ fat <- add_modif_fat(
   attributes = list(
     DESIG = "Parc National",
     DESIG_ENG = "National Park",
-    IUCN_CAT = "II",
-    STATUS_YR = "1958"
+    IUCN_CAT = "II"
+    # STATUS_YR deleted (deduced from valid_from)
   ),
   amendment_type = "status_change",
   valid_from = "1958-10-28",
@@ -2504,8 +2504,8 @@ fat <- add_modif_fat(
   attributes = list(
     DESIG = "Réserve Naturelle Intégrale",
     DESIG_ENG = "Strict Nature Reserve",
-    IUCN_CAT = "Ia",
-    STATUS_YR = "1927"
+    IUCN_CAT = "Ia"
+    # STATUS_YR deleted  (deduced from valid_from)
   ),
   amendment_type = "status_change",
   valid_from = "1927-12-31",
@@ -2611,8 +2611,8 @@ fat <- add_modif_fat(
   attributes = list(
     DESIG = "Réserve Spéciale",
     DESIG_ENG = "Special Reserve",
-    IUCN_CAT = "IV",
-    STATUS_YR = "1965"
+    IUCN_CAT = "IV"
+    # STATUS_YR deleted  (deduced from valid_from)
   ),
   amendment_type = "status_change",
   valid_from = "1965-12-14",
@@ -2840,8 +2840,8 @@ fat <- add_modif_fat(
   attributes = list(
     DESIG = "Réserve Naturelle Intégrale",
     DESIG_ENG = "Strict Nature Reserve",
-    IUCN_CAT = "Ia",
-    STATUS_YR = "1927"
+    IUCN_CAT = "Ia"
+    # STATUS_YR deleted  (deduced from valid_from)
   ),
   amendment_type = "status_change",
   valid_from = "1927-12-31",
@@ -2969,8 +2969,8 @@ fat <- add_modif_fat(
   attributes = list(
     DESIG = "Réserve Naturelle Intégrale",
     DESIG_ENG = "Strict Nature Reserve",
-    IUCN_CAT = "Ia",
-    STATUS_YR = "1927"
+    IUCN_CAT = "Ia"
+    # STATUS_YR deleted  (deduced from valid_from)
   ),
   amendment_type = "status_change",
   valid_from = "1927-12-31",
@@ -2994,8 +2994,8 @@ fat <- add_modif_fat(
   attributes = list(
     DESIG = "Parc National + Réserve Naturelle Intégrale",
     DESIG_ENG = "National Park + Strict Nature Reserve",
-    IUCN_CAT = "II+Ia",
-    STATUS_YR = "1997"
+    IUCN_CAT = "II+Ia"
+    # STATUS_YR deleted  (deduced from valid_from)
   ),
   amendment_type = "status_change",
   valid_from = "1997-08-07",
@@ -3012,8 +3012,8 @@ fat <- add_modif_fat(
   attributes = list(
     DESIG = "Parc National",
     DESIG_ENG = "National Park",
-    IUCN_CAT = "II",
-    STATUS_YR = "2015"
+    IUCN_CAT = "II"
+    # STATUS_YR deleted  (deduced from valid_from)
   ),
   amendment_type = "status_change",
   valid_from = "2015-04-21",

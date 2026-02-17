@@ -8,6 +8,7 @@ Le CAR (Consolidation and Auditing Rules) transforme les données de base WDPA e
 
 1. **WDPA comme base de référence** : L'état actuel est hérité par défaut
 2. **Les amendements YAML prévalent** : L'information datée explicite est prioritaire
+3. **Uniquement les deltas**: Seules les modifications sont documentées dans les amendements, les information actuellement valides incluses dans WDPA ne sont pas dupliquées.
 3. **Segmentation temporelle** : Toutes les dates (WDPA et amendements) créent des intervalles non chevauchants
 4. **Modèle de zones** : Limites externes et zonages secondaires coexistent
 5. **Fail-fast** : Les conflits génèrent des erreurs plutôt que de se résoudre silencieusement

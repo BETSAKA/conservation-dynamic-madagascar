@@ -1290,31 +1290,11 @@ fat <- fat |>
       DESIG_ENG = "Strict Nature Reserve",
       DESIG_TYPE = "National",
       IUCN_CAT = "Ia"
-      # STATUS_YR deleted  (deduced from valid_from)
     ),
     amendment_type = "status_change",
     valid_from = "1939-06-11",
     valid_to = "1997-08-07",
-    notes = "Created as RNI #11 on 1939-06-11 (Décret du 11 juin 1939), boundaries clarified 1966-06-01 (Décret 66-242). Status changed to PN in 1997."
-  ) |>
-  add_modif_fat(
-    decisions = pa_decisions,
-    wdpa_name_or_id = "Andohahela",
-    manual_decision = list(
-      date_texte = "1997-08-07",
-      type_texte = "Décret",
-      num_texte = "97-1043",
-      objet_texte = "Portant déclassement	en	parc	national"
-    ),
-    attributes = list(
-      DESIG = "Parc National",
-      DESIG_ENG = "National Park",
-      IUCN_CAT = "II"
-      # STATUS_YR deleted  (deduced from valid_from)
-    ),
-    amendment_type = "status_change",
-    valid_from = "1997-08-07",
-    notes = "Changed from RNI to PN via Décret 97-1043 du 7 août 1997. Three-parcel structure maintained. Decree not in CNLEGIS but archived independently. Reference: https://archive.org/details/decret-n-97-1043-du-07-aout-1997-pn-andoahahela. WDPA 2025 shows STATUS_YR=1997 conformément au manuel WDPA."
+    notes = "Created as RNI #11 on 1939-06-11 (Décret du 11 juin 1939), boundaries clarified 1966-06-01 (Décret 66-242). hanged from RNI to PN via Décret 97-1043 du 7 août 1997. Three-parcel structure maintained. Decree not in CNLEGIS but archived independently. Reference: https://archive.org/details/decret-n-97-1043-du-07-aout-1997-pn-andoahahela."
   )
 ```
 
@@ -1394,26 +1374,11 @@ fat <- fat |>
       DESIG_ENG = "Strict Nature Reserve",
       DESIG_TYPE = "National",
       IUCN_CAT = "Ia"
-      # STATUS_YR deleted  (deduced from valid_from)
     ),
     amendment_type = "status_change",
     valid_from = "1927-12-31",
     valid_to = "1998-08-19",
-    notes = "Created as RNI #5 on 1927-12-31 (Décret du 31 décembre 1927), boundaries fixed 1966-06-01 (Décret 66-242). Status changed to PN in 1998."
-  ) |>
-  add_modif_fat(
-    decisions = pa_decisions,
-    wdpa_name_or_id = "Andringitra",
-    decision_filter = list(year = 1998, type_decision_pattern = "modifiant"),
-    attributes = list(
-      DESIG = "Parc National",
-      DESIG_ENG = "National Park",
-      IUCN_CAT = "II"
-      # STATUS_YR deleted  (deduced from valid_from)
-    ),
-    amendment_type = "status_change",
-    valid_from = "1998-08-19",
-    notes = "Changed from RNI to PN via Décret 98-376 du 19 août 1998. Boundaries remained unchanged from 1966 delimitation. WDPA 2025 shows STATUS_YR=1998 conformément au manuel WDPA."
+    notes = "Created as RNI #5 on 1927-12-31 (Décret du 31 décembre 1927), boundaries fixed 1966-06-01 (Décret 66-242). Changed from RNI to PN via Décret 98-376 du 19 août 1998. Boundaries remained unchanged from 1966 delimitation. "
   )
 ```
 
@@ -1557,7 +1522,6 @@ fat <- fat %>%
       DESIG_ENG = "Strict Nature Reserve",
       DESIG_TYPE = "National",
       IUCN_CAT = "Ia"
-      # STATUS_YR deleted  (deduced from valid_from)
     ),
     amendment_type = "status_change",
     valid_from = "1927-12-31",
@@ -1712,26 +1676,11 @@ fat <- fat |>
       DESIG_ENG = "Strict Nature Reserve",
       DESIG_TYPE = "National",
       IUCN_CAT = "Ia"
-      # STATUS_YR deleted  (deduced from valid_from)
     ),
     amendment_type = "status_change",
     valid_from = "1927-12-31",
     valid_to = "2011-09-06",
-    notes = "Created as RNI #9 on 1927-12-31 (Décret du 31 décembre 1927), boundaries modified 1997-08-07 (Décret 97-1045). Status changed to PN in 2011."
-  ) |>
-  add_modif_fat(
-    decisions = pa_decisions,
-    wdpa_name_or_id = "Bemaraha",
-    decision_filter = list(year = 2011, type_decision_pattern = "modifiant"),
-    attributes = list(
-      DESIG = "Parc National",
-      DESIG_ENG = "National Park",
-      IUCN_CAT = "II"
-      # STATUS_YR deleted  (deduced from valid_from)
-    ),
-    amendment_type = "status_change",
-    valid_from = "2011-09-06",
-    notes = "Changed from RNI to PN via Décret 2011-498 du 6 septembre 2011 with boundary modification. WDPA 2025 shows STATUS_YR=2011 conformément au manuel WDPA."
+    notes = "Created as RNI #9 on 1927-12-31 (Décret du 31 décembre 1927), boundaries modified 1997-08-07 (Décret 97-1045). Changed from RNI to PN via Décret 2011-498 du 6 septembre 2011 with boundary modification."
   )
 ```
 
@@ -2026,6 +1975,7 @@ fat <- fat |>
     ),
     amendment_type = "status_change",
     valid_from = "1927-12-31",
+    valid_to = "2011-09-06",
     notes = "Original RNI status from 1927 to 2011. Décret 1927-12-31 complemented by Décret 66-242 (1966-06-01)."
   )
 ```
@@ -2201,21 +2151,7 @@ fat <- fat |>
     amendment_type = "status_change",
     valid_from = "1952-01-03",
     valid_to = "1998-05-19",
-    notes = "Created as RNI #12 on 1952-01-03 (Décret du 3 janvier 1952), boundaries clarified 1966-06-01 (Décret 66-242). Status changed to PN in 1998."
-  ) |>
-  add_modif_fat(
-    decisions = pa_decisions,
-    wdpa_name_or_id = "Marojejy",
-    decision_filter = list(year = 1998, type_decision_pattern = "modifiant"),
-    attributes = list(
-      DESIG = "Parc National",
-      DESIG_ENG = "National Park",
-      IUCN_CAT = "II"
-      # STATUS_YR deleted  (deduced from valid_from)
-    ),
-    amendment_type = "status_change",
-    valid_from = "1998-05-19",
-    notes = "Changed from RNI to PN via Décret 98-375 du 19 mai 1998. No boundary change. WDPA 2025 shows STATUS_YR=1998 conformément au manuel WDPA."
+    notes = "Created as RNI #12 on 1952-01-03 (Décret du 3 janvier 1952), boundaries clarified 1966-06-01 (Décret 66-242). Changed from RNI to PN via Décret 98-375 du 19 mai 1998. No boundary change."
   )
 ```
 
@@ -2405,26 +2341,11 @@ fat <- add_modif_fat(
     DESIG = "Parc National",
     DESIG_ENG = "National Park",
     IUCN_CAT = "II"
-    # STATUS_YR deleted (deduced from valid_from)
   ),
   amendment_type = "status_change",
   valid_from = "1958-10-28",
   valid_to = "2015-04-28",
-  notes = "Created as PN on 1958-10-28 via Décret 58-07. Enlarged in 2015 through merger with RS Forêt d'Ambre (WDPAID 5025)."
-)
-
-# FAT for WDPAID 2314: Enlarged PN status (2015-present)
-fat <- add_modif_fat(
-  fat = fat,
-  decisions = pa_decisions,
-  wdpa_name_or_id = 2314,
-  decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
-  attributes = list(
-    STATUS_YR = "2015"
-  ),
-  amendment_type = "status_change",
-  valid_from = "2015-04-28",
-  notes = "Enlarged via Décret 2015-776 through merger with RS Forêt d'Ambre (WDPAID 5025) and inclusion of Station Forestière des Roussettes."
+  notes = "Created as PN on 1958-10-28 via Décret 58-07. Enlarged via Décret 2015-776 through merger with RS Forêt d'Ambre (WDPAID 5025) and inclusion of Station Forestière des Roussettes."
 )
 
 # FAT for WDPAID 5025: Historical RS status (1958-2015)
@@ -2451,24 +2372,6 @@ fat <- add_modif_fat(
   notes = "Created as RS on 1958-10-28 via Décret 58-15. Dissolved and merged into WDPAID 2314 in 2015."
 )
 
-# FAT for WDPAID 5025: Dissolved status (2015-present)
-fat <- add_modif_fat(
-  fat = fat,
-  decisions = pa_decisions,
-  wdpa_name_or_id = 5025,
-  manual_decision = list(
-    date_texte = as.Date("2015-04-28"),
-    type_texte = "Décret",
-    num_texte = "2015-776",
-    objet_texte = "Fusion de RS Forêt d'Ambre dans PN Montagne d'Ambre"
-  ),
-  attributes = list(
-    STATUS = "Dissolved"
-  ),
-  amendment_type = "status_change",
-  valid_from = "2015-04-28",
-  notes = "RS Forêt d'Ambre absorbed into WDPAID 2314 via Décret 2015-776. STATUS changed to 'Dissolved'. WDPAID 5025 remains in database for historical traceability."
-)
 ```
 
 ### Namoroka
@@ -2510,25 +2413,9 @@ fat <- add_modif_fat(
   amendment_type = "status_change",
   valid_from = "1927-12-31",
   valid_to = "2002-08-07",
-  notes = "Created as RNI #8 on 1927-12-31 (Décret du 31 décembre 1927). Status changed to PN in 2002."
+  notes = "Created as RNI #8 on 1927-12-31 (Décret du 31 décembre 1927). Status changed from RNI to PN via Décret 2002-796 du 7 août 2002. No boundary change."
 )
 
-# FAT for current status: PN period (2002-present)
-fat <- add_modif_fat(
-  fat = fat,
-  decisions = pa_decisions,
-  wdpa_name_or_id = "Namoroka",
-  decision_filter = list(year = 2002, type_decision_pattern = "modifiant"),
-  attributes = list(
-    DESIG = "Parc National",
-    DESIG_ENG = "National Park",
-    IUCN_CAT = "II",
-    STATUS_YR = "2002"
-  ),
-  amendment_type = "status_change",
-  valid_from = "2002-08-07",
-  notes = "Upgraded from RNI to PN via Décret 2002-796 du 7 août 2002. No boundary change."
-)
 ```
 
 ### Nosy Mangabe
@@ -2617,25 +2504,9 @@ fat <- add_modif_fat(
   amendment_type = "status_change",
   valid_from = "1965-12-14",
   valid_to = "2015-04-28",
-  notes = "Created as RS (Réserve Spéciale) on 1965-12-14 via Décret 65-795. Status changed to PN in 2015."
+  notes = "Created as RS (Réserve Spéciale) on 1965-12-14 via Décret 65-795. Status changed to PN via Décret 2015-775 du 28 avril 2015, with boundary expansion (added 4 small islets)."
 )
 
-# FAT for current status: PN period (2015-present)
-fat <- add_modif_fat(
-  fat = fat,
-  decisions = pa_decisions,
-  wdpa_name_or_id = "Nosy Mangabe",
-  decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
-  attributes = list(
-    DESIG = "Parc National",
-    DESIG_ENG = "National Park",
-    IUCN_CAT = "II",
-    STATUS_YR = "2015"
-  ),
-  amendment_type = "status_change",
-  valid_from = "2015-04-28",
-  notes = "Upgraded from RS to PN via Décret 2015-775 du 28 avril 2015, with boundary expansion (added 4 small islets)."
-)
 ```
 
 ### Ranomafana
@@ -2846,29 +2717,9 @@ fat <- add_modif_fat(
   amendment_type = "status_change",
   valid_from = "1927-12-31",
   valid_to = "2002-08-07",
-  notes = "Created as RNI #10 on 1927-12-31 (Décret du 31 décembre 1927). Status changed to PN in 2002."
+  notes = "Created as RNI #10 on 1927-12-31 (Décret du 31 décembre 1927). Status changed from RNI to PN via Décret 2002-797 du 7 août 2002. Boundary later expanded in 2015 to include Hatokaliotsy extension."
 )
 
-# FAT for current status: PN period (2002-present)
-fat <- add_modif_fat(
-  fat = fat,
-  decisions = pa_decisions,
-  wdpa_name_or_id = "Tsimanampesotse",
-  decision_filter = list(
-    year = 2002,
-    type_decision_pattern = "modifiant",
-    num_texte = "2002-797"
-  ),
-  attributes = list(
-    DESIG = "Parc National",
-    DESIG_ENG = "National Park",
-    IUCN_CAT = "II",
-    STATUS_YR = "2002"
-  ),
-  amendment_type = "status_change",
-  valid_from = "2002-08-07",
-  notes = "Changed from RNI to PN via Décret 2002-797 du 7 août 2002. Boundary later expanded in 2015 to include Hatokaliotsy extension."
-)
 ```
 
 ### Zahamena
@@ -3000,24 +2851,7 @@ fat <- add_modif_fat(
   amendment_type = "status_change",
   valid_from = "1997-08-07",
   valid_to = "2015-04-21",
-  notes = "Décret 97-1044 established mixed status: PN (42,300 ha, IUCN II) + RNI (22,100 ha, IUCN Ia) with Antenina enclave (350 ha). Boundaries reduced from ~73,160 ha to 64,378 ha."
-)
-
-# FAT for unified status: PN only (2015-present)
-fat <- add_modif_fat(
-  fat = fat,
-  decisions = pa_decisions,
-  wdpa_name_or_id = "Zahamena",
-  decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
-  attributes = list(
-    DESIG = "Parc National",
-    DESIG_ENG = "National Park",
-    IUCN_CAT = "II"
-    # STATUS_YR deleted  (deduced from valid_from)
-  ),
-  amendment_type = "status_change",
-  valid_from = "2015-04-21",
-  notes = "Unified to PN only via Décret 2015-737 du 21 avril 2015, eliminating previous composite PN+RNI zoning. Boundaries expanded from 64,378 ha to 64,935 ha."
+  notes = "Décret 97-1044 established mixed status: PN (42,300 ha, IUCN II) + RNI (22,100 ha, IUCN Ia) with Antenina enclave (350 ha). Boundaries reduced from ~73,160 ha to 64,378 ha. Unified to PN only via Décret 2015-737 du 21 avril 2015, eliminating previous composite PN+RNI zoning. Boundaries expanded from 64,378 ha to 64,935 ha. "
 )
 ```
 

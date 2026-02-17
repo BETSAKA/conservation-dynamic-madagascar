@@ -52,7 +52,7 @@ kable(kinds_summary, caption = "Distribution par nature d'amendement")
 # Créer un tableau résumé pour navigation
 amendments_summary <- map_dfr(yaml_files, function(yaml_path) {
   a <- yaml::read_yaml(yaml_path)
-  
+
   tibble(
     Fichier = basename(yaml_path),
     amendment_id = a$amendment_id,
@@ -89,35 +89,51 @@ yaml_files_sorted <- yaml_files[order(basename(yaml_files))]
 for (yaml_path in yaml_files_sorted) {
   # Lire le contenu brut
   yaml_content <- readLines(yaml_path, warn = FALSE)
-  
+
   # Extraire l'amendment_id pour le titre
   a <- yaml::read_yaml(yaml_path)
   amendment_id <- a$amendment_id
   wdpaid <- a$wdpaid
   wdpa_name <- a$wdpa_name %||% "Sans nom"
-  
+
   # Afficher le titre
-  cat("\n### ", amendment_id, " - ", wdpa_name, " (WDPAID: ", wdpaid, ")\n\n", sep = "")
-  
+  cat(
+    "\n### ",
+    amendment_id,
+    " - ",
+    wdpa_name,
+    " (WDPAID: ",
+    wdpaid,
+    ")\n\n",
+    sep = ""
+  )
+
   # Afficher le fichier
   cat("**Fichier :** `", basename(yaml_path), "`\n\n", sep = "")
-  
+
   # Afficher le YAML brut dans un bloc de code
   cat("```yaml\n")
   cat(paste(yaml_content, collapse = "\n"))
   cat("\n```\n\n")
-  
+
   # Si géométrie existe, afficher info
   if (!is.null(a$geometry_ref)) {
     geom_path <- file.path(amendments_dir, a$geometry_ref)
     if (file.exists(geom_path)) {
       geom <- st_read(geom_path, quiet = TRUE)
-      cat("**Géométrie associée :** `", a$geometry_ref, "` (", 
-          nrow(geom), " feature(s), ",
-          st_geometry_type(geom)[1], ")\n\n", sep = "")
+      cat(
+        "**Géométrie associée :** `",
+        a$geometry_ref,
+        "` (",
+        nrow(geom),
+        " feature(s), ",
+        st_geometry_type(geom)[1],
+        ")\n\n",
+        sep = ""
+      )
     }
   }
-  
+
   cat("---\n\n")
 }
 ```
@@ -130,7 +146,7 @@ Vérifications de cohérence avant consolidation.
 # Charger tous les amendements
 all_amendments <- map_dfr(yaml_files, function(yaml_path) {
   a <- yaml::read_yaml(yaml_path)
-  
+
   tibble(
     amendment_id = a$amendment_id,
     wdpaid = a$wdpaid,
@@ -178,15 +194,24 @@ overlaps <- all_amendments |>
   filter(!is.na(valid_from)) |>
   mutate(
     valid_from = as.Date(valid_from),
-    valid_to = if_else(is.na(valid_to), as.Date("2100-01-01"), as.Date(valid_to))
+    valid_to = if_else(
+      is.na(valid_to),
+      as.Date("2100-01-01"),
+      as.Date(valid_to)
+    )
   ) |>
   group_by(wdpaid, amendment_type) |>
   filter(n() > 1) |>
   arrange(wdpaid, valid_from)
 
 if (nrow(overlaps) > 0) {
-  cat("ℹ️ **Aires avec plusieurs amendements du même type (vérifier chevauchements)**\n\n")
-  print(kable(overlaps |> select(amendment_id, wdpaid, amendment_type, valid_from, valid_to)))
+  cat(
+    "ℹ️ **Aires avec plusieurs amendements du même type (vérifier chevauchements)**\n\n"
+  )
+  print(kable(
+    overlaps |>
+      select(amendment_id, wdpaid, amendment_type, valid_from, valid_to)
+  ))
 } else {
   cat("✓ Pas de chevauchements détectés\n\n")
 }

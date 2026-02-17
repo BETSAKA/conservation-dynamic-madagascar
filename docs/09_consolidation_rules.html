@@ -432,7 +432,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"  Total amendments:"</span>, <span class="fu">nrow</span>(amendments<span class="sc">$</span>all), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>  Total amendments: 146 </code></pre>
+<pre><code>  Total amendments: 145 </code></pre>
 </div>
 <details class="code-fold">
 <summary>Voir le code</summary>
@@ -446,7 +446,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"  Attribute:"</span>, <span class="fu">nrow</span>(amendments<span class="sc">$</span>attribute), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>  Attribute: 111 </code></pre>
+<pre><code>  Attribute: 110 </code></pre>
 </div>
 <details class="code-fold">
 <summary>Voir le code</summary>
@@ -467,7 +467,7 @@ Amendment types:</code></pre>
   amendment_kind amendment_type            n
   &lt;chr&gt;          &lt;chr&gt;                 &lt;int&gt;
 1 attribute      correction               11
-2 attribute      status_change           100
+2 attribute      status_change            99
 3 spatial        boundary_modification    18
 4 spatial        secondary_zoning         17</code></pre>
 </div>
@@ -885,17 +885,17 @@ TIMELINE: Ankarafantsika (WDPAID: 1299 )
 
 ┌─ 1927-12-31 to 2002-08-07 
 │ Status: Réserve Naturelle Intégrale ( Ia )
-│ STATUS_YR: 1927 
+│ STATUS_YR: 2015 
 │ ├─ Zone: external_boundary
 │ │  Source: WDPA 
 ┌─ 2002-08-07 to 2015-01-01 
 │ Status: Parc National ( II )
-│ STATUS_YR: 2002 
+│ STATUS_YR: 2015 
 │ ├─ Zone: external_boundary
 │ │  Source: MDG-1299-2015-boundary_modification-001 
 ┌─ 2015-01-01 to 2015-04-21 
 │ Status: Parc National ( II )
-│ STATUS_YR: 2002 
+│ STATUS_YR: 2015 
 │ ├─ Zone: external_boundary
 │ │  Source: MDG-1299-2015-boundary_modification-001 
 │ ├─ Zone: external_boundary
@@ -921,9 +921,9 @@ TIMELINE: Ankarafantsika (WDPAID: 1299 )
 <pre><code># A tibble: 4 × 7
   state_id  valid_from valid_to   zone_type     DESIG STATUS_YR amendment_source
   &lt;chr&gt;     &lt;date&gt;     &lt;date&gt;     &lt;chr&gt;         &lt;chr&gt; &lt;chr&gt;     &lt;chr&gt;           
-1 1299_1927 1927-12-31 2002-08-07 external_bou… Rése… 1927      WDPA            
-2 1299_2002 2002-08-07 2015-01-01 external_bou… Parc… 2002      MDG-1299-2015-b…
-3 1299_2015 2015-01-01 2015-04-21 external_bou… Parc… 2002      MDG-1299-2015-b…
+1 1299_1927 1927-12-31 2002-08-07 external_bou… Rése… 2015      WDPA            
+2 1299_2002 2002-08-07 2015-01-01 external_bou… Parc… 2015      MDG-1299-2015-b…
+3 1299_2015 2015-01-01 2015-04-21 external_bou… Parc… 2015      MDG-1299-2015-b…
 4 1299_2015 2015-04-21 NA         external_bou… Parc… 2015      WDPA            </code></pre>
 </div>
 </div>
@@ -1111,17 +1111,17 @@ TIMELINE: Ankarafantsika (WDPAID: 1299 )
 
 ┌─ 1927-12-31 to 2002-08-07 
 │ Status: Réserve Naturelle Intégrale ( Ia )
-│ STATUS_YR: 1927 
+│ STATUS_YR: 2015 
 │ ├─ Zone: external_boundary
 │ │  Source: WDPA 
 ┌─ 2002-08-07 to 2015-01-01 
 │ Status: Parc National ( II )
-│ STATUS_YR: 2002 
+│ STATUS_YR: 2015 
 │ ├─ Zone: external_boundary
 │ │  Source: MDG-1299-2015-boundary_modification-001 
 ┌─ 2015-01-01 to 2015-04-21 
 │ Status: Parc National ( II )
-│ STATUS_YR: 2002 
+│ STATUS_YR: 2015 
 │ ├─ Zone: external_boundary
 │ │  Source: MDG-1299-2015-boundary_modification-001 
 │ ├─ Zone: external_boundary

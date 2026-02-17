@@ -1547,7 +1547,7 @@ L'année de création de cette AP est 1927 (pas 2015 comme pourrait l'indiquer W
 
 ```{r ankarafantsika-fat}
 # FAT for historical status: RNI period (1927-2002)
-fat <- fat |>
+fat <- fat %>%
   add_modif_fat(
     decisions = pa_decisions,
     wdpa_name_or_id = "Ankarafantsika",
@@ -1556,27 +1556,13 @@ fat <- fat |>
       DESIG = "Réserve Naturelle Intégrale",
       DESIG_ENG = "Strict Nature Reserve",
       DESIG_TYPE = "National",
-      IUCN_CAT = "Ia",
-      STATUS_YR = "1927"
+      IUCN_CAT = "Ia"
+      # STATUS_YR supprimé - sera déduit de valid_from
     ),
     amendment_type = "status_change",
     valid_from = "1927-12-31",
-    valid_to = "2002-08-07",
+    valid_to = "2002-08-07", # Maintenu - ferme la période RNI
     notes = "Created as RNI #7 on 1927-12-31 (Décret du 31 décembre 1927), boundaries clarified 1966-06-01 (Décret 66-242). Status changed to PN in 2002."
-  ) |>
-  add_modif_fat(
-    decisions = pa_decisions,
-    wdpa_name_or_id = "Ankarafantsika",
-    decision_filter = list(year = 2002, type_decision_pattern = "modifiant"),
-    attributes = list(
-      DESIG = "Parc National",
-      DESIG_ENG = "National Park",
-      IUCN_CAT = "II",
-      STATUS_YR = "2002"
-    ),
-    amendment_type = "status_change",
-    valid_from = "2002-08-07",
-    notes = "Changed from RNI to PN via Décret 2002-798 du 7 août 2002. RNI + forest reserves + Station Forestière Ampijoroa consolidated with major boundary expansion. Reference: Alonso & Shuldenberg 2002. WDPA 2025 shows STATUS_YR=2002 conformément au manuel WDPA."
   )
 ```
 

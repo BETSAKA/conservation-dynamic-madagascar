@@ -3125,8 +3125,7 @@ for (i in seq_len(nrow(nd_geoms))) {
       "PA label: ",
       nd_row$pa_label,
       ". ",
-      "This represents current management zoning without temporal validity. ",
-      "17 PAs with exploitable core zones as of 2024."
+      "This represents current management zoning without temporal validity."
     )
   )
 }

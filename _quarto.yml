@@ -25,8 +25,8 @@ book:
     - part: "Production des amendements"
       chapters:
         - 07_curation.qmd
-        - 07bis_yaml_registry.qmd
-        - 08_consolidation_rules.qmd
+        - 08_yaml_registry.qmd
+        - 09_consolidation_rules.qmd
     - 10_references.qmd
 
 bibliography: references.bib

@@ -195,8 +195,14 @@ ul.task-list li input[type="checkbox"] {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./08_consolidation_rules.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">CAR - Règles de consolidation et d’audit</span></span></a>
+  <a href="./08_yaml_registry.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Registre des amendements YAML</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./09_consolidation_rules.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">CAR - Règles de consolidation et d’audit</span></span></a>
   </div>
 </li>
       </ul>
@@ -306,7 +312,7 @@ ul.task-list li input[type="checkbox"] {
 <p>Le modèle repose sur un <strong>mécanisme de complétion par défaut combiné à des règles de précédence explicites et déterministes</strong> :</p>
 <ol type="1">
 <li><p><strong>État par défaut (WDPA baseline)</strong> : En l’absence de sources alternatives, les attributs et la géométrie issus de la WDPA génèrent un état unique dont la validité débute à partir de <code>STATUS_YR</code> et s’étend jusqu’à la date de référence de la version WDPA utilisée.</p></li>
-<li><p><strong>Segmentation temporelle</strong> : Lorsque des décisions juridiques antérieures, des périmètres historiques ou des dispositifs de zonage secondaires sont identifiés, la chronologie est segmentée en plusieurs intervalles de validité non chevauchants.</p></li>
+<li><p><strong>Segmentation temporelle</strong> : Lorsque des décisions juridiques antérieures, des périmètres historiques ou des dispositifs de zonage secondaires sont identifiés, la chronologie est segmentée en plusieurs intervalles de validité qui ne se chevauchent pas.</p></li>
 <li><p><strong>Héritage et compléments</strong> : Les états antérieurs héritent par défaut des attributs WDPA, sauf lorsque des textes réglementaires, des délimitations datées ou des documents de zonage spécifient explicitement des différences (statut de protection temporaire, limites alternatives, changements de gouvernance, organisation interne distincte).</p></li>
 <li><p><strong>Modèle de zones</strong> : Les limites externes sont traitées comme un type de zone spécifique (<code>external_boundary</code>), permettant de représenter simultanément les contours extérieurs et les subdivisions secondaires (zones noyaux, zones tampons) dans une logique spatiale unifiée.</p></li>
 </ol>
@@ -315,20 +321,20 @@ ul.task-list li input[type="checkbox"] {
 <h3 data-number="1.3.2" class="anchored" data-anchor-id="composantes-du-système"><span class="header-section-number">1.3.2</span> Composantes du système</h3>
 <p>Le système ne remplace pas la WDPA mais la complète par trois composantes :</p>
 <p><strong>1. Registre d’amendements YAML</strong> (coeur du système)<br>
-Fichiers YAML lisibles par l’humain et versionnés contenant les métadonnées de chaque modification historique identifiée (dates, sources légales, types d’amendements). Les géométries associées sont stockées en GeoJSON. Ce registre constitue la <strong>source de vérité canonique</strong> pour toutes les corrections et informations temporelles.</p>
-<p>Types d’amendements documentés : - <code>boundary_modification</code> : Changements légaux des limites externes - <code>status_change</code> : Modifications de désignation (RNI to PN, RS to PN, etc.) - <code>correction</code> : Erreurs dans WDPA (dates, statuts, géométries) - <code>secondary_zoning</code> : Zonages secondaires (zones noyaux, zones tampons)</p>
+Les modifications apportées à WDPDA sont stockées sous forme de fichiers YAML. Nous avons choisi cette forme car c’est celle qui semble la plus facile à lire et amender manuellement. Ce format peut en outre être versionnén afin que chaque modification soit tracée (dates, sources légales, types d’amendements). Les géométries associées sont stockées en GeoJSON. Ce registre constitue la référence centrale pour toutes les corrections et informations temporelles qui sont ensuite transposées.</p>
+<p>Types d’amendements documentés : - <code>boundary_modification</code> : Changements légaux des limites externes - <code>status_change</code> : Modifications de désignation (RNI vers PN, RS vers PN, etc.) - <code>correction</code> : Erreurs dans WDPA (dates, statuts, géométries) - <code>secondary_zoning</code> : Zonages secondaires (zones noyaux, zones tampons)</p>
 <p><strong>2. CAR (Consolidation and Auditing Rules)</strong><br>
-Ensemble transparent de règles de consolidation, exprimées sous forme de code R reproductible, qui lit le registre YAML et la WDPA, applique les règles de précédence, et génère les états temporels. Le CAR garantit que la transformation WDPA vers états dynamiques est <strong>auditable, déterministe et reproductible</strong>.</p>
+Ensemble transparent de règles de consolidation, exprimées sous forme de code R reproductible, qui lit le registre YAML et la WDPA, applique les règles de précédence, et génère les états temporels. Le CAR garantit que la transformation WDPA vers états dynamiques est auditable, déterministe et reproductible.</p>
 <p><strong>3. Tables de travail SAT/FAT (optionnelles)</strong><br>
 Pour faciliter la curation dans R, deux tables de travail sont utilisées durant la phase de documentation : - <strong>SAT</strong> (Spatial Amendment Table) : table sf pour manipuler les géométries - <strong>FAT</strong> (Feature Attribute Table) : tibble pour gérer les attributs</p>
-<p>Ces tables sont ensuite <strong>exportées vers le registre YAML</strong>, qui devient la référence unique. SAT/FAT ne sont donc que des outils de travail temporaires, non la source finale.</p>
+<p>Ces tables sont ensuite exportées vers le registre YAML, qui devient la référence unique. SAT/FAT ne sont donc que des outils de travail temporaires.</p>
 </section>
 <section id="format-de-sortie" class="level3" data-number="1.3.3">
 <h3 data-number="1.3.3" class="anchored" data-anchor-id="format-de-sortie"><span class="header-section-number">1.3.3</span> Format de sortie</h3>
 <p>Le résultat final est une table d’états temporels en format long :</p>
 <pre><code>state_id | WDPAID | valid_from | valid_to | zone_type | zone_name | geometry | [attributs WDPA] | amendment_source</code></pre>
 <p>Chaque ligne représente <strong>une zone dans un état temporel</strong>. Une aire protégée avec changements de limites et zonage secondaire aura plusieurs lignes par période.</p>
-<p>Formats d’export : - <strong>RDS</strong> : Format natif R avec objets sf - <strong>GeoPackage</strong> : Standard OGC pour interopérabilité SIG - <strong>Parquet + WKT</strong> : Format columnar optimisé pour analyses big data</p>
+<p>Formats d’export : - <strong>RDS</strong> : Format natif R avec objets sf - <strong>GeoPackage</strong> : Standard OGC pour interopérabilité SIG - <strong>GeoParquet</strong> : Format orienté colonnes optimisé pour analyses big data</p>
 </section>
 </section>
 <section id="méthodologie" class="level2" data-number="1.4">

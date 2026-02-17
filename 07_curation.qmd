@@ -3349,6 +3349,24 @@ Le processus de curation a documenté les amendements aux données WDPA de Madag
 ```{r}
 #| label: export-amendments
 
+# First deletes all exising yml and geojson files in data/amendments/
+amendments_dir <- "data/amendments"
+geoms_dir <- file.path(amendments_dir, "geoms")
+
+old_yml <- list.files(amendments_dir, pattern = "\\.yml$", full.names = TRUE)
+if (length(old_yml) > 0) {
+  file.remove(old_yml)
+}
+
+if (dir.exists(geoms_dir)) {
+  old_geojson <- list.files(
+    geoms_dir,
+    pattern = "\\.geojson$",
+    full.names = TRUE
+  )
+  if (length(old_geojson) > 0) file.remove(old_geojson)
+}
+
 # Export amendments to YAML + GeoJSON
 exported <- export_amendments_to_yaml(
   spatial = sat,

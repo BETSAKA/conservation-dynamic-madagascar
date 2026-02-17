@@ -432,7 +432,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"  Total amendments:"</span>, <span class="fu">nrow</span>(amendments<span class="sc">$</span>all), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>  Total amendments: 250 </code></pre>
+<pre><code>  Total amendments: 146 </code></pre>
 </div>
 <details class="code-fold">
 <summary>Voir le code</summary>
@@ -446,7 +446,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"  Attribute:"</span>, <span class="fu">nrow</span>(amendments<span class="sc">$</span>attribute), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>  Attribute: 215 </code></pre>
+<pre><code>  Attribute: 111 </code></pre>
 </div>
 <details class="code-fold">
 <summary>Voir le code</summary>
@@ -466,8 +466,8 @@ Amendment types:</code></pre>
 <pre><code># A tibble: 4 × 3
   amendment_kind amendment_type            n
   &lt;chr&gt;          &lt;chr&gt;                 &lt;int&gt;
-1 attribute      correction               30
-2 attribute      status_change           185
+1 attribute      correction               11
+2 attribute      status_change           100
 3 spatial        boundary_modification    18
 4 spatial        secondary_zoning         17</code></pre>
 </div>
@@ -991,14 +991,14 @@ Dynamic WDPA generated:</code></pre>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"  Total states:"</span>, <span class="fu">n_distinct</span>(dynamic_wdpa_full<span class="sc">$</span>state_id), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>  Total states: 182 </code></pre>
+<pre><code>  Total states: 210 </code></pre>
 </div>
 <details class="code-fold">
 <summary>Voir le code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"  Total zones:"</span>, <span class="fu">nrow</span>(dynamic_wdpa_full), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>  Total zones: 226 </code></pre>
+<pre><code>  Total zones: 264 </code></pre>
 </div>
 <details class="code-fold">
 <summary>Voir le code</summary>
@@ -1022,20 +1022,20 @@ Dynamic WDPA generated:</code></pre>
 <span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 23 × 2
+<pre><code># A tibble: 31 × 2
    amendment_source                              n
    &lt;chr&gt;                                     &lt;int&gt;
  1 MDG-10634-2015-boundary_modification-001      1
  2 MDG-1299-2015-boundary_modification-001       2
  3 MDG-166880-NODATE-secondary_zoning-001        3
- 4 MDG-2307-2015-boundary_modification-001       2
- 5 MDG-303700-2015-boundary_modification-001     1
- 6 MDG-352251-NODATE-secondary_zoning-001        3
- 7 MDG-5021-2015-boundary_modification-001       2
- 8 MDG-5037-2015-boundary_modification-001       1
- 9 MDG-555547961-NODATE-secondary_zoning-001     1
-10 MDG-555697872-NODATE-secondary_zoning-001     1
-# ℹ 13 more rows</code></pre>
+ 4 MDG-2303-2015-boundary_modification-001       3
+ 5 MDG-2307-2015-boundary_modification-001       2
+ 6 MDG-2311-2011-boundary_modification-001       2
+ 7 MDG-2314-2015-boundary_modification-001       2
+ 8 MDG-303700-2015-boundary_modification-001     1
+ 9 MDG-303702-2011-boundary_modification-001     1
+10 MDG-352251-NODATE-secondary_zoning-001        3
+# ℹ 21 more rows</code></pre>
 </div>
 </div>
 </section>
@@ -1055,7 +1055,7 @@ Dynamic WDPA generated:</code></pre>
 <pre><code>Deleting source `data/dynamic_wdpa.gpkg' using driver `GPKG'
 Writing layer `dynamic_wdpa' to data source 
   `data/dynamic_wdpa.gpkg' using driver `GPKG'
-Writing 226 features with 34 fields and geometry type Unknown (any).</code></pre>
+Writing 264 features with 34 fields and geometry type Unknown (any).</code></pre>
 </div>
 <details class="code-fold">
 <summary>Voir le code</summary>

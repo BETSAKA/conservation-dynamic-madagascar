@@ -446,11 +446,14 @@ export_amendments_to_yaml <- function(
   generate_amendment_id <- function(
     iso3,
     wdpaid,
+    valid_from,
     valid_to,
     amendment_type,
     seq
   ) {
-    year <- if (amendment_type == "provisional_protection") {
+    year <- if (
+      amendment_type == "temporary_protection" && !is.na(valid_from)
+    ) {
       lubridate::year(valid_from)
     } else if (!is.na(valid_to)) {
       lubridate::year(valid_to)
@@ -535,6 +538,7 @@ export_amendments_to_yaml <- function(
       amendment_id <- generate_amendment_id(
         iso3,
         row$WDPAID,
+        row$valid_from,
         row$valid_to,
         row$amendment_type,
         row$seq
@@ -605,6 +609,7 @@ export_amendments_to_yaml <- function(
       amendment_id <- generate_amendment_id(
         iso3,
         row$WDPAID,
+        row$valid_from,
         row$valid_to,
         row$amendment_type,
         row$seq
@@ -1053,7 +1058,7 @@ Pour une curation efficace dans R, ce document construit deux tables de travail 
 
 Ces tables sont optimisées pour les opérations R (manipulation de géométries, filtrage, validation) et sont exportées vers le schéma YAML à la fin du document en utilisant `export_amendments_to_yaml()`.
 
-### Amendment Typesents
+### Typologie des amendements
 
 - **`boundary_modification`** : Changement légal des limites externes de l'AP
 - **`secondary_zoning`** : Couches de zonage additionnelles (zones noyau, zones tampons) qui complètent la limite principale de l'AP
@@ -1198,7 +1203,7 @@ show_cnlegis_for_pa(5022, pa_decisions) |>
   )
 ```
 
-Le Décret 56-208 du 20 février 1956 créant la Réserve Spéciale d'Analamerana n'apparaît pas dans CNLEGIS (pré-2000). WDPA 2025 montre des erreurs majeures : DESIG="Parc National" au lieu de "Reserve Speciale", IUCN_CAT=II au lieu de IV, et STATUS_YR=2015 au lieu de 1956. Goodman confirme qu'aucune modification de statut n'a eu lieu.
+Le Décret 56-208 du 20 février 1956 créant la Réserve Spéciale d'Analamerana n'apparaît pas dans CNLEGIS (pré-2000). WDPA 2025 contient apparemment trois erreurs : DESIG="Parc National" au lieu de "Reserve Speciale", IUCN_CAT=II au lieu de IV, et STATUS_YR=2015 au lieu de 1956. Goodman confirme qu'aucune modification de statut n'a eu lieu.
 
 ```{r analamerana-fat}
 # FAT: Correction du DESIG, IUCN_CAT et STATUS_YR
@@ -1302,7 +1307,30 @@ fat <- fat |>
     amendment_type = "status_change",
     valid_from = "1939-06-11",
     valid_to = "1997-08-07",
-    notes = "Created as RNI #11 on 1939-06-11 (Décret du 11 juin 1939), boundaries clarified 1966-06-01 (Décret 66-242). hanged from RNI to PN via Décret 97-1043 du 7 août 1997. Three-parcel structure maintained. Decree not in CNLEGIS but archived independently. Reference: https://archive.org/details/decret-n-97-1043-du-07-aout-1997-pn-andoahahela."
+    notes = "Created as RNI #11 on 1939-06-11 (Décret du 11 juin 1939), boundaries clarified 1966-06-01 (Décret 66-242). Changed from RNI to PN via Décret 97-1043 du 7 août 1997. Three-parcel structure maintained. Decree not in CNLEGIS but archived independently. Reference: https://archive.org/details/decret-n-97-1043-du-07-aout-1997-pn-andoahahela."
+  )
+```
+
+La WDPA 2025 indique STATUS_YR=2015 pour Andohahela, ce qui correspond à la date de modification des limites et non au changement de statut (RNI→PN en 1997). On crée une correction d'attribut.
+
+```{r andohahela-correction}
+# Correction STATUS_YR: WDPA says 2015, should be 1997 (year of PN status)
+fat <- fat |>
+  add_modif_fat(
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Andohahela",
+    manual_decision = list(
+      date_texte = "1997-08-07",
+      type_texte = "Décret",
+      num_texte = "97-1043",
+      objet_texte = "Portant déclassement en parc national"
+    ),
+    attributes = list(
+      STATUS_YR = "1997"
+    ),
+    amendment_type = "correction",
+    valid_from = "1997-08-07",
+    notes = "WDPA STATUS_YR=2015 conflates boundary change with status change. Current status (PN) dates from Décret 97-1043 du 7 août 1997. Idempotent once WDPA corrects."
   )
 ```
 
@@ -1538,6 +1566,24 @@ fat <- fat %>%
   )
 ```
 
+La WDPA 2025 indique STATUS_YR=2015 pour Ankarafantsika, ce qui correspond à la date de modification des limites et non au changement de statut (RNI→PN en 2002). On crée une correction d'attribut. Cette correction sera idempotente lorsque WDPA aura corrigé sa base.
+
+```{r ankarafantsika-correction}
+# Correction STATUS_YR: WDPA says 2015, should be 2002 (year of PN status)
+fat <- fat |>
+  add_modif_fat(
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Ankarafantsika",
+    decision_filter = list(year = 2002, type_decision_pattern = "modifiant"),
+    attributes = list(
+      STATUS_YR = "2002"
+    ),
+    amendment_type = "correction",
+    valid_from = "2002-08-07",
+    notes = "WDPA STATUS_YR=2015 conflates boundary change with status change. Current status (PN) dates from Décret 2002-798 du 7 août 2002. Idempotent once WDPA corrects."
+  )
+```
+
 ### Ankarana
 
 Goodman	et	al.	[-@goodman2018]	indique	pour	cette	AP: 
@@ -1689,6 +1735,24 @@ fat <- fat |>
     valid_from = "1927-12-31",
     valid_to = "2011-09-06",
     notes = "Created as RNI #9 on 1927-12-31 (Décret du 31 décembre 1927), boundaries modified 1997-08-07 (Décret 97-1045). Changed from RNI to PN via Décret 2011-498 du 6 septembre 2011 with boundary modification."
+  )
+```
+
+La WDPA 2025 indique STATUS_YR=1997 pour Bemaraha, ce qui correspond à la date de modification des limites et non au changement de statut (RNI→PN en 2011). On crée une correction d'attribut.
+
+```{r bemaraha-correction}
+# Correction STATUS_YR: WDPA says 1997, should be 2011 (year of PN status)
+fat <- fat |>
+  add_modif_fat(
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Bemaraha",
+    decision_filter = list(year = 2011, type_decision_pattern = "modifiant"),
+    attributes = list(
+      STATUS_YR = "2011"
+    ),
+    amendment_type = "correction",
+    valid_from = "2011-09-06",
+    notes = "WDPA STATUS_YR=1997 conflates boundary change with status change. Current status (PN) dates from Décret 2011-498 du 6 septembre 2011. Idempotent once WDPA corrects."
   )
 ```
 
@@ -1991,7 +2055,8 @@ fat <- fat |>
 
 ### Mangerivola
 
-@goodman2018 indique pour cette AP:
+@goodman2018 indique pour cette AP:  
+
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	aucune	;	Création	:	selon	le	Décret	n°	58-10	du	28
 octobre	1958	;	Modification	de	statut	:	l’aire	protégée	fut	créée	en	1958
@@ -2008,7 +2073,8 @@ show_cnlegis_for_pa(5038, pa_decisions)
 
 ### Manombo
 
-@goodman2018 indique pour cette AP:
+@goodman2018 indique pour cette AP:  
+
 > Aspects	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	;
 Gestion	antérieure	:	Direction	des	Eaux	et	Forêts	(Service	de	la	Protection
 de	la	Nature	d’Antananarivo	;	le	Cantonnement	Forestier	de	Farafangana
@@ -2403,7 +2469,7 @@ Les métadonnées confirment que cette aire protégée a été reclassée en Par
 show_cnlegis_for_pa("Namoroka", pa_decisions)
 ```
 
-**Note de validation** : Namoroka a subi un changement de statut de RNI à PN en 2002, sans modification de limites. La WDPA 2025 indique STATUS_YR=2002 conformément au manuel WDPA (année du statut actuel PN). Nous documentons deux périodes via FAT : la période RNI (1927-2002) avec `STATUS_YR=1927`, puis la période PN (2002-présent) avec `STATUS_YR=2002`.
+**Note de validation** : Namoroka a subi un changement de statut de RNI à PN en 2002, sans modification de limites. La WDPA 2025 indique STATUS_YR=2004, ce qui est incorrect (l'origine de cette date est inexpliquée). Le STATUS_YR correct est 2002, année du décret de reclassement en PN. Nous documentons deux périodes via FAT : la période RNI (1927-2002) avec `STATUS_YR=1927`, puis la période PN (2002-présent) avec `STATUS_YR=2002`.
 
 ```{r namoroka-fat}
 # FAT for historical status: RNI period (1927-2002)
@@ -2424,6 +2490,24 @@ fat <- add_modif_fat(
   notes = "Created as RNI #8 on 1927-12-31 (Décret du 31 décembre 1927). Status changed from RNI to PN via Décret 2002-796 du 7 août 2002. No boundary change."
 )
 
+```
+
+La WDPA 2025 indique STATUS_YR=2004 pour Namoroka, ce qui est inexplicable. Le statut actuel (PN) date de 2002. On crée une correction d'attribut.
+
+```{r namoroka-correction}
+# Correction STATUS_YR: WDPA says 2004, should be 2002 (year of PN status)
+fat <- fat |>
+  add_modif_fat(
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Namoroka",
+    decision_filter = list(year = 2002, type_decision_pattern = "modifiant"),
+    attributes = list(
+      STATUS_YR = "2002"
+    ),
+    amendment_type = "correction",
+    valid_from = "2002-08-07",
+    notes = "WDPA STATUS_YR=2004 is unexplained. Current status (PN) dates from Décret 2002-796 du 7 août 2002. Idempotent once WDPA corrects."
+  )
 ```
 
 ### Nosy Mangabe
@@ -2679,7 +2763,7 @@ Les métadonnées confirment que cette aire protégée a été reclassée en Par
 show_cnlegis_for_pa("Tsimanampesotse", pa_decisions)
 ```
 
-**Note de validation** : Tsimanampesotse a subi deux modifications successives : changement de statut RNI vers PN en 2002 (Décret 2002-797), puis modification de limites en 2015 (Décret 2015-736) incluant l'extension d'Hatokaliotsy. La WDPA 2025 indique STATUS_YR=2002 conformément au manuel WDPA (année du statut actuel PN). Nous documentons deux périodes via FAT : la période RNI (1927-2002) avec `STATUS_YR=1927`, puis la période PN (2002-présent) avec `STATUS_YR=2002`.
+**Note de validation** : Tsimanampesotse a subi deux modifications successives : changement de statut RNI vers PN en 2002 (Décret 2002-797), puis modification de limites en 2015 (Décret 2015-736) incluant l'extension d'Hatokaliotsy. La WDPA 2025 indique STATUS_YR=1927, qui est l'année de création de la RNI et non l'année du statut actuel (PN). Le STATUS_YR correct est 2002. Nous documentons deux périodes via FAT : la période RNI (1927-2002) avec `STATUS_YR=1927`, puis la période PN (2002-présent) avec `STATUS_YR=2002`.
 
 Après inspection visuelle des différentes sources disponibles, on retient MNP_2010 comme source des limites avant la modification de 2015.
 
@@ -2728,6 +2812,28 @@ fat <- add_modif_fat(
   notes = "Created as RNI #10 on 1927-12-31 (Décret du 31 décembre 1927). Status changed from RNI to PN via Décret 2002-797 du 7 août 2002. Boundary later expanded in 2015 to include Hatokaliotsy extension."
 )
 
+```
+
+La WDPA 2025 indique STATUS_YR=1927 pour Tsimanampesotse, ce qui correspond à la date de création de la RNI et non au statut actuel (PN depuis 2002). On crée une correction d'attribut.
+
+```{r tsimanampesotse-correction}
+# Correction STATUS_YR: WDPA says 1927, should be 2002 (year of PN status)
+fat <- fat |>
+  add_modif_fat(
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Tsimanampesotse",
+    decision_filter = list(
+      year = 2002,
+      type_decision_pattern = "modifiant",
+      num_texte = "2002-797"
+    ),
+    attributes = list(
+      STATUS_YR = "2002"
+    ),
+    amendment_type = "correction",
+    valid_from = "2002-08-07",
+    notes = "WDPA STATUS_YR=1927 is the RNI creation year, not the current status year. Current status (PN) dates from Décret 2002-797 du 7 août 2002. Idempotent once WDPA corrects."
+  )
 ```
 
 ### Zahamena
@@ -3013,6 +3119,7 @@ for (i in seq_len(nrow(temp_full))) {
     ),
     amendment_type = "temporary_protection",
     valid_from = as.character(row$temp_date),
+    valid_to = if (!is.na(row$perm_date)) as.character(row$perm_date) else NULL,
     notes = paste0(
       "Temporary protection via Arrêté ",
       row$temp_texte,

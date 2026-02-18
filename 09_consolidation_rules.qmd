@@ -13,6 +13,14 @@ Le CAR (Consolidation and Auditing Rules) transforme les données de base WDPA e
 4. **Modèle de zones** : Limites externes et zonages secondaires coexistent
 5. **Fail-fast** : Les conflits génèrent des erreurs plutôt que de se résoudre silencieusement
 
+**Types d'amendements reconnus :**
+
+- `status_change` : Changement de statut historique (période close uniquement, le statut actuel est dans WDPA)
+- `correction` : Correction d'un attribut WDPA erroné (peut être open-ended)
+- `boundary_modification` : Géométrie historique différente de la géométrie WDPA actuelle
+- `secondary_zoning` : Zonage secondaire (noyaux durs, zones tampons)
+- `temporary_protection` : Mise en protection temporaire (avant désignation permanente)
+
 **Structure de sortie :**
 
 ```
@@ -143,7 +151,7 @@ amendments$all |>
   print()
 ```
 
-## Fonctions de consolidationion
+## Fonctions de consolidation
 
 ### Génération de chronologie
 
@@ -155,38 +163,48 @@ Création d'intervalles temporels non chevauchants en combinant tous les marqueu
 #' Collects all temporal markers (STATUS_YR from WDPA, valid_from/valid_to from
 #' amendments) and creates non-overlapping intervals.
 #'
-#' @param wdpaid WDPAID to generate timeline for
+#' @param wdpaid_val WDPAID to generate timeline for
 #' @param wdpa WDPA reference dataset
 #' @param amendments Amendment registry (from read_yaml_amendments)
 #' @return Tibble with interval_start and interval_end columns
-generate_timeline <- function(wdpaid, wdpa, amendments) {
-  # Get WDPA STATUS_YR
-  wdpa_record <- wdpa |> filter(WDPAID == wdpaid)
-
-  if (nrow(wdpa_record) == 0) {
-    stop("WDPAID ", wdpaid, " not found in WDPA")
-  }
-
-  status_yr <- wdpa_record$STATUS_YR[1]
+generate_timeline <- function(wdpaid_val, wdpa, amendments) {
+  # Get WDPA record (may be absent for dissolved/merged PAs)
+  wdpa_record <- wdpa |> filter(WDPAID == wdpaid_val)
 
   # Collect all dates from amendments
-  pa_amendments <- amendments$all |> filter(wdpaid == !!wdpaid)
+  pa_amendments <- amendments$all |> filter(wdpaid == wdpaid_val)
 
-  dates <- c(
-    # WDPA baseline (interpret STATUS_YR as January 1st)
-    as.Date(paste0(status_yr, "-01-01")),
+  if (nrow(wdpa_record) == 0 && nrow(pa_amendments) == 0) {
+    stop("WDPAID ", wdpaid_val, " not found in WDPA and has no amendments")
+  }
 
-    # Amendment temporal bounds
+  # Amendment dates (authoritative when present)
+  amendment_dates <- c(
     pa_amendments$valid_from[!is.na(pa_amendments$valid_from)],
     pa_amendments$valid_to[!is.na(pa_amendments$valid_to)]
-  ) |>
+  )
+
+  # STATUS_YR as fallback: only used when no amendments provide dated history.
+  # When amendments exist, their valid_from/valid_to already capture the real
+
+  # temporal breakpoints. Using STATUS_YR in that case would create spurious
+  # intervals (STATUS_YR is the year of the last WDPA update, not a historical
+  # event date).
+  wdpa_date <- if (nrow(wdpa_record) > 0 && length(amendment_dates) == 0) {
+    as.Date(paste0(wdpa_record$STATUS_YR[1], "-01-01"))
+  }
+
+  dates <- c(wdpa_date, amendment_dates) |>
     unique() |>
     sort()
 
-  # Create intervals
+  # Restore Date class if lost during c() / unique() / sort()
+  dates <- as.Date(dates, origin = "1970-01-01")
+
+  # Créer les intervalles
   tibble(
     interval_start = dates,
-    interval_end = c(dates[-1], as.Date(NA)) # Last interval is open-ended
+    interval_end = c(dates[-1], as.Date(NA)) # Dernier intervalle ouvert
   )
 }
 ```
@@ -209,41 +227,51 @@ generate_timeline <- function(wdpaid, wdpa, amendments) {
 #' Find active amendments for a time interval
 #'
 #' Returns amendments whose validity period overlaps with [interval_start, interval_end).
+#' An amendment is active if:
+#' - It starts before the interval ends (or interval is open-ended)
+#' - It ends after the interval starts (or amendment is open-ended)
 #'
-#' @param amendments Amendment registry subset (spatial or attribute)
-#' @param wdpaid WDPAID to filter
+#' @param amendments_df Amendment registry subset (spatial or attribute)
+#' @param wdpaid_val WDPAID to filter
 #' @param interval_start Start of interval (inclusive)
 #' @param interval_end End of interval (exclusive), NA for open-ended
 #' @return Filtered tibble of active amendments
 find_active_amendments <- function(
-  amendments,
-  wdpaid,
+  amendments_df,
+  wdpaid_val,
   interval_start,
   interval_end
 ) {
-  amendments |>
-    filter(wdpaid == !!wdpaid) |>
+  # Replace NA interval_end with far-future date for comparison
+  effective_end <- if (is.na(interval_end)) {
+    as.Date("2100-01-01")
+  } else {
+    interval_end
+  }
+
+  amendments_df |>
+    filter(wdpaid == wdpaid_val) |>
     filter(
-      # Amendment must overlap with interval
-      # Amendment starts before interval ends (or interval is open-ended)
-      (is.na(valid_from) |
-        valid_from < (interval_end %||% as.Date("2100-01-01"))) &
-        # Amendment ends after interval starts (or amendment is open-ended)
+      # Amendment starts before interval ends
+      (is.na(valid_from) | valid_from < effective_end) &
+        # Amendment ends after interval starts
         (is.na(valid_to) | valid_to > interval_start)
     )
 }
 
 #' Check for conflicts in amendments
 #'
-#' Detects multiple amendments affecting the same attribute/geometry in the same period.
+#' Detects multiple amendments affecting the same attribute/geometry in the same
+#' period. temporary_protection amendments are treated as attribute amendments
+#' for conflict purposes.
 #'
-#' @param amendments Active amendments for an interval
+#' @param amendments_active Active amendments for an interval
 #' @param type "boundary" or "attribute"
-#' @return TRUE if conflict detected (throws error)
-check_conflicts <- function(amendments, type = "boundary") {
+#' @return FALSE if no conflict (throws error on conflict)
+check_conflicts <- function(amendments_active, type = "boundary") {
   if (type == "boundary") {
     # Multiple boundary_modifications in same period
-    boundary_mods <- amendments |>
+    boundary_mods <- amendments_active |>
       filter(amendment_type == "boundary_modification")
 
     if (nrow(boundary_mods) > 1) {
@@ -253,31 +281,42 @@ check_conflicts <- function(amendments, type = "boundary") {
       )
     }
   } else if (type == "attribute") {
-    # Multiple amendments modifying same attribute
-    attr_amendments <- amendments |>
-      filter(!is.na(attributes))
+    # Filter to amendments that actually have non-null attributes
+    attr_amendments <- amendments_active |>
+      filter(map_lgl(attributes, ~ !is.null(.x) && length(.x) > 0))
 
     if (nrow(attr_amendments) > 1) {
       # Check for overlapping attributes
-      all_attrs <- map(attr_amendments$attributes, names) |>
-        unlist() |>
-        unique()
+      all_attr_names <- map(attr_amendments$attributes, names) |>
+        unlist()
 
-      for (attr in all_attrs) {
-        count <- sum(map_lgl(attr_amendments$attributes, ~ attr %in% names(.x)))
-        if (count > 1) {
-          stop(
-            "Conflict: Multiple amendments modify attribute '",
-            attr,
-            "' in same period:\n",
-            paste(
-              attr_amendments$amendment_id[map_lgl(
-                attr_amendments$attributes,
-                ~ attr %in% names(.x)
-              )],
-              collapse = "\n"
-            )
+      duplicated_attrs <- all_attr_names[duplicated(all_attr_names)]
+
+      if (length(duplicated_attrs) > 0) {
+        for (attr_name in unique(duplicated_attrs)) {
+          conflicting <- attr_amendments |>
+            filter(map_lgl(attributes, ~ attr_name %in% names(.x)))
+
+          # Extract values for this attribute across conflicting amendments
+          values <- map_chr(
+            conflicting$attributes,
+            ~ as.character(.x[[attr_name]])
           )
+
+          # Only error if values actually differ (identical values = no conflict)
+          if (n_distinct(values) > 1) {
+            stop(
+              "Conflict: Multiple amendments set different values for '",
+              attr_name,
+              "' in same period:\n",
+              paste(
+                conflicting$amendment_id,
+                "→",
+                values,
+                collapse = "\n"
+              )
+            )
+          }
         }
       }
     }
@@ -312,28 +351,42 @@ standardize_types <- function(df) {
   )
 
   # Convert all WDPA columns (not in preserve list) to character
-  df |>
-    mutate(across(
-      .cols = where(is.numeric) & !any_of(preserve_cols),
-      .fns = as.character
-    )) |>
-    mutate(across(
-      .cols = where(is.integer) & !any_of(preserve_cols),
-      .fns = as.character
-    ))
+  # Use vapply + sprintf to avoid R 4.5 prettyNum() / format.default() issues
+  num_cols <- names(df)[map_lgl(df, is.numeric)]
+  num_cols <- setdiff(num_cols, preserve_cols)
+
+  for (col in num_cols) {
+    vals <- df[[col]]
+    # Integer-like values: no decimal; true doubles: full precision
+    df[[col]] <- ifelse(
+      is.na(vals),
+      NA_character_,
+      ifelse(
+        vals == trunc(vals),
+        sprintf("%.0f", vals),
+        sprintf("%g", vals)
+      )
+    )
+  }
+
+  df
 }
 
 #' Consolidate PA states by applying amendments
 #'
-#' Main function that generates temporal states with zones for a single protected area.
+#' Main function that generates temporal states with zones for a single
+#' protected area. Implements the "delta-only" model: amendments only document
+#' differences from WDPA. The current period always inherits from WDPA unless
+#' a correction amendment exists.
 #'
 #' @param wdpaid WDPAID to process
 #' @param wdpa WDPA reference dataset
 #' @param amendments Amendment registry
 #' @return sf object with one row per zone per temporal state
 consolidate_pa_states <- function(wdpaid, wdpa, amendments) {
-  # Get WDPA baseline
+  # Get WDPA baseline (may be absent for dissolved/merged PAs)
   wdpa_record <- wdpa |> filter(WDPAID == wdpaid)
+  has_wdpa <- nrow(wdpa_record) > 0
 
   # Generate timeline
   timeline <- generate_timeline(wdpaid, wdpa, amendments)
@@ -361,12 +414,26 @@ consolidate_pa_states <- function(wdpaid, wdpa, amendments) {
     check_conflicts(active_spatial, "boundary")
     check_conflicts(active_attribute, "attribute")
 
-    # Start with WDPA attributes and standardize types
-    state_attrs <- wdpa_record |>
-      st_drop_geometry() |>
-      standardize_types()
+    # Start with WDPA attributes or minimal skeleton for dissolved PAs
+    if (has_wdpa) {
+      state_attrs <- wdpa_record |>
+        st_drop_geometry() |>
+        standardize_types()
+    } else {
+      # Dissolved/merged PA: build minimal skeleton from amendment metadata
+      pa_meta <- amendments$all |> filter(wdpaid == !!wdpaid) |> slice(1)
+      state_attrs <- tibble(
+        WDPAID = as.character(wdpaid),
+        NAME = pa_meta$wdpa_name %||% as.character(wdpaid),
+        ISO3 = pa_meta$amendment_id |>
+          str_extract("^[A-Z]{3}") %||%
+          NA_character_
+      )
+    }
 
-    # Apply attribute amendments (already character from YAML)
+    # Apply attribute amendments (status_change, correction, temporary_protection)
+    # Only amendments active in this interval override WDPA attributes.
+    # For the open period, WDPA baseline is used unless a correction exists.
     if (nrow(active_attribute) > 0) {
       for (j in seq_len(nrow(active_attribute))) {
         attrs <- active_attribute$attributes[[j]]
@@ -376,7 +443,35 @@ consolidate_pa_states <- function(wdpaid, wdpa, amendments) {
           }
         }
       }
-    } # Create zones
+    }
+
+    # Derive STATUS_YR from context:
+    # Per WDPA manual, STATUS_YR = year the *current status* came into effect.
+    #
+    # Two cases:
+    # 1. A status_change/temporary_protection is active in this interval:
+    #    → STATUS_YR = year(valid_from) of that amendment (= when this
+    #      historical status started).
+    # 2. No status amendment active in this interval:
+    #    → STATUS_YR comes from WDPA baseline or from a `correction` amendment
+    #      if one exists. Corrections are open-ended and already applied above.
+    #      When WDPA eventually fixes its STATUS_YR, the correction simply
+    #      overwrites with the same value (idempotent, no conflict).
+    status_amendments <- active_attribute |>
+      filter(amendment_type %in% c("status_change", "temporary_protection"))
+
+    if (nrow(status_amendments) > 0) {
+      # Case 1: active status amendment → year of its valid_from
+      status_yr_date <- max(status_amendments$valid_from, na.rm = TRUE)
+      state_attrs[["STATUS_YR"]] <- as.character(year(status_yr_date))
+    }
+    # Case 2: no override needed — WDPA or correction already in state_attrs
+
+    # Pre-compute state_id outside mutate to avoid R 4.5 format()/prettyNum()
+    # interaction issues inside dplyr context
+    current_state_id <- paste0(wdpaid, "_", year(interval_start))
+
+    # Create zones
     zones <- list()
 
     # Zone 1: External boundary
@@ -388,7 +483,7 @@ consolidate_pa_states <- function(wdpaid, wdpa, amendments) {
       geom <- st_read(boundary_mod$geom_file[1], quiet = TRUE)
       zones[[1]] <- state_attrs |>
         mutate(
-          state_id = paste0(WDPAID, "_", format(interval_start, "%Y")),
+          state_id = current_state_id,
           valid_from = interval_start,
           valid_to = interval_end,
           zone_type = "external_boundary",
@@ -397,18 +492,41 @@ consolidate_pa_states <- function(wdpaid, wdpa, amendments) {
           geometry = st_geometry(geom)[1]
         ) |>
         st_as_sf()
-    } else {
+    } else if (has_wdpa) {
       # Use WDPA boundary with standardized types
       zones[[1]] <- wdpa_record |>
         standardize_types() |>
         mutate(
-          state_id = paste0(WDPAID, "_", format(interval_start, "%Y")),
+          state_id = current_state_id,
           valid_from = interval_start,
           valid_to = interval_end,
           zone_type = "external_boundary",
           zone_name = NA_character_,
           amendment_source = "WDPA"
         )
+    } else {
+      # Dissolved PA without boundary amendment for this period: skip zone
+      warning(
+        "WDPAID ",
+        wdpaid,
+        ": no WDPA record and no boundary_modification ",
+        "for interval [",
+        interval_start,
+        ", ",
+        interval_end,
+        ")"
+      )
+      zones[[1]] <- state_attrs |>
+        mutate(
+          state_id = current_state_id,
+          valid_from = interval_start,
+          valid_to = interval_end,
+          zone_type = "external_boundary",
+          zone_name = NA_character_,
+          amendment_source = "amendments_only",
+          geometry = st_sfc(st_polygon(), crs = 4326)
+        ) |>
+        st_as_sf()
     }
 
     # Inherit amended attributes into boundary zone
@@ -418,33 +536,49 @@ consolidate_pa_states <- function(wdpaid, wdpa, amendments) {
       }
     }
 
-    # Additional zones: Secondary zoning
+    # Additional zones: Secondary zoning (may contain multiple features)
     secondary_zones <- active_spatial |>
       filter(amendment_type == "secondary_zoning")
 
     if (nrow(secondary_zones) > 0) {
       for (j in seq_len(nrow(secondary_zones))) {
         geom <- st_read(secondary_zones$geom_file[j], quiet = TRUE)
+        n_features <- nrow(geom)
 
-        zone <- state_attrs |>
-          mutate(
-            state_id = paste0(WDPAID, "_", format(interval_start, "%Y")),
-            valid_from = interval_start,
-            valid_to = interval_end,
-            zone_type = secondary_zones$amendment_type[j],
-            zone_name = secondary_zones$notes[j], # Could extract from notes
-            amendment_source = secondary_zones$amendment_id[j],
-            geometry = st_geometry(geom)[1]
-          ) |>
-          st_as_sf()
+        for (k in seq_len(n_features)) {
+          zone_name_val <- if ("zone_name" %in% names(geom)) {
+            geom$zone_name[k]
+          } else if ("name" %in% names(geom)) {
+            geom$name[k]
+          } else {
+            paste0("zone_", k)
+          }
 
-        zones[[length(zones) + 1]] <- zone
+          zone <- state_attrs |>
+            mutate(
+              state_id = current_state_id,
+              valid_from = interval_start,
+              valid_to = interval_end,
+              zone_type = "secondary_zoning",
+              zone_name = zone_name_val,
+              amendment_source = secondary_zones$amendment_id[j],
+              geometry = st_geometry(geom)[k]
+            ) |>
+            st_as_sf()
+
+          zones[[length(zones) + 1]] <- zone
+        }
       }
     }
 
     # Combine all zones for this state
     bind_rows(zones)
   })
+
+  # Restore Date class lost during bind_rows() across heterogeneous sf/tibble
+
+  states$valid_from <- as.Date(states$valid_from, origin = "1970-01-01")
+  states$valid_to <- as.Date(states$valid_to, origin = "1970-01-01")
 
   states
 }
@@ -469,7 +603,7 @@ print_timeline <- function(wdpaid, states) {
     arrange(valid_from, zone_type)
 
   if (nrow(pa_states) == 0) {
-    cat("No states found for WDPAID", wdpaid, "\n")
+    cat("Aucun état trouvé pour WDPAID", wdpaid, "\n")
     return(invisible(NULL))
   }
 
@@ -489,12 +623,15 @@ print_timeline <- function(wdpaid, states) {
       current_state_id <- row$state_id
 
       period <- if (is.na(row$valid_to)) {
-        paste0(format(row$valid_from, "%Y-%m-%d"), " to present")
+        paste0(
+          format.Date(row$valid_from, "%Y-%m-%d"),
+          " to present"
+        )
       } else {
         paste0(
-          format(row$valid_from, "%Y-%m-%d"),
+          format.Date(row$valid_from, "%Y-%m-%d"),
           " to ",
-          format(row$valid_to, "%Y-%m-%d")
+          format.Date(row$valid_to, "%Y-%m-%d")
         )
       }
 
@@ -548,6 +685,64 @@ test_states |>
     STATUS_YR,
     amendment_source
   )
+```
+
+## Validation : vérification systématique
+
+Détection des problèmes potentiels dans le registre d'amendements avant consolidation complète.
+
+```{r validation}
+# 1. Pas de status_change open-ended (sans valid_to)
+open_status_change <- amendments$attribute |>
+  filter(amendment_type == "status_change", is.na(valid_to))
+
+if (nrow(open_status_change) > 0) {
+  cat("\u26a0\ufe0f status_change open-ended (ne devrait pas exister) :\n")
+  open_status_change |>
+    select(amendment_id, wdpaid, wdpa_name, valid_from) |>
+    print()
+} else {
+  cat("\u2705 Pas de status_change open-ended\n")
+}
+
+# 2. temporary_protection avec date permanente connue doit avoir valid_to
+temp_prot <- amendments$attribute |>
+  filter(amendment_type == "temporary_protection")
+
+if (nrow(temp_prot) > 0) {
+  temp_open <- temp_prot |> filter(is.na(valid_to))
+  temp_closed <- temp_prot |> filter(!is.na(valid_to))
+  cat("\u2705 Protections temporaires :", nrow(temp_prot), "au total\n")
+  cat("   - Closes (désignation permanente obtenue) :", nrow(temp_closed), "\n")
+  cat("   - Ouvertes (encore temporaire) :", nrow(temp_open), "\n")
+}
+
+# 3. Pas de STATUS_YR dans les attributs des status_change
+status_yr_in_change <- amendments$attribute |>
+  filter(amendment_type == "status_change") |>
+  filter(map_lgl(attributes, ~ "STATUS_YR" %in% names(.x %||% list())))
+
+if (nrow(status_yr_in_change) > 0) {
+  cat("\u26a0\ufe0f status_change avec STATUS_YR (à supprimer) :\n")
+  status_yr_in_change |>
+    select(amendment_id, wdpaid) |>
+    print()
+} else {
+  cat("\u2705 Pas de STATUS_YR dans les status_change\n")
+}
+
+# 4. Pas de NODATE dans les amendment_id
+nodate_amendments <- amendments$all |>
+  filter(str_detect(amendment_id, "NODATE"))
+
+if (nrow(nodate_amendments) > 0) {
+  cat("\u26a0\ufe0f Amendements avec NODATE dans l'ID :\n")
+  nodate_amendments |>
+    select(amendment_id, wdpaid, amendment_type, valid_from, valid_to) |>
+    print()
+} else {
+  cat("\u2705 Pas d'amendment_id avec NODATE\n")
+}
 ```
 
 ## Génération du jeu de données complet

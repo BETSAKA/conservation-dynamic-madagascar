@@ -1,0 +1,107 @@
+**[Titre :]{.underline} Conserver l\'histoire de la conservation : un
+modèle de données dynamique appliqué aux aires protégées de Madagascar**
+
+[Résumé :]{.underline} Les données spatiales décrivant la délimitation
+et les caractéristiques des aires protégées sont essentielles aux études
+sur la conservation. La World Database on Protected Areas (WDPA)
+constitue le référentiel international en la matière. Ce type de bases
+inclut généralement les limites actuelles des aires protégées, ainsi que
+leurs attributs tels que leur date de création, leur statut et leur
+gestionnaire. Cette représentation statique entraîne une perte
+importante d\'informations sur les états passés des aires protégées
+lorsque leurs limites ou leurs caractéristiques ont évolué au fil du
+temps. En l'absence de précisions temporelles explicites, la pratique
+dominante parmi les chercheurs et analystes consiste à supposer que
+frontières et caractéristiques sont restées inchangées depuis la date de
+création. Cette hypothèse induit des erreurs et des biais lorsqu\'il
+s\'agit d\'analyser l\'évolution des aires protégées ou évaluer leurs
+impacts environnementaux et socioéconomiques. Dans cet article, nous
+proposons un modèle de données dynamique appliqué à Madagascar, qui vise
+à compléter la WDPA plutôt qu'à s'y substituer. Ce modèle explicite les
+périodes de validité des informations disponibles dans la WDPA et
+ajoute, pour chaque aire protégée, les états antérieurs documentés, y
+compris pour celles qui ne figurent pas (ou plus) dans la base
+internationale. Il intègre également, lorsque cela est pertinent, les
+périmètres internes des aires protégées, en particulier ceux des zones
+de protection stricte (noyaux durs), qui font l\'objet d\'un régime
+spécifique de conservation. Nous publions ces données sous forme ouverte
+sur un portail pérenne, accompagnées d'un protocole permettant de les
+compléter ou de les corriger de manière itérative et collaborative.
+
+**Title: Conserving the history of conservation: A dynamic data model
+applied to Madagascar\'s protected areas (2000-2024)**
+
+[Abstract:]{.underline} Protected areas spatial data, which includes
+their location and characteristics, is an essential source for
+conservation studies. National and international databases that provide
+this information typically include the current boundaries of protected
+areas, as well as their attributes such as creation date, status, and
+manager. However, this data structure results in a significant loss of
+information regarding past states of protected areas when their
+boundaries or characteristics have changed over time. This practice
+leads to erroneous results when using the data to analyze the evolution
+of protected areas or evaluate their impact on the environment and
+living conditions. In this article, we propose a data structure that
+avoids this loss of information and the resulting analysis errors by
+including each successive state of each protected area and specifying
+the validity dates of this information. We publish this information for
+Madagascar from 2000 to 2024 in the form of an open dataset accessible
+to researchers and conservation professionals on a sustainable portal.
+We examine a few emblematic studies in this country, demonstrating how
+this new data structure allows for different and more reliable
+conclusions regarding the importance of conservation in Madagascar.
+Finally, we discuss the benefits of widespread adoption of this enriched
+data structure by conservation specialists.
+
+WDPA manual mentions:
+
+\"\"\"
+
+The 'Status Year' (STATUS_YR) field identifies the year in which a
+site's current status (STATUS field) came into effect. It does not refer
+to the year in which the data was updated in the WDPA or OECM database
+(this information is available in the Source Table). If the Status is
+'Proposed', the Status Year is the year the site was proposed. If the
+Status is 'Designated', the Status Year is the year the site was
+designated. Some geographies may have been under different forms of
+protection over time. It is important to note that the Status Year is
+only associated with the current designation and not the underlying
+geographic area. For example, if a Game Reserve designated in 1990
+changed status to National Park in 2005, the status year for the
+National Park designation will be 2005 and the earlier Game Reserve will
+no longer be in the WDPA.
+
+\"\"\"
+
+several PAs in Madagascar changed status, among others the historical
+large Pas that were created as integral natural reserves (IUCN category
+Ia) and converted to natural parks (IUCN category II), but this means
+that many research that use this data.
+
+The manual also mentions:
+
+\"\"\"
+
+Recommendations: The Status Year can be used to create graphs showing
+designation of protected areas or OECMs over time. It cannot be used to
+show historical change in protection over a geographic area, because
+degazetted sites are removed from the databases (Lewis et al. 2017).
+When the status year is not available, users can either exclude these
+records from analyses or treat them as a baseline, i.e. the first year
+of a temporal analysis (see UNEP-WCMC and IUCN 2016 for an example of
+the latter). Trends analysis is also possible by assigning a status year
+for a protected area based on pre-defined assumptions (see Butchart et
+al. 2015).
+
+Protected areas spatial data, which includes their location and
+characteristics, is an essential source for conservation studies.
+National and international databases that provide this information
+typically include the current boundaries of protected areas, as well as
+their attributes such as creation date, status, and manager. However,
+this data structure results in a significant loss of information
+regarding past states of protected areas when their boundaries or
+characteristics have changed over time. This practice leads to erroneous
+results when using the data to analyze the evolution of protected areas
+or evaluate their impact on the environment and living conditions. It
+also omits phenomena like degazetting, leading to previously existing
+protected areas being treated as if they never existed.

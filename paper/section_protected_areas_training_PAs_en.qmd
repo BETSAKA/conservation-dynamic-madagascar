@@ -1,0 +1,481 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+# Aires protégées
+
+## Données de l'association Vahatra
+
+Les études sur les aires protégées s'appuient fréquemment sur la base WDPA (World Database on Protected Area), consultable en ligne sur https://protectedplanet.net. On s'aperçoit dans le cas de Madagascar que cette base de données comporte de nombreuses erreurs (qu'on étudiera plus bas). La base rassemblée par l'association Vahatra dans le cadre de la monographie qu'elle a coordonnée sur l'ensemble des aires protégées terrestres malgaches semble beaucoup plus fiable [@goodman_les_2018]. Les données en question sont disponibles sur le portail https://protectedareas.mg avec une licence creative commons (CC-BY).
+
+Le bloc de code ci-dessous (cliquer sur "code" pour visualiser), présente la séquence d'opérations réalisées pour préparer les données.Pour comprendre certaines opérations contenues dans le bloc de code, il est utile d'être familier de la syntaxe de R et des packages du tidyverse. Voir le chapitre @sec-fondamentaux.
+
+```{r Préparation aires protégées}
+library(tidyverse)
+library(lubridate)
+library(sf)
+library(tmap)
+library(geodata)
+library(cowplot)
+library(wdpar)
+library(gt) # Pour faciliter le rendu des tableaux (et ils sont jolis)
+
+# Le shapefile est composé d'une série de fichiers, (.shp, .dbf, .prj, .shx)
+# qui doivent avoir le même nom et être au même endroits pour être ouverts en
+# même temps. Comme souvent, ils sont compressés ensemble dans un fichier zip.
+# On commence par dézipper (décompresser) ce fichier.
+unzip("data/Vahatra98AP.zip", exdir = "data/Vahatra")
+# On importe dans R en pointant vers le fichier .shp, mais c'est bien toute la
+# collection de fichiers homonymes .shp, .dbf, .shx qui est chargée.
+AP_Vahatra <- st_read("data/Vahatra/Vahatra98AP.shp", quiet = TRUE) %>%
+  # Il manque la projection (pas de fichier .prj), on la spécifie à la main
+  st_set_crs("EPSG:4326") %>% # EPSG 4325 = WSG 84 = le standard pour le web
+  rename(cat_iucn = cat__iucn) # une variable a un nom étrange : on simplifie
+# L'option ci-dessous est un peu cryptique : des caractéristiques topologiques
+# de la carte source sont incompatibles avec la possibilité d'avoir des objets
+# sphériques dans sf. Cela disparait si on désactive cette possibilité
+sf_use_s2(FALSE) 
+
+# Identification des dates ----------------------------------------------------
+# Cette section est un brin complexe, à base de manipulation de chaînes de 
+# caractères et de dates
+
+# Détecte les dates écrites 2 avril 2020 ou 02 avril 2020, etc.
+date_ecrite <- "[:digit:]{1,2} [:alpha:]* [:digit:]{4}"
+# Détecte les dates écrites 02/04/20 ou 02.04.20 ou 02.04.2020, etc.
+date_abrev <- "[:digit:]{2}[:punct:][:digit:]{2}[:punct:][:digit:]{2,4}"
+# Des années écrites à 2 chiffres
+date_ecrite_an_abrev <- "[:digit:]{1,2} [:alpha:]* [:digit:]{4}"
+# Détecte l'une ou l'autre des formes précédentes
+toute_date <- paste(date_ecrite, date_abrev, date_ecrite_an_abrev, sep = "|")
+# Détecte une mention d'année seule : 1984, 2015, etc.
+annee_seule <- "[:digit:]{4}"
+# Détecte les formes indicatrices d'un changement
+mention_changement <- "Changement|changement|anciennement|actuel|auparavant"
+# Une fonction qui traduit les dates écrites en toutes lettre du français à 
+# l'anglais (pour les parser ensuite car ça ne fonctionne qu'en anglais)
+trad_dates <- function(date_fr) {
+  str_replace_all(date_fr,
+                  c("janvier" = "January",
+                    "fevrier" = "February",
+                    "mars" = "March",
+                    "avril" = "April",
+                    "mai" = "May",
+                    "juin" = "June",
+                    "juillet" = "July",
+                    "aout" = "August",
+                    "septembre|setembre" = "September",
+                    "octobre" = "October",
+                    "novembre" = "November",
+                    "decembre|decmbre" = "December"))
+}
+# Cette fonction remplace 01.04.58 par 01.04.1958 et marche avec . ou /
+# On indique avec limite le nombre d'année où on considère que c'est 1900 vs 2000
+complete_annee <- function(date_abrev, limite = 20) {
+  if (str_detect(date_abrev, "([:punct:])([:digit:]{2})[:punct:]?$")) {
+    date_abrev <- str_remove(date_abrev, ":punct:]?$")
+    if (as.numeric(str_extract(date_abrev, "[:digit:]{2}$")) > limite) {
+      date_abrev <- str_replace(date_abrev, 
+                                "([:punct:])([:digit:]{2})[:punct:]?$", "\\119\\2")
+    } else {
+      date_abrev <- str_replace(date_abrev, 
+                                "([:punct:])([:digit:]{2})[:punct:]?$", "\\120\\2")
+    }
+  }
+  return(date_abrev)
+}
+# La fonction précédente est unitaire, on la transforme pour qu'elle s'applique à une liste.
+complete_liste_dates <- function(liste_dates) {
+  map(liste_dates, complete_annee)
+}
+
+AP_Vahatra <- AP_Vahatra %>%
+  # On extrait les dates des champs de texte
+  mutate(date_creation = str_extract_all(creation, toute_date), 
+         # Une date a un format incohérent, on la recode à la main
+         date_creation = ifelse(creation == "Créée le 07 aout 04",
+                                "07 aout 2004", date_creation),
+         date_creationA = map(date_creation, 1), # La 1ère date
+         date_creationB = map(date_creation, 2)) %>% # Si 2 dates, la seconde
+  # On traduit les mois en anglais pour une conversion au format date
+  mutate(across(c(date_creationA, date_creationB), trad_dates)) %>%
+  mutate(across(c(date_creationA, date_creationB), complete_liste_dates)) %>%
+  mutate(across(c(date_creationA, date_creationB), dmy)) %>%
+  mutate(date_creation = case_when(is.na(date_creationB) ~ date_creationA,
+                                    date_creationA > date_creationB ~ date_creationB,
+                                    date_creationA <= date_creationB ~ date_creationA),
+         date_modification = case_when(is.na(date_creationB) ~ date_creationB,
+                                       date_creationA < date_creationB ~ date_creationB,
+                                       date_creationA >= date_creationB ~ date_creationA),
+         # On repère si il y a eu un changement de statut ou de frontières
+         mention_changement = str_detect(creation, mention_changement)) %>%
+    # On enlève les colonnes inutiles
+  select(-date_creationA, -date_creationB) %>%
+  # On place les colonnes créées à gauche pour les inspecter facilement
+  relocate(date_creation:mention_changement, .after = creation) 
+# Après une vérification manuelle, on remarque les données de l'association Vahatra comportent des mentions incomplètes pour certaines aires, qui n'ont pas été extraites:
+AP_Vahatra <- AP_Vahatra %>%
+  mutate(date_creation = case_when(nom == "Lokobe" ~ ymd("1927-12-31"),
+                                   nom == "Mantadia" ~ ymd("1989-01-11"),
+                                   TRUE ~ date_creation),
+         date_modification = case_when(nom == "Bemaraha" ~ ymd("2011-07-06"),
+                                       nom == "Lokobe" ~ ymd("2011-07-06"),
+                                       nom == "Tsaratanana" ~ ymd("2011-07-06"),
+                                       nom == "Pic d'Ivohibe" ~ ymd("2015-04-28"),
+                                       nom == "Mantadia" ~ ymd("2002-08-07"),
+                                       TRUE ~ date_modification),
+         an_creation = year(date_creation)) %>%
+  st_make_valid() # fiabilise qu'il n'y a pas d'erreurs topologiques
+# dir.create("AP_Vahatra")
+# st_write(AP_Vahatra, "out/AP_Vahatra.shp")
+# writexl::write_xlsx(st_drop_geometry(AP_Vahatra), "AP_Vahatra.xlsx")
+```
+
+Le bloc de code suivant génère une carte interactive. On a également inclus des lignes de code qui permettent de formater la carte joliment pour un rendu figé (pdf/LaTeX, html statique, word), mais ce code est "commenté", c'est-à-dire qu'on a placé des dièses au début de chaque ligne, de sorte qu'il ne s'exécute pas (R n'exécute jamais ce qui se trouve à droite d'un \# sur une ligne). Pour plus de détails sur la manière dont on produit des cartes, voire la section "Cartes simples avec R" dans le chapitre @sec-fondamentaux.
+
+```{r}
+# On regarde si les frontières terrestres de Mada ont déjà été téléchargées
+if (file.exists("data/contour_mada.rds")) {
+  # Si c'"est le cas, on charge la version déjà disponible localement
+  load("data/contour_mada.rds")
+} else {
+  # Sinon on la télécharge depuis la base GADM
+  contour_mada <- gadm(country = "Madagascar", resolution = 1, level = 0,
+                     path = "data/GADM") %>%
+  st_as_sf()
+# On enregistre contour_mada pour s'en servir par la suite
+save(contour_mada, file = "data/contour_mada.rds")
+}
+
+# On génère un rendu cartographique
+tmap_mode("view") # En mode interactif
+tm_shape(contour_mada) +
+  tm_borders() +
+  tm_shape(AP_Vahatra) + 
+  tm_polygons(col = "cat_iucn", alpha = 0.6, title = "Catégorie IUCN",
+              id = "nom",
+              popup.vars = c("Acte de création" = "creation",
+                             "Année de création" = "an_creation",
+                             "Surface (ha)" = "hectares",
+                             "Nom complet" = "full_name",
+                             "Gestionnaire" = "gest_1")) +
+  tmap_options(check.and.fix = TRUE)
+```
+
+On peut également réaliser un graphique qui présente l'historique de création des aires protégées. Pour plus de précisions sur la manière de produire des graphiques en R, voir l'annexe correspondante (@sec-fondamentaux).
+
+```{r}
+#| fig-height: 12 
+# On ordonne les nom d'aires protégées dans l'ordre de leur séquence de création
+ordre_chrono_AP <- AP_Vahatra %>%
+  arrange(desc(date_creation), desc(nom)) %>%
+  pull(nom)
+# On transforme le champ "nom" de caractère, à une catégorisation ordonnée où
+# l'ordre correspond 
+AP_Vahatra_carte <- AP_Vahatra %>%
+  mutate(nom = factor(nom, levels = ordre_chrono_AP),
+         cat_taille = case_when(hectares > 300000 ~ 2,
+                                hectares > 150000 ~ 1.5,
+                                hectares >  50000 ~ 1,
+                                             TRUE ~ 0.5)) %>%
+  rename(`Catégorie IUCN` = cat_iucn)
+
+# On crée un graph pour les anciennetés
+graph_gauche <- AP_Vahatra_carte %>%
+  ggplot(aes(x = date_creation, xend = ymd("2022-10-01"), y = nom, yend = nom, 
+                   color = `Catégorie IUCN`)) +
+  geom_segment(size = 2) +
+  ggtitle("Ancienneté") +
+  theme(axis.ticks.y = element_blank(),
+        legend.position = "none",
+        axis.title = element_blank(),
+        axis.text.x.bottom =  element_text(angle = 45, hjust = 1),
+        axis.text.x.top = element_text(angle = -45, hjust = 1)) + 
+  scale_x_date(sec.axis = dup_axis())
+
+graph_droite <- AP_Vahatra_carte %>%
+  ggplot(aes(x = 0, xend = hectares/100, y = nom, yend = nom, 
+                   color = `Catégorie IUCN`)) +
+  geom_segment(size = 2) + 
+  ggtitle("Surface (km2)") +
+  theme(axis.text.y = element_blank(),
+        axis.title = element_blank(),
+        axis.text.x.bottom =  element_text(angle = 45, hjust = 1),
+        axis.text.x.top = element_text(angle = -45, hjust = 0),
+        legend.position = "none") + 
+  scale_x_continuous(sec.axis = dup_axis())
+
+legende <- get_legend(graph_gauche  +
+                        guides(color = guide_legend(nrow = 1)) +
+                        theme(legend.position = "bottom"))
+
+# On colle les deux
+graphs <- plot_grid(graph_gauche, graph_droite, rel_widths = c(2.2, 1),
+          nrow = 1)
+plot_grid(graphs, legende, ncol = 1,
+          rel_heights = c(1,.1))
+```
+
+Il faut aussi s'assurer qu'on filtre bien les entités analysées selon un critère pertinent. Actuellement, on exclut les aires marines. Il pourrait toutefois sembler utile d'écarter les aires dont le statut de protection est considéré comme trop faible. Il pourrait aussi être pertinent de ne garder que les aires protégées comportant un niveau minimum de couvert forestier : autrement, cela signifie que la forêt n'est pas un habitat pertinent pour les écosystèmes que la démarche de conservation cherche à protéger dans cette aire.
+
+## World Database on Protected Areas
+
+On commence par télécharger et présenter ces données.
+
+```{r}
+# On regarde si les données WDPA sont disponibles sur l'ordinateur qui exécute
+if (file.exists("data/WDPA/WDPA_Oct2022_MDG-shapefile.zip")) {
+  # Si oui, on charge
+  WDPA_Mada <- wdpa_read("data/WDPA/WDPA_Oct2022_MDG-shapefile.zip")
+} else {
+  # Si non, on télécharge depuis protectedplanet
+  WDPA_Mada <- wdpa_fetch("Madagascar", wait = TRUE,
+                      download_dir = "data/WDPA") 
+}
+
+tm_shape(contour_mada) +
+  tm_borders() +
+  tm_shape(WDPA_Mada) + 
+  tm_polygons(col = "IUCN_CAT", alpha = 0.6, title = "Catégorie IUCN",
+              id = "NAME",
+              popup.vars = c("Type" = "DESIG",
+                             "Catégorie UICN" = "IUCN_CAT",
+                             "Surface déclarée" = "REP_AREA",
+                             "Année du statut" = "STATUS_YR")) +
+  tmap_options(check.and.fix = TRUE)
+
+```
+
+En observant les métadonnées associées aux aires protégées dans la carte interactive ci-dessus, on s'aperçoit que de nombreuses informations sont manquantes. On passe en revue la complétude des données issues de WDPA.
+
+```{r}
+# Résumé des valeurs manquantes
+WDPA_Mada %>%
+  st_drop_geometry() %>%
+  summarise(`Nombre total d'aires protégées` = n(),
+            `Catégorie IUCN manquante` = sum(IUCN_CAT == "Not Reported"),
+            `Année de création manquante` = sum(STATUS_YR == 0),
+            `Gestionnaire manquant` = sum(MANG_AUTH == "Not Reported")) %>%
+  pivot_longer(cols = everything(),
+               names_to = " ",
+               values_to = "Nombre d'aires") %>%
+  gt() %>%
+  tab_header("Valeurs manquantes dans les données WDPA pour Madagascar") %>%
+  tab_source_note("Source : WDPA (octobre 2022)")
+```
+
+Outre le problème des données manquantes, on remarque sur la carte interactive ci-dessus que plusieurs aires protégées de la base WDPA se superposent les unes aux autres. Afin de jauger l'empleur de ces superpositions, on calcule tout d'abord la somme des surfaces des aires protégéés enregistrées dans la base WDPA, puis on la compare à leur emprise totale, sans doublon.
+
+```{r}
+
+# On ne garde que les polygones (sans les points)
+WDPA_Mada_poly <- WDPA_Mada %>% 
+  filter(st_geometry_type(.) == "MULTIPOLYGON")
+
+# On ne garde que les parties terrestres
+WDPA_Mada_poly_terrestre <- WDPA_Mada_poly %>%
+  st_intersection(contour_mada)
+
+# On calcule le total des surfaces de chaque aires
+surface_cumul <- WDPA_Mada_poly_terrestre %>%
+  mutate(surface = st_area(.)) %>%
+  st_drop_geometry() %>% 
+  summarise(surface = sum(surface, na.rm = TRUE)) %>%
+  mutate(`Type de cumul` = "Somme des surfaces terrestres de chaque aire protégée",
+         .before = everything())
+
+library(units)
+surface_tot <- WDPA_Mada_poly_terrestre %>%
+  st_union() %>%
+  st_as_sf() %>% 
+  mutate(surface = st_area(.)) %>%
+  st_drop_geometry() %>% 
+  summarise(surface = sum(surface, na.rm = TRUE)) %>%
+  mutate(`Type de cumul` = "Emprise totale des aires protégées",
+         .before = everything())
+
+compare_surfaces <- surface_cumul %>%
+  bind_rows(surface_tot) %>%
+  mutate(surface = set_units(surface, "hectares"),
+         surface = as.numeric(surface)) %>%
+  rename(`Surface (ha)` = surface)
+
+compare_surfaces %>%
+  gt() %>%
+  fmt_number(columns = `Surface (ha)`, use_seps = TRUE, decimals = 0) %>% 
+  tab_header(title = "Superposition des aires WDPA",
+             subtitle = "Somme des surfaces d'aires vs. emprise totale") %>%
+  tab_source_note("Source : WDPA (oct. 2022), calculs des auteurs")
+  
+```
+
+Cela signifie qu'on a de nombreuses aires protégées dans la base WDPA qui se superposent et que leur emprise réelle est bien inférieure à la somme de leurs surfaces. Réaliser des sommes ou des moyennes simples sur l'ensemble de la base WDPA revient à compter plusieurs fois les mêmes zones géographiques.
+
+## Comparaison des données Vahatra et WDPA
+
+On commence par visualiser les différences spatiales entre les polygones, en affichant les 10 qui sont les plus différents entre les WDPA et Vahatra.
+
+```{r}
+#| fig-height: 10
+# On harmonise les noms qui sont parfois notés différemment entre les sources
+AP_Vahatra <- AP_Vahatra %>%
+  mutate(nom_wdpa = case_when(
+    nom == "Corridor Forestier Bongolava" ~ "Corridor forestier Bongolava",
+    nom == "Ranobe PK32" ~ "Ranobe PK 32",
+    str_detect(nom, "Ambositra-Vondrozo") ~ "Corridor Forestier Ambositra Vondrozo",
+    nom == "Réserve deTampolo" ~ "Réserve de Tampolo",
+    nom == "Bombetoka Beloboka" ~ "Bombetoka Belemboka",
+    nom == "Ampananganandehibe-Behasina" ~ "Ampanganandehibe-Behasina",
+    nom == "Forêt Sacrée Alandraza Analavelo" ~ "Analavelona", # vérfié sur carte : les mêmes
+    nom == "Réserve speciale Pointe à Larrée" ~ "Réserve spéciale Pointe à Larrée", 
+    nom == "Vohidava-Betsimalaho" ~ "Vohidava Betsimalao", 
+    nom == "Anjanaharibe Sud" ~ "Anjanaharibe_sud",
+    nom == "Iles Radama/Sahamalaza" ~ "Sahamalaza Iles Radama",
+    nom == "Kalambatritra" ~ "Kalambatrika",
+    nom == "Mananara-Nord" ~ "Mananara Nord",
+    nom == "Kirindy - Mitea" ~ "Kirindy Mite",
+    nom == "Midongy du Sud" ~ "Befotaka Midongy", # Vérifié sur la carte
+    nom == "Montagne d'Ambre/Forêt d'Ambre" ~ "Montagne d'Ambre",
+    nom == "Tsimanampesotsa" ~ "Tsimanampesotse",
+    nom == "Pic d'Ivohibe" ~ "Ivohibe",
+    nom == "Forêt Naturelle de Petriky" ~ "Forêt Naturel de Petriky",
+    nom == "Tsingy de Namoroka" ~ "Namoroka",
+    nom == "Réserve de Ressources Naturelle Mahimborondro" ~ "Mahimborondro",
+    str_detect(nom, "Complexe Tsimembo Manambolomaty") ~ "Complexe Tsimembo Manambolomaty",
+    nom == "Mandrozo" ~ "Zone Humide de Mandrozo",
+    nom == "Paysage Harmonieux Protégés Bemanevika" ~ "Complexe des Zones Humides de Bemanevika",
+    nom == "Nord Ifotaky" ~ "INord fotaky",
+    TRUE ~ nom)) %>%
+  arrange(nom_wdpa) %>%
+  mutate(rownum = row_number())
+
+# On sauvegarde le résultat
+save(AP_Vahatra, file = "data/ch1_AP_Vahatra.rds")
+
+# On ne garde que les aires de WDPA qui apparaissent dans Vahatra
+WDPA_commun <- WDPA_Mada %>%
+  filter(NAME %in% AP_Vahatra$nom_wdpa) %>%
+  filter(!(NAME == "Analalava" & IUCN_CAT == "Not Reported")) %>%
+  filter(!(NAME == "Site Bioculturel d'Antrema" & IUCN_CAT == "Not Reported")) %>%
+  filter(DESIG != "UNESCO-MAB Biosphere Reserve") %>%
+  arrange(NAME)  %>%
+  mutate(rownum = row_number())
+       
+# Cette fonction calcule la part d'un polygone incluse dans un 
+# autre polygone et retourne un ratio entre 0 et 1
+ratio_inclus <- function(x, y) {
+  inclus <- st_intersection(x, y)
+  ratio <- st_area(inclus) / st_area(x)
+  return(ratio)
+}
+
+# On calcule la part des polygones Vahatra incluse dans les polgones WDPA 
+V_in_W <- map2_dbl(WDPA_commun$geometry, AP_Vahatra$geometry, ratio_inclus)
+# Puis l'inverse
+W_in_V <- map2_dbl(AP_Vahatra$geometry, WDPA_commun$geometry, ratio_inclus)
+# On fait un facteur des deux
+recoupement_mutuel <- V_in_W * W_in_V
+# Qu'on ramène dans les jeux de données d'origine
+WDPA_commun2 <- bind_cols(WDPA_commun, V_in_W = V_in_W, W_in_V = W_in_V,
+                         recoupement_mutuel = recoupement_mutuel) %>%
+  arrange(recoupement_mutuel, rownum)
+AP_Vahatra2 <- bind_cols(AP_Vahatra, V_in_W = V_in_W, W_in_V = W_in_V,
+                        recoupement_mutuel = recoupement_mutuel) %>%
+  arrange(recoupement_mutuel, rownum)
+
+# On prend maintenant les 5 les plus éloignés et on les visualise
+min_recoup <- WDPA_commun2 %>%
+  filter(row_number() <= 10) %>%
+  select(nom_wdpa = NAME, rownum) %>%
+  mutate(source = "WDPA") %>%
+  bind_rows(select(filter(AP_Vahatra2, rownum %in% .$rownum), nom_wdpa, rownum)) %>%
+  mutate(source = ifelse(is.na(source), "Vahatra", source))
+tmap_mode("plot")
+min_recoup %>%
+  tm_shape() +
+  tm_polygons() +
+  tm_facets(by = c("nom_wdpa", "source")) +
+  tm_layout(panel.label.size=3)
+```
+
+On peut également comparer ceux pour lesquels on a des différences de date ou de statut.
+
+```{r}
+# On garde seulement les métadonnées qu'on veut comparer
+WDPA_a_comparer <- WDPA_commun %>% # On repart des AP communes
+  st_drop_geometry() %>% # Plus besoin de spatial
+  select(nom_wdpa = NAME, type_wdpa = INT_CRIT, cat_iucn_wdpa = IUCN_CAT,
+         year_wdpa = STATUS_YR) # On ne garde que les colonnes à comparer
+
+verif_meta_wdpa <-AP_Vahatra %>%
+  st_drop_geometry() %>% # Pas besoin d'un jeu spatial
+  select(nom:date_modification, nom_wdpa) %>% # colonnes à garder dans Vahatra
+  # On renomme la catégorie IUCN de Vahatra et on code les NA comme dans WDPA
+  mutate(cat_iucn = ifelse(is.na(cat_iucn), "Not Reported", cat_iucn)) %>%
+  left_join(WDPA_a_comparer, by = "nom_wdpa") %>% # On rassemble Vahatra et WDPA
+  # On compare les dates et statuts
+  mutate(`Différence de date` = year(date_creation) != year_wdpa,
+         `Différence de statut` = cat_iucn != cat_iucn_wdpa)
+
+verif_meta_wdpa %>%
+  summarise(`Nombre d'aires protégées comparées` = n(),
+            `Différence de date` = sum(`Différence de date`),
+            `Différence de statut` = sum(`Différence de statut`)) %>%
+  gt() %>%
+  tab_header(title = paste("Différences entre les données de WDPA et celles de",
+                     "l'assciation Vahatra sur les aires protégées terrestres",
+                     "à Madagascar"))
+
+```
+
+Dans les cas qu'on peut comparer, les données de l'association Vahatra semblent plus fiables. On va donc privilégier l'utilisation de ces dernières.
+
+On va également visualiser les aires de WDPA qui ne sont pas contenues dans Vahatra.
+
+```{r}
+WDPA_exclu <- WDPA_Mada %>%
+  filter(!(NAME %in% AP_Vahatra$nom_wdpa))
+
+tmap_mode("view")
+WDPA_exclu %>%
+  tm_shape() +
+  tm_polygons(col = "IUCN_CAT")
+
+ratio_terrestre <- function(x) {
+  inclus <- st_intersection(x, contour_mada$geometry)
+  ratio <- st_area(inclus) / st_area(x)
+  return(ratio)
+}
+
+# On crée un grand polygone avec toutes les AP dans Vahatra
+AP_Vahatra_fusion <- st_union(AP_Vahatra)
+
+# On calcule pour les aires protégées de WDPA qui ne sont pas dans Vahatra
+# dans quelle mesure elles sont terrestres et pas superposées à d'autres AP
+# déjà dans Vahatra
+WDPA_exclu <- WDPA_exclu %>%
+  filter(st_geometry_type(.) == "MULTIPOLYGON") %>%
+  mutate(part_terrestre = map2_dbl(.$geometry, contour_mada$geometry, 
+                                   ratio_inclus),
+         part_deja_autre = map2_dbl(.$geometry, AP_Vahatra_fusion, 
+                                    ratio_inclus))
+
+# On garde celles qui sont au moins 25% terrestre et 75% pas superposées
+WDPA_a_inclure <- WDPA_exclu %>%
+  filter(part_terrestre >= 0.25 & part_deja_autre <= 0.25) %>%
+  mutate(full_name = paste(INT_CRIT, NAME)) %>%
+  select(nom = NAME, WDPAID, full_name, creation = STATUS_YR)
+
+```
+
+On a visiblement des aires protégées qu'il serait pertinent d'inclure et qui ne sont pas dans Vahatra.
+
+## Enjeux de fiabilité des données d'aires protégées
+
+Important pour l'analyse : si périmètres pas juste =\> phénomènes de leakage, faux positifs ou faux négatifs.
+
+Enjeu aussi des métadonnées : date ou type sont importants pour l'analyse et celle-ci perd en fiabilité si ces informations ne sont pas correctes.
+
+

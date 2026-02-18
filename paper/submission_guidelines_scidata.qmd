@@ -1,0 +1,1036 @@
+# Submission Guidelines {#submission-guidelines .small-space-below}
+
+How to prepare and submit a manuscript to *Scientific Data*. Please see
+our [Aims and scope](https://www.nature.com/sdata/aims-and-scope) for
+advice on what to consider before doing this.
+
+# Key steps: {#toc}
+
+ 
+
+1.  **[Select an article type](#sec-1)**
+
+2.  **[Deposit the dataset](#sec-2)**
+
+3.  **[Prepare the manuscript](#sec-3)**
+
+    -   [General](#general)
+    -   [Title & abstract](#titleandabstract)
+    -   [Authors & affiliations](#authors)
+    -   [Background & Summary / Introduction](#intro)
+    -   [Methods](#methods)
+    -   [Data Record](#datarecord)
+    -   [Data Overview (optional)](#dataoverview)
+    -   [Technical Validation](#techval)
+    -   [Usage Notes](#usagenotes)
+    -   [Data Availability](#dataavail)
+    -   [Code Availability](#code)
+    -   [Acknowledgements, Author Contributions, Funding & Competing
+        Interests](#statements)
+    -   [References](#references)
+    -   [Citing Data](#data_citations)
+    -   [Figures & Tables](#figuresandtables)
+    -   [File requirements for first round review](#files)
+    -   [Covering letters](#coveringletters)
+
+4.  **[Submit the manuscript](#sec-4)**
+
+5.  **[First round peer review](#sec-5)**
+
+6.  **[Revised manuscripts](#sec-6)**
+
+    -   [What to expect](#secondround1)
+    -   [General requirements](#secondround2)
+    -   [Figures](#figures)
+    -   [Tables](#tables)
+    -   [Equations](#equations)
+    -   [Supplementary information](#si)
+    -   [LaTeX](#latex)
+    -   [Consortia](#consortia)
+
+# 1. Select an article type {#sec-1}
+
+ 
+
+::: {.scroll-wrapper .table-highlight .standard-space-below}
++-----------------------+-----------------------+-----------------------+
+|                       | **Data Descriptor**   | **Article**           |
++-----------------------+-----------------------+-----------------------+
+| **Scope**             | Descriptions of       | Reports on data       |
+|                       | datasets shared in    | sharing policies,     |
+|                       | repositories          | repositories, data    |
+|                       |                       | standards, data       |
+|                       |                       | curation, or any      |
+|                       |                       | topic relating to     |
+|                       |                       | data sharing. Can     |
+|                       |                       | also include shorter, |
+|                       |                       | speculative works     |
+|                       |                       | (note we no longer    |
+|                       |                       | publish a \'comment\' |
+|                       |                       | format - but these    |
+|                       |                       | can be submitted as   |
+|                       |                       | articles instead)     |
++-----------------------+-----------------------+-----------------------+
+| **Peer-reviewed?**    | Yes                   | Yes                   |
++-----------------------+-----------------------+-----------------------+
+| **Format outline**    | -   Title             | -   Title             |
+|                       | -   Author list (does | -   Author list (does |
+|                       |     not need a        |     not need a        |
+|                       |     heading)          |     heading)          |
+|                       | -   Abstract          | -   Abstract          |
+|                       | -   Background &      | -   \[Main            |
+|                       |     Summary           |     sections\]\*\*    |
+|                       | -   Methods           | -   Data Availability |
+|                       | -   Data Records      | -   Code Availability |
+|                       | -   Data Overview     | -   References        |
+|                       |     (optional)        | -   Author            |
+|                       | -   Technical         |     Contributions     |
+|                       |     Validation        | -   Competing         |
+|                       | -   Usage Notes       |     Interests         |
+|                       |     (optional)        | -   Acknowledgements  |
+|                       | -   Data Availability |     (optional)        |
+|                       | -   Code Availability | -   Funding           |
+|                       | -   References        | -   Ethics            |
+|                       | -   Author            |     statement\*       |
+|                       |     Contributions     |                       |
+|                       | -   Competing         | \*\* While we         |
+|                       |     Interests         | recommend an IMRaD    |
+|                       | -   Acknowledgements  | format -              |
+|                       |     (optional)        | Introduction,         |
+|                       | -   Funding           | Methods, Results and  |
+|                       | -   Ethics            | Discussion - this is  |
+|                       |     statement\*       | not mandated and      |
+|                       |                       | works that are more   |
+|                       | \* Where relevant for | speculative, or       |
+|                       | human or animal       | don\'t describe a     |
+|                       | studies. We recommend | specific study may    |
+|                       | this is included as a | choose to use a       |
+|                       | sub-heading within    | different structure.  |
+|                       | the Methods.          |                       |
++-----------------------+-----------------------+-----------------------+
+:::
+
+Read more about these formats in our [Aims & Scope
+section](https://www.nature.com/sdata/aims-and-scope).
+
+# 2. Deposit the dataset {#sec-2}
+
+ 
+
+Data Descriptors are associated with datasets that we review alongside
+the paper. The requirements for sharing depend on the peer review stage:
+
+For **first round review** we require that data are available for
+download and review by reviewers via any URL that allows anonymous
+download. This can be the final, intended repository link if authors
+wish to deposit the data from the start, or a temporary location such as
+cloud storage if you wish to delay or embargo.
+
+From the **second round of review onwards** we require that data are
+public and available in a formal data repository that meets [our
+policy](http://www.nature.com/sdata/policies/repositories), in
+preparation for any final publication.
+
+In most cases we recommend these are not separate steps, meaning the
+data is live at the repository from the start, as the simplest option.
+Please see our [data repositories
+guidance](http://www.nature.com/sdata/policies/repositories) for a full
+list of requirements, and some suggestions
+
+Sharing is also required for **Articles** if relevant to the results of
+the work.
+
+# 3. Prepare the&nbspmanuscript {#sec-3}
+
+ 
+
+## General
+
+Submissions should be clearly written and understandable by scientists
+from diverse backgrounds. Technical jargon should be avoided where
+possible and clearly explained where its use is necessary. Titles and
+abstracts should be written in language understandable to any scientist.
+Abbreviations should also be kept to a minimum and, where unavoidable,
+should be defined in the text at their first occurrence (please do not
+use abbreviations sections)\
+\
+We do not have rules for format, font size, style, etc as long as the
+mandated headings for the article type are included. Most bespoke
+formatting applied to manuscripts in review is not used for publication
+as we typeset papers according to *Scientific Data\'s*house style. For
+this reason, we do not require or encourage the use of article
+templates. Authors that require a pre-defined structure are advised to
+simply copy the headings in section 1 into a blank document and read the
+rest of this guide for further advice.
+
+Manuscripts published in *Scientific Data* are not subject to in-depth
+copy editing. Authors are responsible for procuring copy editing or
+language editing services for their manuscripts, either before
+submission, or at the revision stage, should they feel it would benefit
+their manuscript. Such services include those provided by our affiliates
+[Nature Research Editing
+Service](http://authorservices.springernature.com/language-editing/?utm_source=natureGuideToAuthors&utm_medium=referral&utm_campaign=natureGuideToAuthors)
+and [American Journal Experts](http://www.journalexperts.com/). Please
+note that the use of such a service is at the author\'s own expense and
+in no way implies that the article will be selected for peer review or
+accepted for publication.
+
+## Title & Abstract {#titleandabstract}
+
+Titles must not exceed 110 characters, including whitespaces, and should
+avoid the use of acronyms (other than very common ones such as DNA,
+etc), abbreviations, and unnecessary punctuation. Colons and parentheses
+are not permitted. We recommend only real, technically descriptive words
+are used to align titles with how users search for information. Do not
+include dataset brand names in titles, self-constructed acronyms, or
+words used out of context for the scientific topic, as no user will be
+searching for them. Capitalise only the first word and any proper nouns
+and do not include advertising claims not related to the scientific
+content of the work (e.g. novel, first, AI-ready, open, etc). If unsure,
+just describe what it is in objective terms.
+
+We recommend the Abstract should not exceed 170 words. It should
+succinctly describe the data and how it may be used but should not make
+any claims regarding new scientific findings. We recommend URLs for
+download, or other details on dataset access, are not included. Please
+do not use sub-headings to break the Abstract into sections.
+
+## Authors & Affiliations {#authors}
+
+Author affiliations should provide enough detail for the author to be
+reached, including the department, institution and country where
+relevant. Full postal addresses are not required. Affiliations should be
+cited in numerical order within the author list, starting with the
+affiliations of the first author. Email addresses should be provided for
+corresponding authors. If you wish to name more than one first author
+please use the additional footnote such as \"These authors contributed
+equally\". All other contributions should be described in the author
+contributions statement. We do not use other status label footnotes such
+as \"Senior Author\".
+
+## Background & Summary (Data Descriptors) / Introduction (Articles) {#intro}
+
+For Data Descriptors, this section should provide an overview of
+dataset, including the motivation for creating it, as well as outlining
+the potential reuse value where applicable. Any previous publications
+that used these data, in whole or in part, should be cited and briefly
+summarised. Introductions for Articles should provide a similar
+explanation of why the work was performed and what value you believe it
+adds. Please note that because Data Descriptors do not present results
+or analyses there is no formal mandate to cite a given amount of prior
+art for comparison, however we recommend that at least some other
+datasets or outputs relevant to the field are cited for readers\'
+general interest. Please do not include subjective claims on novelty,
+impact, or utility.
+
+## Methods
+
+Methods in Data Descriptors should describe the steps or procedures used
+to create the data, including full descriptions of the experimental
+design, data acquisition and any computational processing. For secondary
+datasets compiled from other sources, all details of input data should
+be described in the Methods (use a sub-heading such as \'Input data\' if
+you wish) at a level of detail that allows readers to source the exact
+data used (please do not use non-specific URLs or just homepages). Where
+continuously updated input data have been used, authors should provide
+the version number or search terms used to create it at a level of
+detail that allows others to find the same input and repeat the work.
+Input datasets with DOIs or other formal metadata should be explicitly
+referenced via our [data citation format](#data_citations). For other
+types without formal metadata, please embed any URLs in the text. Please
+do not include general results or analyses in this section (or anywhere
+in the paper) which should solely focus on documenting practical tasks.
+Where data have been analysed or otherwise published elsewhere then the
+experimental methods can be cited rather than re-stated, with the new
+content just focusing on any technical or processing steps additional to
+what has been previously disclosed.
+
+Articles should describe the full *scientific* process for how the
+output or study was generated, but there is less of a requirement to
+discuss operational aspects like software development or project
+management processes unless specifically relevant to the science or data
+science of the piece. Please do not include general descriptions of
+features or other advertising claims. The focus needs to be on the
+scientific work (tasks) done.
+
+Papers describing outputs from consortia or other large,
+multi-stakeholder projects are asked to be mindful of scientific
+relevance and reader interest9 when describing how they are
+administered, managed, funded (beyond the practical requirement to state
+the funder details), or otherwise organised, unless this is of specific
+relevance to the science.
+
+## Data Record (Data Descriptors only) {#datarecord}
+
+This section should be used to explain what the dataset contains,
+including the repository where the dataset is hosted, an overview of the
+data files and their formats, and any folder structure. Each external
+dataset should be cited using our [data citation](#data_citations)
+format. The section should also define any column headings, variable
+names, or other fields/metadata if you believe these would not be
+understood to users (e.g. terms like \"gender\" or \"year\" may not need
+explanation, but any bespoke terms may do). Please do not include
+summary statistics in this section, but see the description below if you
+wish to include these.
+
+## Data Overview (Optional, Data Descriptors only) {#dataoverview}
+
+Data Descriptors should not contain results, discussion, or analyses.
+This is because the fundamental goal of a Data Descriptor is to describe
+the technical contents of a dataset to encourage others to use it,
+without bias. Users need details on methods or file descriptions, but if
+they wish to scrutinise your dataset\'s contents, we expect them to
+download and analyse it for themselves. This means we do not recommend
+researchers include descriptive or summary statistics in their work as
+any figure, statistic or textural description of this type may be
+generated from the data file directly.
+
+However, we understand some authors may still wish to do this, so the
+format supports a short \"Data Overview\" section for this purpose.
+Please limit this to a small number of figures or tables (1-2) and a
+single paragraph of text. Note that the more analysis is shared in the
+format, the less incentive there may be for others to download, analyse,
+and cite the dataset themselves. We will request larger amounts are
+removed or reduced.
+
+## Technical Validation (Data Descriptors only) {#techval}
+
+This section should describe the experiments, analyses or checks needed
+to support the technical quality of the dataset, with any supporting
+figures and tables, as needed.
+
+## Usage Notes (Data Descriptors only, optional) {#usagenotes}
+
+\'Usage Notes\' is an optional section that can be used to provide
+information that may assist other researchers who reuse your data. Most
+commonly these are additional technical notes about how to access or
+process the data. Please do not use this section to write a conclusions
+section, general selling points, worked cases studies, or similar, as we
+do not publish these. 
+
+## Data Availability {#dataavail}
+
+**For Articles:**
+
+Data Availability statements are required for all Articles. If your
+Article is sharing a non-code output, such as a dataset, ontology,
+schema, policy, or any other material that needs to be hosted at
+external repository, please describe it in the \"Data Availability\"
+statement (note it may not always be a "dataset" as such). Please also
+use this to link out to any platforms, if your paper describes them as
+its primary output. The statement should include a URL to the source,
+reference number to a data citation (see guidelines below) and a
+description of what is practically being shared -- best practice is to
+the name specific files, folder structure, and any information required
+to understand what they are. In other words, explain what is being
+shared and where to find it. If there is no output, Data Availability
+statements are still required, but please state "No data is shared as
+part of this article" (or similar).
+
+**For Data Descriptors:**
+
+The key section to describe what data is being shared, and where to find
+it, is the ["Data Record"
+section](https://www.nature.com/sdata/submission-guidelines#datarecord).
+Please ensure this section is detailed enough to allow reader to find
+and use your dataset.
+
+**In addition**, we require a short "Data Availability" statement to
+repeat the main points in the Data Record, meaning some duplication is
+expected. We suggest repeating the lists of accession numbers, URLs, and
+the reference numbers for all datasets associated with the paper.
+
+*Why is this required, even though Data Descriptors contain descriptions
+of data in other sections?*
+
+We request the additional statement as Data Availability statements
+(DASs) are a key publication standard. They are present in many other
+research articles, so we require them to align with wider practice and
+ensure readers who use them can find information quickly and easily. In
+addition, some indexing and scraping efforts may look in the DAS discern
+which datasets are linked to our articles, so the extra heading and
+information can be additionally helpful.
+
+## Code Availability {#code}
+
+For all publications, a statement must be included under the subheading
+\"Code Availability\" indicating whether and how and custom code can be
+accessed, including any restrictions to access. This section can also
+include information on the versions of any software used, if relevant,
+and any specific variables or parameters used to generate, test, or
+process the current dataset if these are not included in the
+Methods. Please see our policy on [code
+availability](http://www.nature.com/sdata/policies/editorial-and-publishing-policies#code-avail)
+for more information. The code availability statement should be placed
+at the end of the manuscript, immediately before the references. \
+\
+If no custom code has been used then the statement is still required in
+order to state this. 
+
+## Acknowledgements, Author Contributions, Funding & Competing Interests {#statements}
+
+The **Acknowledgements** statement is optional and should contain text
+acknowledging non-author contributors. Acknowledgements should be brief,
+and should not include thanks to editors or effusive comments. Please do
+not include this section if there are no non-author contributors to
+thank and please do not use it to describe funding. For articles
+submitted via our new manuscript submission system (SNAPP) this
+statement is captured by providing information directly on the system.
+Please do not include the section in the manuscript file as this may be
+overwritten or excluded if the system information differs. Authors using
+our old submission system (MTS) need to include the statement in the
+article file itself, if needed.
+
+The **Author contributions** statement is required for all articles and
+should briefly describe each author\'s contribution to the work. Please
+see also the *Nature* journals\'s [authorship
+policies](http://www.nature.com/authors/policies/authorship.html). For
+articles submitted via our new manuscript submission system (SNAPP) this
+statement is captured by providing information directly on the system.
+Please do not include the section in the manuscript file as this may be
+overwritten or excluded if the system information differs. Authors using
+our old submission system (MTS) need to include the statement in the
+article file itself.
+
+The **Competing interests** statement is required for all articles.
+Please see our
+[policies](http://www.nature.com/sdata/policies/editorial-and-publishing-policies/#competing)
+for more information on what may constitute a competing interest. If you
+are using our new submission (SNAPP) then this statement will be
+captured via the system. Please do no include an statement in the
+article file as this may be ignored or overwritten if it differs from
+information supplied on the online form. Papers declaring \"NO\" to the
+competing interests question on SNAPP do not need to provide a
+statement, as we will add a \"No competing interests\" statement to the
+paper for you during typesetting. Authors answering \"Yes\" will be
+required to supply a statement explaining the competing interest which
+will be published instead. For users of old manuscript submission system
+(MTS) all authors must include a \"Competing Interest\" sub-heading in
+the manuscript file with a positive or negative declaration.
+
+The **Funding** statement is required for all articles. Please note that
+while funding information is captured on both our manuscript submission
+systems this is used for internal data capture and compliance and is not
+published, so all authors (using the SNAPP or MTS submission systems)
+need to add a \'Funding\' sub-heading to the paper listing all relevant
+funding, organisations, and grant numbers for all relevant projects or
+authors. If the work is not funded by any external source please still
+add a statement and declare this.
+
+## References
+
+All references should be numbered sequentially throughout the text. Only
+one publication is given for each number. Only papers that have been
+published or accepted by a named publication or recognized preprint
+server should be in the numbered list; preprints of accepted papers in
+the reference list should be submitted with the manuscript. Grant
+details and acknowledgments are not permitted as numbered references and
+no other footnotes should be used in the paper. 
+
+For LaTeX files, please note that references should be embedded directly
+within the .TEX file. Please do not use separate .bib or .bbl files. If
+you have created a .tex that requires these, remove the dependency and
+paste reference list into the .tex directly. Please see the specific
+notes for LaTeX further down. 
+
+The correct abbreviation for *Scientific Data* is \'*Sci. Data*\'.
+
+*Scientific Data* suggests the use of the standard Nature referencing
+style. See the examples below for a journal article^1^, book^2^, book
+chapter^3^, preprint^4^, computer code^5^, online material^6-8^ and
+government report^9^. However, please note that the post useful aspect
+to include are DOIs for all items that have them, as the easiest method
+for readers to find content. These may be appended to the end of any
+reference in URL format (https://doi.org/DOI, where DOI is the relevant
+number). Examples:
+
+1.  Schott, D. H., Collins, R. N. & Bretscher, A. Secretory vesicle
+    transport velocity in living cells depends on the myosin V lever arm
+    length. *J. Cell Biol.* **156**, 35‐39 (2002).
+2.  Hogan, B. *Manipulating The Mouse Embryo: A Laboratory Manual* 2nd
+    edn (Cold Spring Harbor Laboratory Press, 1994)
+3.  Haines, N. & Cotter, R. in *Studies in Manic Depression* Vol. 1 (ed.
+    Boase, N.) Ch. 2 (Oxford Univ. Press, 1982).
+4.  Babichev, S. A., Ries, J. & Lvovsky, A. I. Quantum scissors:
+    teleportation of single-mode optical states by means of nonlocal
+    single photon. Preprint at <https://arxiv.org/abs/quant-ph/0208066>
+    (2002).
+5.  Gallotti, R. & Barthélemy, M. Source code for: The multilayer
+    temporal network of public transport in Great Britain. *Figshare*
+    <https://doi.org/10.6084/m9.figshare.1249862.v1> (2014).
+6.  Manaster, J. Sloth squeak. *Scientific American Blog Network*
+    <http://blogs.scientificamerican.com/psi-vid/2014/04/09/sloth-squeak>
+    (2014).
+7.  QGIS Development Team. QGIS Geographic Information System, version
+    2.18.10. *Open Source Geospatial Foundation Project*
+    <https://qgis.org/en/site/> (2016).
+8.  Hijmans, R. J., Phillips, S. J., Leathwich, J. & Elith, J. *dismo:
+    Species Distribution Modelling*
+    [https://CRAN.R-project.org/package=dismo](https://cran.r-project.org/package=dismo)
+    (2018).
+9.  Akutsu, T. *Total Heart Replacement Device*. Report No. NIH-NHLI-69
+    2185-4 (National Institutes of Health, 1974).
+
+## Citing Data {#data_citations}
+
+In line with emerging [industry-wide standards for data
+citation](https://www.nature.com/articles/sdata2018259), references to
+all datasets described or used in the manuscript should be cited in the
+text with a superscript number and listed in the 'References' section in
+the same manner as a conventional literature reference.
+
+An author list (formatted as above) and title for the dataset should be
+included in the data citation, and should reflect the author(s) and
+dataset title recorded at the repository. If author or title is not
+recorded by the repository, these should not be included in the data
+citation. The name of the data-hosting repository, URL to the dataset
+and year the data were made available are required for all data
+citations. We strongly encourage the use of stable persistent
+identifiers, such as DOIs, for datasets described in the journal. These
+should be included in references in a URL format (https://doi.org/XXXXX,
+where XXXX is the DOI). Please note some repositories may require these
+be requested in advance. For repositories using accessions (e.g. SRA or
+GEO) an [identifiers.org](https://identifiers.org/) URL should be used
+where available. For first submissions, authors may choose to include
+just the accession number. Scientific Data staff will provide further
+guidance after peer-review. Please refer to the following examples of
+data citation for guidance:
+
+1.  Zhang, Q-L., Chen, J-Y., Lin, L-B., Wang, F., Guo, J., Deng, X-Y.
+    Characterization of ladybird Henosepilachna vigintioctopunctata
+    transcriptomes across various life stages. *figshare*
+    <https://doi.org/10.6084/m9.figshare.c.4064768.v3> (2018).
+2.  *NCBI Sequence Read Archive*
+    <https://identifiers.org/ncbi/insdc.sra:SRP121625> (2017). \[See
+    note\]
+3.  Barbosa, P., Usie, A. and Ramos, A. M. Quercus suber isolate HL8,
+    whole genome shotgun sequencing project. *GenBank*
+    <https://identifiers.org/ncbi/insdc:PKMF00000000> (2018).
+4.  *DNA Data Bank of Japan*
+    <https://ddbj.nig.ac.jp/resource/sra-submission/DRA004814> (2016).
+
+\[Note\]: Please note the SRP accession number should be used, if
+available, rather than any lower order accession number. This allows the
+SRA dataset to be cited via a single reference, rather than many.
+
+## Figures & Tables {#figuresandtables}
+
+Manuscripts may reference figures (e.g. Figure 1), tables (e.g. Table
+1), and Supplementary Information (e.g. Supplementary Table 1,
+Supplementary File 2, etc.). Please see the additional guidance below
+for submitting [figures](#figures), [tables](#tables) and [supplementary
+information](#si), though note they may not be needed for the first
+round of review. 
+
+Please do not include internal hyperlinks to elements within the
+manuscript as these are typically removed and replaced with our own
+linking when typesetting. 
+
+## File requirements for first round review {#files}
+
+The minimum - and easiest - requirement for first round peer review is
+to submit a single pdf file for the main article plus any other (pdf)
+for Supplementary Information, if present. The article file needs to
+include all figures and tables within it, with captions, and ensure each
+element is discussed in the main text. If that is done there is no
+requirement to provide separate figures, tables, or a machine-readable
+version of the main article for first round review. If we can read
+everything, we can review it.  
+
+## Covering letters {#coveringletters}
+
+Uploading a covering letter file is a technical requirement for our
+manuscript submission system that we cannot remove, however there is no
+requirement to include specific content and covering letters are not
+used to make editorial decisions on the suitability of works. All
+submissions that meet our technical criteria are sent for review,
+regardless of the content in the covering letter, and we do not make
+decisions based on perceived impact. If there are technical details that
+you wish to include in a covering letter, please see the guidance below,
+otherwise any content in the letter is fine as long as you upload a file
+(even a blank one):
+
+-   Suggested reviewers or Editorial Board Members: please include these
+    as you wish, but neither are mandated, and rest assured we have
+    processes to assign manuscripts and reviewers without input, and
+    suggestions are not required to expedite review.
+-   Non-preferred reviewers or Editorial Board Members: our systems and
+    processes for assigning personnel will check for common conflicts of
+    interest visible from records in the public domain, such as
+    co-authorship of recent papers or shared institutions, however, if
+    you have any live collaborations with researchers that are related
+    to the research topic and may not be discoverable by the editor
+    please let us know.
+-   Prior publications: These should be disclosed via the relevant
+    question on the submission system, rather than in a letter. If no
+    public link to files is available (e.g. to a published paper or
+    preprint), please make sure we have a copy of the paper within the
+    manuscript files. Please see [our
+    policy](https://www.nature.com/sdata/policies/editorial-and-publishing-policies#complementary)
+    for further information.
+-   Notes on affiliations, contact details, or author contributions
+    should all be listed on the system, and additional details may be
+    missed if included in a letter
+-   Information on the importance of the work or why it should be
+    published will not be checked or considered for publication. Reviews
+    are made solely on the content submitted (the article, dataset, and
+    any supplementary files).
+-   Submission to an article collection: Please ensure this is indicated
+    directly on the system by selecting the relevant collection. If this
+    is not done then it may be missed if included in the letter instead
+-   Requests for resubmission or appeal: All appeals must be approved
+    via email to scientificdata@nature.com in advance of re-submission,
+    otherwise works duplicated or directly re-submitted after rejection
+    will be withdrawn.
+
+For revised manuscripts (or Appeals approved by email to re-submit), a
+separate document is required in all cases, however this should be
+marked as a \'Response to Reviewers\' file on the system (which is
+visible to all, including reviewers), rather than a covering letter. .
+
+ 
+
+# 4. Submit the manuscript {#sec-4}
+
+ 
+
+Submit your manuscript and related files via our [online
+system](http://mts-scidata.nature.com/).
+
+# 5. First round peer review {#sec-5}
+
+ 
+
+We first perform an **initial quality check** to check the basic
+requirements for peer review, such as file availability, data
+availability, code availability and to check papers are within the scope
+of the journal. Our team will contact you to fix any issues if required.
+While we do reject papers outside our technical scope -- such as
+traditional research papers not sharing any data -- **we send all
+in-scope manuscripts that meet our technical requirements for peer
+review and do not make assessments on perceived impact**. You will be
+contacted once initial quality control is complete to inform you peer
+review has started.
+
+We then **send the paper to our [Editorial
+Board](https://www.nature.com/sdata/editorial-board)**, contacting
+members within the correct subject area to request they handle the
+paper. Please note their acceptance is dependent on their availability
+and so it is common to have to contact multiple Editorial Board Members
+before someone accepts. In the unlikely event we do not have an
+available Editorial Board Member to assess the paper we will assign it
+to a member of our in-house staff. We will email you once the handling
+editor is assigned to inform you who is handling your paper.
+
+The handling Editorial Board Member is then requested to make an initial
+technical check and **commence reviewer invitations**. You will be
+notified by email once this starts, which is the last update we send
+before any final decision. Please note that **sourcing reviewers is
+typically the longest period of peer review** and requires us to invite
+volunteers to assess the work. The timing of this stage depends on how
+many reviewers decline or do not respond to our invitations, which
+determines how many invitations we need to send and how long the process
+takes. This varies by manuscript and is not something the journal can
+directly control, however please rest assured we will invite reviewers
+at the maximum possible rate until we have the minimum two reviewers
+required to make a quality assessment.
+
+Once the last reviewer is assigned the review invitation process stops
+and we await the final reports. Reviewers are typically provided 10 days
+to assess the paper but more time is provided if requested. In rare
+cases, if commissioned reviews are not submitted after this time, we may
+go back to the \"inviting reviewers\" stage to source a replacement.
+
+Once both reviews are received the Editorial Board Member will be asked
+to assess the reports and make a recommendation - either to Accept,
+Revise, or Reject the work. We will communicate this decision to all
+authors via a **decision letter** alongside the results of our data
+policy checks, and any remaining requirements.
+
+# 6. Revised manuscripts {#sec-6}
+
+ 
+
+## What to expect {#secondround1}
+
+If your paper receives a \"revisions\" decision at the first round of
+peer review you will be invited to revise and re-submit the paper
+according to the reviewers\' and editors\' feedback. One month is
+provided for revisions but we can be flexible if you need more time.
+
+*Scientific Data* aims for a two-round review process, meaning the first
+round communicates any potential issues to you and the second-round
+checks to ensure they have been addressed. If the editor and reviewers
+are happy with the changes papers may receive an \'Accept\'
+recommendation at the end of round two.
+
+Second round review starts with a quality check of your revised work.
+This is more detailed than our checks at round one as we aim to ensure
+the paper is ready for any final publication. Details of our
+expectations are provided in the next sections.
+
+Once our revised manuscript checks are complete your paper will be sent
+back to the previous Editorial Board Member who will check your article
+revisions and response file. In most cases reviewers are invited to
+re-assess works, however Editorial Board Members are free to make
+reassessments directly in cases where they feel re-review is not
+required. The Editor will also assess if their comments from the
+previous round have been addressed.
+
+Once the process is finished you will receive a second-round decision
+letter. We will send 'Accept' decisions where we feel all major issues
+have been fixed and the work is technically sound and ready to publish.
+If not, we may return the paper to you for further revision. Note that
+while rejection at round two is generally rare it is still used in cases
+where reviewers feel comments have not been addressed but it would not
+be advantageous to continue the process.
+
+## General requirements {#secondround2}
+
+-   **One copy** of the main article file in a machine-readable format
+    (.docx or .tex only - no pdfs - [LaTeX users see
+    here](https://www.nature.com/sdata/submission-guidelines#latex)). We
+    require a clean copy that is ready for any final acceptance, so
+    please do not include highlighting or other tracked changes, ensure
+    all mandated sections are included, and there are captions for all
+    tables and figures. Tables may be embedded within this if they are
+    machine readable.  
+-   All figure files, one file per figure. Individual panels a,b,c
+    cannot be supplied separately and need to be merged into one file
+    per figure in the arrangement you want and the letter labels (a, b,
+    c, etc) embedded within the image. 
+-   Supplementary information document, if relevant (pdf only)
+-   Any oversize tables larger than 1 A4 page that need to be submitted
+    as Supplementary Tables (in xlsx format or csv)
+-   A \"Response\" file with answers to ALL reviewer AND Editor
+    questions (pdf)
+-   \[Optional\] a pdf with changes highlighted if you need to show
+    reviewers what was changed and do not feel you can explain this in
+    words. 
+
+Complete guidelines for re-submission and final publication are listed
+below:
+
+## Figures
+
+We recommend Data Descriptors and Articles not have more than eight
+figures. While this is not a mandate, please note that in many cases the
+requirement for more figures is due to including general summaries,
+results, or analyses that may not be within scope of a Data
+Descriptor. In addition, a limited number of uncaptioned molecular
+structure graphics and numbered mathematical equations may be included
+if necessary.
+
+*Scientific Data* requires authors to present digital images in accord
+with the [policies employed by the *Nature*-titled
+journals](http://www.nature.com/authors/policies/image.html). 
+
+Authors are responsible for obtaining permission to publish any figures
+or illustrations that are protected by copyright, including figures
+published elsewhere and pictures taken by professional photographers.
+The journal cannot publish images downloaded from the internet without
+appropriate permission.
+
+Figures should be numbered separately with Arabic numerals in the order
+of occurrence in the text of the manuscript. Figures presenting
+quantitative information should include error bars where appropriate and
+a description of the statistical treatment of error analysis should be
+included in the figure legend.
+
+Figure lettering should be in a clear, sans-serif typeface (for example,
+Helvetica) and the same typeface in the same font size should be used
+for all figures in a paper. Use Symbol font for Greek letters. All
+display items should be on a white background and in a format that is
+clear to read. Please do not attempt to accommodate a greater number of
+data points that you feel a reader can reasonably visually discern. The
+vertical axis of histograms should not be truncated to exaggerate small
+differences. Labelling must be of sufficient size and contrast to be
+readable, even after appropriate reduction. Authors will see a PDF proof
+that will include figures prior to publication and note that these may
+be compressed vs the original files. 
+
+Figures divided into parts should be labelled with a lower-case bold a,
+b, and so on, in the same type-size as used elsewhere in the figure.
+Lettering in figures should be in lower-case type, with only the first
+letter of each label capitalized. Units should have a single space
+between the number and the unit, and follow SI nomenclature (for
+example, ms rather than msec) or the nomenclature common to a particular
+field. Thousands should be separated by commas (1,000). Unusual units or
+abbreviations should be spelled out in full or defined in the legend.
+Scale bars should be used rather than magnification factors, with the
+length of the bar defined on the bar itself rather than in the legend.
+In legends, please use visual cues rather than verbal explanations such
+as 'open red triangles'.
+
+Unnecessary figures should be avoided: data presented in small tables or
+histograms, for instance, can generally be described briefly in the text
+instead. Figures should not contain more than one panel unless the parts
+are logically connected; each panel of a multipart figure should be
+sized so that the whole figure can be reduced by the same amount and
+reproduced at the smallest size at which essential details are visible.
+
+### **Figures for peer-review**
+
+At the initial submission stage authors may choose to upload separate
+figure files or to incorporate figures into the main article file,
+ensuring that any inserted figures are of sufficient quality to be
+clearly legible. When submitting a revised manuscript all figures must
+be uploaded as separate figure files ensuring that the image quality and
+formatting conforms to the specifications below.
+
+### **Figures for publication**
+
+When creating and submitting final figure files, please follow the
+guidelines below. Failure to do so can significantly delay publication
+of your work.
+
+Each complete figure must be supplied as a separate file upload.
+Multi-part/panel figures must be prepared and arranged as a single image
+file (including all sub-parts; a, b, c, etc.). **Please do not upload
+each panel individually**. This is because our typesetters will not
+arrange them for you, so if separate panels are used please combine them
+in a suitable image editor and re-save the full figure as a single image
+prior to submission. 
+
+Authors are asked to provide figures of a sufficient resolution for
+final online publication, however, please do not upload figures that are
+excessively large. As long as the image is legible it will be suitable
+for peer review and publication, noting that our typesetting process
+will compress files to standard quality for web and pdf publication
+anyway. Figure file sizes larger than a few Mbs are likely codifying
+information or resolution that will not be retained. 
+
+Springer Nature remains neutral with regard to jurisdictional claims in
+published maps and institutional affiliations.
+
+Figure legends begin with a brief title sentence summarizing the purpose
+of the figure as a whole and continue with a short description of what
+is shown in each panel and an explanation of any symbols used. Legends
+must total no more than 350 words and may contain literature references.
+
+Any descriptions too long for the figure legend should be included in
+the Methods section. 
+
+## Tables
+
+Authors may provide tables within the Word document or as separate
+files. Legends, where needed, should be included in the Word document.
+We recommend Data Descriptors and Articles should no more than ten
+tables, but more may be allowed if needed. Tables may be of any size,
+but only tables that fit onto a single printed page will be included in
+the PDF version of the article. Please do not use complex nested or
+merged cell structures and we recommend a standard 2D row/column format.
+If the information depicted is not numerical please consider whether a
+table is needed vs some other format (e.g. text, a list, etc).  
+
+### Oversize tables {#online-only-tables}
+
+Due to typesetting constraints, tables that cannot be fit onto a single
+A4 page cannot be included in the PDF version of the article and will be
+hosted as Supplementary Tables, although please note that table sizes
+are generally smaller in publications than in draft (meaning up to 1.5
+pages in draft may possibly fit). Any oversize tables must be labelled
+in the text as 'Supplementary\' tables and numbered separately from the
+main table list e.g. 'Table 1, Table 2, Supplementary Table 1' etc.
+Please note bibliographic references cannot be included within
+Supplementary Tables and should not be listed in the reference list,
+which only refers to references used in the main article file. They also
+cannot have captions in the main article as they are not included within
+it, but are hosted separately. If you do wish to include any context or
+information in the supplementary table please find another means of
+mentioning these references on the main text.
+
+Finally, please note that especially large tables (e.g. 100s or 1000s or
+rows) should not be shared with the manuscript at all but would be
+better considered as data tables and deposited within your
+repository-deposited dataset instead. Please do not call these
+\"supplementary\" as this causes confusion with materials hosted
+alongside the paper. Please choose a descriptive file main and refer to
+the item in the text as being available at the repository (with a URL
+and/or data citation to allow readers to find it).
+
+ 
+
+## Equations
+
+Equations and mathematical expressions should be provided in the main
+text of the paper. Equations that are referred to in the text are
+identified by parenthetical numbers, such as (1), and are referred to in
+the manuscript as 'equation (1)'.
+
+## Supplementary information {#si}
+
+*Scientific Data* discourages authors from supplying text, figures or
+tables as supplementary files. As much as possible, these types of
+content should be **included in the main manuscript**. \
+\
+The main sections of the Data Descriptor manuscript, and particularly
+the Methods section, have no word length limits, and the journal is not
+printed, so unless the supplementary information document would extend
+the length of the paper significantly (e.g. by 10 pages or more) **we
+recommend the content is included in a single article file and not split
+out**. Please do not use Supplementary Information to include
+information that is out of scope for the article type chosen, such as to
+add results, discussion, or analyses to your Data Descriptor. The
+general expectation is that these are additional methods, validation,
+data dictionaries, or technical notes (such as how to run the code) that
+simply won\'t fit. 
+
+The guidelines below explain how to generate Supplementary Information
+(SI) where it cannpot be avoided. While we accept two types of SI -
+documents and oversize tables - instructions on the second one are
+explained in the previous section. 
+
+1.   A supplementary information document is a pdf containing any
+    supplementary text, figures, small tables or references if these
+    elements are too numerous to fit in the main text. These should
+    always be self-contained and submitted as a single pdf, so please do
+    not supply individual items. Supplementary information documents are
+    not typeset and are published unchanged from the format and content
+    you supply, so we do not need to collect their individual
+    components, unlike for the main paper. Items in the file should be
+    numbered in the document and this numbering should be separate from
+    that used for regular tables and figures appearing in the main
+    article. Please use the formalism \"Figure S1\", \"Table S1\", etc
+    to distinguish these elements. 
+2.  Refer to the supplementary information file in the main paper,
+    either referring to the whole document (the supplementary file), or
+    individual items (e.g. supplementary figure 1). Please do not use
+    the word \'supplementary\' to refer to any externally hosted file
+    (e.g. a dataset hosted within a repository) or items included in the
+    main paper as this causes confusion during typesetting and
+    publication for where to find the files. This is important to note
+    if the Editor requests files are removed from SI and uploaded to a
+    repository - please rename them if so. 
+3.  Remember to include a brief title and legend for items within the
+    supplementary information document.
+4.  File sizes should be as small as possible, with a maximum size of 10
+    MB, so that they can be downloaded quickly. We mandate pdf formats
+    for supplementary documents and xlsx or csv files for oversize
+    supplementary tables (see above)
+5.  When supplying multiple supplementary figures, they should be merged
+    into the main supplementary information file, with figure legends
+    immediately below each figure. A table of contents should be
+    included on the first page, listing the page number of each
+    supplementary figure. Do not share separate supplementary figure
+    files as these are not typeset, as outlined above
+6.  References in Supplementary Information documents should start again
+    from 1 in a new numbered listed from the main article. Please note
+    these will not be formally indexed by bibliographic indexing
+    services and will likely not count (be trackable) as formal
+    citations effecting user-level metrics such as h-indices. Please
+    consider this - that no formal credit is possible - when using
+    supplementary references and please always consider if the reference
+    could not be included in the main text instead. 
+
+##   {#stats}
+
+## Instructions for LaTeX users {#latex}
+
+*Note these are instructions are only required revised manuscripts,
+where we require an editable version in preparation for typesetting.
+Articles submitted for first round peer review may be supplied in pdf
+format (read only) for simplicity. *
+
+For revised manuscripts, the core requirement is to supply **a single
+.TEX file marked as an \"Article\" on the system**. This should
+be **standalone**, meaning it can be compiled to a pdf without any
+additional .bib files, style sheets, or other dependencies.
+
+To check this, please open the .TEX within your editor without providing
+read access to any other files. If it fails to compile, or sections are
+missing, please check to ensure it is truly standalone and no
+dependencies are required. If that has been checked, uploading the .TEX
+file to our submission system (as an \"Article\") without other files
+should allow a merged pdf to be generated. Note the most common issue is
+the reference list is missing due to a reliance on a separate .bib/bbl.
+Please copy the reference list from the .bbl file, paste it into the
+main manuscript .tex file, and delete the associated
+\\bibliography{sample} command. 
+
+Please do not compile your own pdf and upload it to system as we then
+have no guarantee the files will match, or confirmation the .tex will
+compile. Similarly, .zip files of associated files should also not be
+uploaded as the .tex file should be possible to compile to a complete,
+viable pdf without the requirement for additional files.
+
+**We do not provide, suggest or recommend the use of a LaTeX template**
+so if you find a previous or legacy version of this via platforms such
+as Overleaf please do not use them as they may be out of date. Please do
+not use the LaTeX template of any other journal.
+
+The only formatting requirement are the headings listed in section 1, so
+copying these into a blank document and using any legible formatting
+stype is acceptable for first and revised submissions. We
+recommend Computer Modern fonts. Non-standard fonts should be avoided.
+For the inclusion of graphics, we recommend graphicx.sty. Please use
+numerical references only for citations, and include the references
+within the manuscript file itself as explained. Exact reference formats
+are not important as long as these contain all the key information (a
+name, a title, a journal, and - most importantly - a DOI).
+
+Please do not include any internal hyperlinks to sections, headers,
+figures or tables, via \\cref, or similar. Just refer to these elements
+using free text (e.g. \'see Fig. 1\', without linking). This is because
+all internal links are set by our house style and are created during
+typesetting, rather than using markup supplied in the .tex file.
+
+## Consortia authorships {#consortia}
+
+​A consortium author is the name of a group, rather than an individual,
+in the author list. These should only be used if a standard author list,
+naming all contributors directly in the paper, would be considered
+excessively long (e.g 100 or more people). Consortium authorships should
+not be used for small groups that could easily be accommodated into the
+main list, or for advertising or promoting projects. \
+\
+If a consortium is included in the main author list, all members of the
+consortium are considered bona fide authors, and must be listed together
+with their affiliations at the end of the Author Contributions
+statement. The authors and affiliations for the consortium members are
+an extension of the main author list, used simply because there is no
+space for them at the start of the paper. Therefore any affiliations
+already included in the main author list should not be repeated in the
+Author Contributions statement and the numbering of the affiliations in
+the consortium should continue in numerical order from those in the main
+author list -- they should not start again from 1. If a member of the
+consortium already appears as an individual name in the main author
+list, then his/her affiliations should be identical in the consortium
+author list. The consortia itself should be acknowledged with the
+footnote \"A full list of members appears in the Author Contributions\".
+If you need to give credit to a consortium, a project or a group of
+people who do not meet authorship criteria, you can add a mention in the
+Acknowledgements section or elsewhere (in which case, a full list of
+members can be provided as a Supplementary Note in the Supplementary
+Information, if desired). Please do not use consortia authorship to
+credit individuals who have not actively participated in the creation of
+the paper or new dataset. If you are submitting a description of a
+secondary dataset compiled from previously published input data then
+authorship should not be typically granted to the data owner unless they
+have been actively involved in the (new) processing or compilation to
+create the secondary output. Instead, individuals should be credited via
+formal citation of the existing dataset, paper, or any other relevant
+works, in the same way as using any piece of prior art. \
+ 
+
+# 7. Articles in Press {#sec-6}
+
+
+Once formally accepted the article is published immediately as an
+Article in Press. An Article in Press is an early access version of an
+accepted manuscript, allowing research to be accessible earlier to
+readers. It may be subject to further editing, as errors affecting the
+content may be discovered during the final production process. These
+files have undergone enhancements after acceptance but are not yet the
+Version of Record (VOR).\
+\
+This version of your manuscript will be watermarked and all legal
+disclaimers relating to the journal apply. Please find information
+related to these policies within the author submission guidelines. All
+fully Open Access journals will provide this service on every accepted
+manuscript. If you are organising a press release for your accepted
+manuscript, please contact your production editor.\
+\
+Corrections and amendments will not be made to the Article in Press as
+the accepted manuscript will still go through the proofing process where
+these items can be addressed.

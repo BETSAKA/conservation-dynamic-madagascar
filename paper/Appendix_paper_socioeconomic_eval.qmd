@@ -1,0 +1,436 @@
+---
+title: "Supplementary material"
+format: 
+  docx:
+    message: false
+    warning: false
+    error: false
+    echo: false
+    number-sections: true
+  html:
+    message: false
+    warning: false
+    error: false
+    code-fold: true
+    output-file: index.html
+    number-sections: true
+    toc: true
+editor: visual
+abstract: |
+  This document uses a reproductible workflows to provide descriptive statistics to the
+  scientific papers it accompanies. In section 1 we briefly present the technical setting
+  used for these calculation and explain how they make it possible for reviewers and
+  researches to verify and reproduce these calculations. In section 2, we analyse the world
+  database on protected areas to assess how the relative importance of multipurpose
+  protected areas has evolved compared to strictly protected areas. In section 3, we
+  analyse the database on protected areas management evaluations to assess the absolute and
+  relative importance of evaluation methods by type of countries.
+editor_options: 
+  chunk_output_type: console
+bibliography: references.bib
+---
+
+# Technical settings
+
+This document is designed to provide a verifiable and reproducible answer to this question. It is written in [quarto](https://quarto.org/) and uses R code. All the data processing can be viewed by clicking on the "code" buttons.
+
+```{r}
+# Install required libraries.
+# Specified the used packages
+required_packages <- c("tidyverse", "aws.s3", "wdpar", "sf", "gt", "rgee") 
+# Identify which are missing
+missing <- !(required_packages %in% installed.packages())
+# Install those
+if(any(missing)) install.packages(required_packages[missing], 
+                                  repos = "https://cran.irsn.fr/")
+# Load libraries
+library(tidyverse, quietly = TRUE)
+library(aws.s3)
+library(wdpar)
+library(sf)
+library(readxl)
+library(gt)
+dir.create("data")
+# Turn on/off scientific notations
+options(scipen = 0) #999 for off
+```
+
+# Trends in protected area types by period of establishment
+
+## Objective
+
+We want to know if the share of multi-purpose protected areas is increasing, compared to protected areas pursuing only conservation objectives. We show very different trends whether we focus on the number of entities or the spatial coverage of protected areas.
+
+## Data
+
+We use the extension wdpar to fetch the World Database on Protected Areas from [the protected planet portal](https://www.protectedplanet.net/en). It is the version updated in February 2022. We only keep the areas for which a spatial area is known, that is not including the protected area for which only one point in space is reported.
+
+```{r}
+#| output: false
+# This one was generated from Google Earth Engine to get the GIS area
+wdpa_gee <- read_csv("WDPA_no_geom_Feb2022.csv")
+```
+
+As of this date, the WDPA includes information on `rnrow(wdpa_gee)` protected areas. A well-formatted description of the fields available can be found [on this webpage](https://developers.google.com/earth-engine/datasets/catalog/WCMC_WDPA_current_polygons).
+
+## Methods
+
+We keep only terrestrial protected areas and discard marine or coastal protected areas. There is no consensus on IUCN categories in the literature. Ellason et al. [-@elleason2021] suggest the following classification, which we complement here with the naming used by the authors:
+
+-   Some studies group I and II in one class, and all others in another class:
+
+    -   Sharlemann et al. [-@scharlemann2010] classify cat. I and II as "protected sites with more restrictive land management regimes" and III to VI as "all other protected sites"
+
+    -   Jones et al. [-@jones2018] designate I and II as "strict biodiversity conservation areas" and III to VI as "zones permitting certain human activities and sustainable resource extraction"
+
+    -   Anderson and Mammides [-@anderson2020] designate only I and II as "areas in stricter categories".
+
+-   Other studies group I, II and III in one class, and IV, V and VI in another class:
+
+    -   Seiferling et al. [-@seiferling2012] designate I to III as "areas into high-protection" and IV to VI as "low protection categories".
+
+    -   Françoso et al. [-@françoso2015] refer to IV to VI as "sustainable use PAs" and the other as "other".
+
+-   Other studies group I to IV in one class and V and VI in another class:
+
+    -   Nelson and Chomitz [-@nelson2011] refer to I to IV as "strict protection" and V and VI as "nonstrict or multi-use protection".
+
+    -   Porter-Bordland et al. [-@porter-bolland2012] refer as I to IV as "protected areas" and V and VI as "community managed forests".
+
+Adding to this classification, we share Ledberger [-@leberger2020] analysis that classifies the naturalness of IUCN category definition as follows: Ia = Ib \> II = III \> IV = VI \> V and they find out that "the global ranking of the effect of the IUCN categories on the forest loss per PA at the global scale, from the least to the most forest loss, was III \< Ia = Ib = II \< IV = V = VI" .
+
+We consider that Lebergers et al. results [-@leberger2020] convincingly make the case to group I to III. We find out however that vivid debates focused on the category IV definition and revision [@leroux2010], so keep IV separated in our analysis, its purpose and criteria are different from V and VI[^suppl_material-1].
+
+[^suppl_material-1]: From the literature, we could even consider also separating III in a separate category, to have 3 classes: I-II, III, IV and V-VI.
+
+```{r}
+# Drop marine, compute decade
+wdpa2 <- wdpa_gee %>%
+  filter(MARINE == "0") %>% #0: 100% terrestrial, 1: both, 2: 100% marine
+  mutate(decade = STATUS_YR - (STATUS_YR %% 10),
+         decade = case_when(
+           decade == 0 ~ "Unknown",
+           decade >0 & decade <= 1950 ~ "Before 1960",
+           .default = paste(decade, decade+9, sep = "-")),
+         type = ifelse(IUCN_CAT %in% c("Ia", "Ib", "II", "III"), "Strict",
+                       ifelse(IUCN_CAT == "IV", "IV",
+                              ifelse(IUCN_CAT %in% c("V", "VI"), "Nonstrict", 
+                              "Unknown"))))
+# Organize the order of display of decades, starting with Unnkown, then Before
+decades <- wdpa2 %>%
+  pluck("decade") %>%
+  unique() %>%
+  sort()
+order_decades <- c("Before 1960", str_subset(decades, "^[0-9]")) 
+wdpa2 <- wdpa2 %>%
+  filter(decade != "Unknown") %>% 
+  mutate(decade = factor(decade, levels = order_decades))
+```
+
+After this filtering, we have `r nrow(wdpa2)` protected areas for the analysis.
+
+## Results
+
+### Relative importance of status in number of PAs
+
+@fig-n-pas represents the evolution of strict vs. multipurpose categories according to the year of assignment of the conservation status of PAs.
+
+```{r fig_n_pas}
+#| label: fig-n-pas
+#| fig-cap: "Number of terrestrial protected areas by status and decade of creation (source: WDPA, Jan. 2023)"
+
+# Descriptive statistics
+patype_decade <- wdpa2 %>%
+  group_by(decade, type) %>%
+  summarise(n = n(),
+            area = sum(GIS_AREA, na.rm = TRUE),
+            mean_area = mean(GIS_AREA, na.rm = TRUE)) %>%
+  ungroup() %>%
+  mutate(type = factor(type, levels = c("Strict", "IV", "Nonstrict", "Unknown")))
+patype_decade %>%
+  ggplot(aes(x = decade, y = n, fill = type)) +
+  geom_col() +
+  xlab("Decade of PA status") + 
+  ylab("Number of PAs receiving status") +
+  labs(fill = "Category of status") + 
+  scale_fill_discrete(
+    labels = c("Strict" = "Strict (IUCN I to III)",
+               "IV" = "IUCN IV",
+               "Nonstrict" = "Multipurpose (IUCN V and VI)")) +
+  theme(axis.text.x = element_text(angle = 45, hjust=1))
+```
+
+The @fig-n-pas shows that the total number of PAs has sharply increased since 2000. However, the relative importance of multipurpose conservation status doesn't seem to increase.
+
+```{r table_n_pas}
+#| label: tab-n-pas
+#| tbl-cap: "Area of PAs by status category and decade of creation (source: WDPA, Jan. 2023)"
+
+# Stats in number of PAs
+prop_patype_decade <- patype_decade %>%
+  select(-area, -mean_area) %>%
+  pivot_wider(names_from = type, values_from = n) %>%
+  mutate(total = Nonstrict + IV + Strict + Unknown,
+         known_status = Nonstrict + IV + Strict,
+         perc_strict = round(Strict / known_status * 100, 1),
+         perc_iv = round(IV / known_status * 100, 1),
+         perc_nonstrict = round(Nonstrict / known_status * 100, 1))
+
+prop_patype_decade %>%
+  rename(`Decade of status assignment` = decade,
+         `Total number of PAs created` = total,
+         `Number of PAs whith a known status` = known_status,
+         `% of strict among known status` = perc_strict,
+         `% of IV among known status` = perc_iv,
+         `% of multipurpose among known status` = perc_nonstrict) %>%
+  gt()
+```
+
+For readability purpose, we present the proportions displayed in the three last column of @tab-n-pas in a figure.
+
+```{r}
+#| label: fig-prop-pas-n
+#| fig-cap: "Proportion of terrestrial PAs by status and decade of creation (source: WDPA, Jan. 2023)"
+
+prop_patype_decade %>%
+  select(`Decade of status assignment` = decade,
+         `% of strict among known status` = perc_strict,
+         `% of IV among known status` = perc_iv,
+         `% of multipurpose among known status` = perc_nonstrict) %>%
+  pivot_longer(-`Decade of status assignment`, names_to = "IUCN category", 
+               values_to = "Proportion") %>%
+  mutate(`IUCN category` = factor(`IUCN category`, levels = c(
+    "% of strict among known status",
+    "% of IV among known status",
+    "% of multipurpose among known status"))) %>%
+ggplot(aes(y = Proportion, x = `Decade of status assignment`, 
+           group = `IUCN category`, col = `IUCN category`)) +
+  geom_point() +
+  geom_line() +
+  xlab("Decade of PA status") +
+  ylab("Number of PAs receiving status") +
+  labs(col = "Category of status") +
+  theme(axis.text.x = element_text(angle = 45, hjust=1))
+```
+
+According to the world database on protected areas, the proportion of new protected areas with a multipurpose status has reduced, from `r filter(prop_patype_decade, decade == "1960-1969") %>% pluck("perc_nonstrict")`% in the 1960s to `r filter(prop_patype_decade, decade == "2010-2019") %>% pluck("perc_nonstrict")`% in the 2010s. It has been even lower (`r filter(prop_patype_decade, decade == "2020-2029") %>% pluck("perc_nonstrict")`%) in the first years of the current decade.
+
+We must, however, strikeout that the decade of creation is unknown for `r filter(prop_patype_decade, decade == "Unknown") %>% pluck("total")` out of `r nrow(wdpa2)` protected area ( `r round(filter(prop_patype_decade, decade == "Unknown") %>% pluck("total")/ nrow(wdpa2)*100, 1)`%). There is a large proportion of multipurpose status among the protected areas for which the creation date is unknown (`r filter(prop_patype_decade, decade == "Unknown") %>% pluck("perc_nonstrict")`%). The status of the protected area is unknown for `r sum(prop_patype_decade$Unknown)` protected areas out of `r nrow(wdpa2)` protected areas (`r round(sum(prop_patype_decade$Unknown)/nrow(wdpa2)*100, 1)`%).
+
+### Relative importance of status in PA spatial extent
+
+We now perform the same analysis, but instead of counting the number of PAs, we sum their area. The area newly covered by type of status is represented in @fig-area-pas.
+
+```{r fig_area_pas}
+#| label: fig-area-pas
+#| fig-cap: "Area of terrestrial protected areas by status and decade of creation (source: WDPA, Jan. 2023)"
+
+patype_decade %>%
+  ggplot(aes(x = decade, y = area, fill = type)) +
+  geom_col() +
+  xlab("Decade of PA status") + 
+  ylab(bquote('Area of PAs receiving status in km'^2)) +
+  labs(fill = "Category of status") + 
+ scale_fill_discrete(
+    labels = c("Strict" = "Strict (IUCN I to III)",
+               "IV" = "IUCN IV",
+               "Nonstrict" = "Multipurpose (IUCN V and VI)")) + 
+  theme(axis.text.x = element_text(angle = 45, hjust=1))
+```
+
+The trend that appears in @fig-area-pas is quite different than the one we saw in @fig-n-pas: when accounting for their total areas, multi-purpose protected areas seem to represent an increasing proportion among newly created protected areas.
+
+We now compute the precise area estimates and their relative importance.
+
+```{r table_area_pas}
+#| label: tab-area-pas
+#| tbl-cap: "Area of terrestrial protected areas by status and decade of creation (source: WDPA, Jan. 2023)"
+
+# Stats in number of PAs
+prop_patype_decade_area <- patype_decade %>%
+  select(-n, -mean_area) %>%
+  pivot_wider(names_from = type, values_from = area) %>%
+  mutate(total = Nonstrict + IV + Strict + Unknown,
+         known_status = Nonstrict + IV + Strict,
+         perc_strict = round(Strict / known_status * 100, 1),
+         perc_iv = round(IV / known_status * 100, 1),
+         perc_nonstrict = round(Nonstrict / known_status * 100, 1))  
+
+prop_patype_decade_area %>%
+  rename(`Decade of status assignment` = decade,
+         `Total number of PAs created` = total,
+         `Area of PAs whith a known status` = known_status,
+         `% of strict among known status` = perc_strict,
+         `% of IV among known status` = perc_iv,
+         `% of multipurpose among known status` = perc_nonstrict) %>%
+  gt()
+```
+
+The same information, in graphics:
+
+```{r}
+#| label: fig-prop-pas_area
+#| fig-cap: "Relative area of terrestrial PAs by status and decade of creation (source: WDPA, Jan. 2023)"
+
+prop_patype_decade_area %>%
+  select(`Decade of status assignment` = decade,
+         `% of strict among known status` = perc_strict,
+         `% of IV among known status` = perc_iv,
+         `% of multipurpose among known status` = perc_nonstrict) %>%
+  pivot_longer(-`Decade of status assignment`, names_to = "IUCN category", 
+               values_to = "Proportion") %>%
+  mutate(`IUCN category` = factor(`IUCN category`, levels = c(
+    "% of strict among known status",
+    "% of IV among known status",
+    "% of multipurpose among known status"))) %>%
+ggplot(aes(y = Proportion, x = `Decade of status assignment`, 
+           group = `IUCN category`, col = `IUCN category`)) +
+  geom_point() +
+  geom_line() +
+  xlab("Decade of PA status") +
+  ylab("Area of PAs receiving status") +
+  labs(col = "Category of status") +
+  theme(axis.text.x = element_text(angle = 45, hjust=1))
+```
+
+According to the world database on protected areas, the total spatial extent of new protected areas with a multipurpose status has increased, from `r filter(prop_patype_decade_area, decade == "1960-1969") %>% pluck("perc_nonstrict")`% in the 1960s to `r filter(prop_patype_decade_area, decade == "2000-2009") %>% pluck("perc_nonstrict")`% in the 2000s and slightly decreased in the 2010s to `r filter(prop_patype_decade_area, decade == "2010-2019") %>% pluck("perc_nonstrict")`%.
+
+### Average size of protected areas
+
+The two previous figures suggest very different trends in terms of average size of protected areas depending on their status. We verify this with @fig-avg-area.
+
+```{r}
+#| label: fig-avg-area
+#| fig-cap: "Average area of terrestrial protected areas by status and decade of creation (source: WPDA, Jan. 2023)"
+
+patype_decade %>%
+  ggplot(aes(x = decade, y = mean_area, group = type, col = type)) +
+  geom_point() +
+  geom_line() +
+  xlab("Decade of PA status") + 
+  ylab(bquote('Average area of PAs in km'^2)) +
+  labs(col = "Category of status") + 
+  scale_fill_discrete(
+    labels = c("Strict" = "Strict (IUCN I to IV)",
+               "IV" = "IUCN IV",
+               "Nonstrict" = "Multipurpose (IUCN V and VI)")) +
+  theme(axis.text.x = element_text(angle = 45, hjust=1))
+```
+
+@fig-avg-area shows that the area of PAs with a strict status has decreased over time, while the area of PAs with a multipurpose status has increased over time. The protected area of category have dramatically shrinked and are now very small.
+
+## Conclusion
+
+The information available in the world database on protected areas indicates that **in terms of number of administrative entities**, the proportion protected areas with a multi-purpose status tends to decrease over the last decades. However, **in terms of spatial extent of these entities**,the proportion of protected area with a multi-purpose status tends to increase over the same period. In other words, countries create an increasing number of smaller strictly protected areas, and they create a decreasing number of larger multi-purpose protected areas. Protected areas of category IV have a very ambiguous status and their trend clearly stand out, as their their number among newly created protected areas has doubled, while their relative area has shrinked.
+
+This conclusion, however, could be undermined by the substantial proportion of missing information on the creation date and status of protected areas in the database of reference.
+
+# Usage of PAME methods by country income group
+
+## Objective
+
+We want to assess the prevalence of METT and RAPPAM methodologies among PAMEs, depending of the country income group. We show that method usages are very different in high income countries in comparison to medium and low income countries.
+
+## Data
+
+We download the DB-PAME from the from [the protected planet portal](https://pame.protectedplanet.net/). It is the version updated in February 2022.
+
+```{r}
+pame_path <- "data/protectedplanet-pame-2023-OCT.csv"
+if(!file.exists(pame_path)) {
+  # Doesn not work, must be manual
+  from = "https://www.protectedplanet.net/0e003033-2e0e-45a6-a312-2aaba2e5a3f9"
+  download.file(from, destfile = pame_path, method = "curl")
+}
+pame <- read_csv(pame_path)
+```
+
+We download the World Bank country classification from the World bank data portal. The data comes in four classes: low income countries, low medium income countries and high medium income countries. The classification is available for all years since 1989.
+
+```{r}
+
+oghist_path <- "data/OGHIST.xls"
+
+if (!file.exists(oghist_path)) {
+  from = "https://databankfiles.worldbank.org/public/ddpext_download/site-content/OGHIST.xls"
+  download.file(from, destfile = oghist_path, method = "curl")
+}
+
+oghist <- read_excel(oghist_path, sheet = "Country Analytical History", 
+                     skip = 5) %>%
+  rename(iso3 = 1, country_name = 2) %>%
+  filter(!is.na(iso3))
+
+missing <- oghist %>%
+  pivot_longer(cols = matches("[0-9]{4}"), names_to = "year", values_to = "cat") %>%
+  mutate(cat = ifelse(cat == "LM*", "LM", 
+                      ifelse(cat == "..", NA, cat)))
+missing_by_year <- missing %>%
+  group_by(year) %>%
+  summarise(n = n(),
+            na = sum(is.na(cat)),
+            perc_na = round(na / n * 100, 2))
+```
+
+Income status is missing for about a fourth of the countries at the beginning of the period (in particular countries from the ex soviet block). It is missing for less than 10 countries (\<4%) since 2010.
+
+## Results
+
+We summarise the PAME production by income category of countries and by group of methods.
+
+```{r}
+#| label: tab-pame-method
+#| tbl-cap: "Prevalance of METT and RAPAM in PAME (source: DB-PAME, Feb. 2023)"
+
+# Include World Bank classification in PAME
+pame <- pame %>%
+  left_join(select(oghist, iso3, cat_wb = `2021`), by = "iso3") %>%
+  mutate(method = ifelse(str_detect(methodology, "(METT)|(RAPPAM)"),
+                         "METT or RAPPAM", "Other"))
+  
+method_top10 <- pame %>%
+  filter(cat_wb %in% c("L", "LM")) %>%
+  group_by(methodology) %>%
+  summarise(n = n()) %>%
+  arrange(desc(n)) %>%
+  head(10) %>%
+  pluck("methodology")
+
+# Summarise by method types
+
+l_lm_um <- pame %>%
+  filter(!is.na(cat_wb) & cat_wb != "H") %>% 
+  group_by(cat_wb) %>%
+  summarise(`Number of countries` = n_distinct(iso3),
+            `Total number of assessments` = n(),
+            `METT or RAPPAM (%)` = round(mean(method == "METT or RAPPAM") * 100, 2),
+            `Other methods (%)` = round(mean(method == "Other") * 100, 2)) %>%
+  rename(`County income category` = cat_wb)
+
+lmic_hi <- pame %>%
+  filter(!is.na(cat_wb)) %>% 
+  mutate(cat_wb2 = ifelse(cat_wb == "H", "H", 
+                          "LMIC")) %>%
+  group_by(cat_wb2) %>%
+  summarise(`Number of countries` = n_distinct(iso3),
+            `Total number of assessments` = n(),
+            `METT or RAPPAM (%)` = round(mean(method == "METT or RAPPAM") * 100, 2),
+            `Other methods (%)` = round(mean(method == "Other") * 100, 2)) %>%
+  rename(`County income category` = cat_wb2)
+  
+all <- bind_rows(l_lm_um, lmic_hi) %>%
+  arrange(factor(`County income category`, levels = c("L", "LM", "UM", "LMIC", "H"))) %>% 
+  mutate(`County income category` = case_when(
+    `County income category` == "L" ~ "Low income",
+    `County income category` == "LM" ~ "Lower middle income",
+    `County income category` == "UM" ~ "Upper middle income",
+    `County income category` == "LMIC" ~ "All low and middle income income",
+    `County income category` == "H" ~ "Low income"))
+
+gt(all)
+
+```
+
+From the results above, we can conclude that most of PAME registered in the DB-PAME occured in high income countries. We can also observe that METT and RAPPAM methods are dominant in LMIC, while they remain very marginal in developping countries.
+
+# References cited in the supplementaty material section

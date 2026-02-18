@@ -1,0 +1,19 @@
+Geodata for human wellbeing
+
+Submission status
+    Open
+Submission deadline
+    02 May 2026 
+
+Geospatial data can link people, places, and the environment. It can help us understand the complex relationships between public health, societal development, and resource management.
+
+This Collection welcomes Data Descriptors detailing the curation, validation, and open sharing of georeferenced datasets that support research on human wellbeing. We encourage submissions covering health and disease mapping, environmental exposures, urban and rural development/infrastructure, disaster resilience, and socio-economic trends. Equally, datasets that support natural resource management, biodiversity conservation, habitat monitoring, or ecosystem services mapping are highly relevant. We particularly welcome datasets that bridge these themes. These may include (but are not limited to) data from remote sensing, spatial surveys, or GPS-tracked mobility patterns.
+Submit manuscript
+Submission guidelines
+Manuscript editing services
+aerial view of World map made out of walking people
+Editors
+
+    Thomas R Kirchner, PhD  &
+    Debraj Roy, PhD
+

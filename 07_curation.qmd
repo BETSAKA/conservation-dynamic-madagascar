@@ -1,4 +1,4 @@
-﻿# Curation
+﻿# Revue et validation cas par cas
 
 La première porte d’entrée pour identifier des amendements spatiaux est constituée par les textes légaux recensés dans CNLEGIS. Certains types de décisions, en particulier celles mentionnant le mot "modifiant" dans leur titre, signalent une modification des limites ou du statut spatial d’une aire protégée.
 

@@ -450,7 +450,9 @@ export_amendments_to_yaml <- function(
     amendment_type,
     seq
   ) {
-    year <- if (!is.na(valid_to)) {
+    year <- if (amendment_type == "provisional_protection") {
+      lubridate::year(valid_from)
+    } else if (!is.na(valid_to)) {
       lubridate::year(valid_to)
     } else {
       "NODATE"
@@ -711,6 +713,7 @@ export_amendments_to_yaml <- function(
 #               Only attributes that differ from WDPA should be provided.
 #   amendment_type: Type of attribute amendment. Allowed values:
 #                   - "status_change": Change in designation type (RNI to PN, etc.)
+#                   - "temporary_protection": legally binding but bounded in time (e.g., arrêté de protection provisoire)
 #                   - "governance_change": Change in management authority
 #                   - "correction": Data correction (wrong attribute in WDPA)
 #   valid_from: Optional start date (Date or character). If NULL, remains NA
@@ -755,7 +758,12 @@ add_modif_fat <- function(
   }
 
   # Validate amendment_type for FAT
-  allowed_types_fat <- c("status_change", "governance_change", "correction")
+  allowed_types_fat <- c(
+    "status_change",
+    "temporary_protection",
+    "governance_change",
+    "correction"
+  )
   if (!amendment_type %in% allowed_types_fat) {
     stop(
       "amendment_type must be one of: ",
@@ -3003,7 +3011,7 @@ for (i in seq_len(nrow(temp_full))) {
       DESIG = "Protection Temporaire",
       DESIG_ENG = "Temporary Protection"
     ),
-    amendment_type = "status_change",
+    amendment_type = "temporary_protection",
     valid_from = as.character(row$temp_date),
     notes = paste0(
       "Temporary protection via Arrêté ",
@@ -3025,38 +3033,7 @@ for (i in seq_len(nrow(temp_full))) {
       }
     )
   )
-
-  # If permanent designation exists, add FAT entry for status change
-  if (!is.na(row$perm_date)) {
-    fat <- add_modif_fat(
-      fat = fat,
-      decisions = pa_decisions,
-      wdpa_name_or_id = row$WDPAID,
-      decision_filter = list(
-        year = as.numeric(format(row$perm_date, "%Y")),
-        type_decision_pattern = "creation_definitive",
-        num_texte = row$perm_texte
-      ),
-      attributes = list(
-        STATUS_YR = format(row$perm_date, "%Y")
-        # DESIG and DESIG_ENG will be updated based on the décret
-      ),
-      amendment_type = "status_change",
-      valid_from = as.character(row$perm_date),
-      notes = paste0(
-        "Permanent designation via Décret ",
-        row$perm_texte,
-        " (",
-        row$perm_date,
-        "), ",
-        "replacing temporary protection status established on ",
-        row$temp_date,
-        "."
-      )
-    )
-  }
 }
-
 cat("\nFAT entries created for", nrow(temp_full), "temporary protections\n")
 cat("Total FAT entries:", nrow(fat), "\n")
 ```

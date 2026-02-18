@@ -1,3 +1,36 @@
+Check corrections
+After checking, I have weird entries:
+- Ankarafantsika (WDPAID: 1299)
+   1. MDG-1299-2002-status_change-001 - Ankarafantsika (WDPAID: 1299)
+   
+   => entry 2. MDG-1299-2002-status_change-002 has the same value ("2002-08-07") for valid_from and valid_to. valid_to should be in 2015 (next)
+- Complexe Tsimembo Manambolomaty (WDPAID: 166880)
+- Befotaka Midongy (WDPAID: 20272)
+   o MDG-20272-1997-correction-001 - Befotaka Midongy (WDPAID: 20272)
+   o MDG-20272-NODATE-correction-001 - Befotaka Midongy (WDPAID: 20272)
+
+
+Andohahela
+Andringitra
+Bemaraha
+Lokobe
+Marojejy
+Montagne d'Ambre
+Namoroka
+Nosy Mangabe
+Tsimanampesotse
+Zahamena
+
+
+More ? 
+analamerana
+
+
+Check NODATE
+
+vs. JD
+
+
 
 Verif avec données existantes / croisement Edouard
 

@@ -4,9 +4,9 @@ editor_options:
   chunk_output_type: console
 ---
 
-# Exploration of WDPA historical data
+# Harmonisation des données WDPA historiques
 
-## Creation WDPA global historical database 2010-2024
+## Création d'une base WDPA mondiale historique 2010-2024
 
 Nous avons développé un jeu de données spatio-temporel consolidant les données mondiales publiées par la World Database on Protected Areas (WDPA) depuis 2010. Nous avons compilé un jeu de données par an, en prenant pour référence le mois d'octobre ou, lorsque les données d'octobre n'étaient pas disponibles, le mois le plus proche.
 
@@ -18,7 +18,7 @@ Le résultat est un jeu de données comprenant 2 721 134 enregistrements annuels
 
 Ainsi, nous avons obtenu deux fichiers parquet contenant toutes les données WDPA des 15 dernières années pour 365 592 aires protégées : un fichier contenant 2 721 134 enregistrements annuels d'attributs des aires protégées (190 Mo) et un autre contenant 1 425 023 géométries spatiales uniques (13,9 Go).
 
-## Creation d'une base WDPA pour Madagascar pour 2010-2024
+## Création d'une base WDPA pour Madagascar pour 2010-2024
 
 À partir de la base globale, nous extrayons les observations correspondant à Madagascar pour produire une base allégée dédiée à l’analyse nationale. Ce sous-ensemble est ensuite reprojeté dans le système de coordonnées local utilisé à Madagascar (Laborde, EPSG:29702).
 

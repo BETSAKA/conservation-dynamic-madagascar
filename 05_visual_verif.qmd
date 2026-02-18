@@ -2,7 +2,23 @@
 page-layout: full
 ---
 
-## Visualisation interactive {#sec-visual-verif}
+# Visualisation interactive {#sec-visual-verif}
+
+Une application Shiny interactive permet d'explorer les données consolidées des aires protégées de Madagascar. Elle croise les informations spatiales issues de multiples sources (SAPM, WDPA, CNLEGIS) et facilite la validation visuelle des appariements.
+
+## Fonctionnalités
+
+L'application permet :
+
+- **Sélection par catégorie** : Filtrer les aires protégées selon leur présence dans WDPA et/ou d'autres sources
+- **Visualisation de la présence** : Graphique montrant dans quels jeux de données chaque AP apparaît
+- **Informations consolidées** : Tableau récapitulatif avec désignations, statuts, dates, identifiants
+- **Textes CNLEGIS** : Accès direct aux décrets et arrêtés associés à chaque aire protégée
+- **Carte interactive** : Superposition des géométries provenant de différentes sources et périodes
+
+## Accès en ligne
+
+L'application est déployée sur shinyapps.io et accessible à l'adresse suivante :
 
 ::: {.iframe-container}
 <iframe src="https://workbench.shinyapps.io/conservation-madascar-dashboard/"
@@ -11,3 +27,14 @@ page-layout: full
         frameborder="0"
         allowfullscreen></iframe>
 :::
+
+## Code source
+
+Le code source de l'application est disponible dans le dossier `shiny_app/` du dépôt. Pour l'exécuter localement ou la déployer :
+
+1. **Générer les données** : Exécuter les chapitres 02, 03 et 04 pour produire les fichiers nécessaires
+2. **Copier les données** : Placer les fichiers `.rds` et `.parquet` dans `shiny_app/data/`
+3. **Lancer localement** : `shiny::runApp("shiny_app")`
+4. **Déployer** : Suivre les instructions dans `shiny_app/README.md`
+
+Voir le [dépôt GitHub](https://github.com/BETSAKA/conservation-dynamic-madagascar/tree/main/shiny_app) pour plus de détails.

@@ -1,0 +1,13 @@
+# Données (trop volumineuses pour Git)
+data/
+*.rds
+*.parquet
+*.geojson
+
+# Secrets de déploiement
+secret.R
+rsconnect/
+
+# Fichiers temporaires R
+.RData
+.Rhistory

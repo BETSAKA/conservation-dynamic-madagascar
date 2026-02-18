@@ -11,3 +11,5 @@ test_*
 Backlog*
 .vscode*
 **/*.quarto_ipynb
+*.md
+!README.md

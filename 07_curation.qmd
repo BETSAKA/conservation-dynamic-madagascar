@@ -1590,13 +1590,38 @@ plot_pa_sources(
 )
 ```
 
-L'extension de 2002 a fait l'objet d'une cartographie détaillée par Conservation International [@alonso2002], mais les périmètres antérieurs à 2002 sont en cours de re-vectorisation et ne sont pas encore disponibles pour documentation dans la SAT.
+L'extension de 2002 a fait l'objet d'une cartographie détaillée par Conservation International [@alonso2002]. Le MNP a fourni le périmètre de la Réserve Naturelle Intégrale n. 7 telle que délimitée par le Décret 66-242 (~57 000 ha), antérieur a la consolidation de 2002.
 
 ![Ankarafantsika 2002 expansion](data/Alonso_Shuldenberg_2002.png){fig-alt="Carte d'Ankarafantsika avant 2002."}
 
-Les textes légaux identifient plusieurs décisions modificatives, notamment en 2002 (création du PN par consolidation) et 2015 (modification des limites). Après inspection visuelle, on retient ANGAP_2002 comme source du périmètre avant la modification de 2015.
+```{r ankarafantsika-sources-pre2002}
+plot_pa_sources(
+  "Ankarafantsika",
+  sources = c("MNP_Anka_RNI_pre2002", "ANGAP_2002", "WDPA_2025")
+)
+```
+
+Les textes légaux identifient plusieurs décisions modificatives, notamment en 2002 (création du PN par consolidation) et 2015 (modification des limites). On documente les deux transitions :
+
+1. **Périmètre RNI pré-2002** (MNP_Anka_RNI_pre2002) : la géométrie de la RNI n. 7 avant la consolidation en PN.
+2. **Périmètre PN 2002-2015** (ANGAP_2002) : le PN après consolidation mais avant la modification de 2015.
+
+```{r ankarafantsika-sat-pre2002}
+# SAT: pre-2002 RNI boundary (Décret 66-242)
+sat <- sat |>
+  add_modif_sat(
+    data = all_PAs_conso,
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Ankarafantsika",
+    decision_filter = list(year = 2002, type_decision_pattern = "modifiant"),
+    source_dataset_id = "MNP_Anka_RNI_pre2002",
+    valid_from = "1927-12-31",
+    notes = "Périmètre de la RNI n. 7 d'Ankarafantsika (Décret 66-242, ~57 000 ha) avant la consolidation en PN en 2002 (Décret 2002-798, 130 000 ha). Géométrie fournie par MNP."
+  )
+```
 
 ```{r ankarafantsika-sat}
+# SAT: PN boundary 2002-2015
 sat <- sat |>
   add_modif_sat(
     data = all_PAs_conso,
@@ -1605,7 +1630,7 @@ sat <- sat |>
     decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
     source_dataset_id = "ANGAP_2002",
     valid_from = "2002-08-07",
-    notes = "Périmètre 2002-2015 avant modification des limites (géométrie ANGAP_2002 retenue après vérification visuelle). Périmètres pré-2002 en cours de re-vectorisation."
+    notes = "Périmètre 2002-2015 avant modification des limites (géométrie ANGAP_2002 retenue après vérification visuelle)."
   )
 ```
 
@@ -2243,11 +2268,29 @@ Les métadonnées confirment que cette aire protégée a été créée en 1989 c
 show_cnlegis_for_pa("Mantadia", pa_decisions)
 ```
 
-Malheureusement, on ne dispose pas de source géométrique antérieure à 2002 pour cette AP.
+Le MNP a fourni le périmètre original de 1989 (Décret 89-011, ~9 930 ha), antérieur a l'extension de 2002 (Décret 2002-790, 15 480 ha). Ce périmètre est disponible dans le jeu `MNP_Mantadia_pre2002`.
 
-::: {.callout-note}
-Voir avec MNP s'il est possible de reconstituer la géométrie initiale de 1989.
-:::
+```{r mantadia-sources}
+plot_pa_sources(
+  "Mantadia",
+  sources = c("MNP_Mantadia_pre2002", "WDPA_2025")
+)
+```
+
+Conformément aux regles de construction de la SAT, on ajoute la géométrie antérieure a la modification de 2002.
+
+```{r mantadia-sat}
+sat <- sat |>
+  add_modif_sat(
+    data = all_PAs_conso,
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Mantadia",
+    decision_filter = list(year = 2002, type_decision_pattern = "modifiant"),
+    source_dataset_id = "MNP_Mantadia_pre2002",
+    valid_from = "1989-01-11",
+    notes = "Périmètre original du PN Mantadia (Décret 89-011, ~9 930 ha) avant l'extension de 2002 (Décret 2002-790, 15 480 ha). Géométrie fournie par MNP."
+  )
+```
 
 
 ### Marojejy

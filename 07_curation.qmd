@@ -10,6 +10,12 @@ La première porte d’entrée pour identifier des amendements spatiaux est cons
 
 Dans cette section, nous identifions les décisions légales qui mentionnent explicitement une modification, et les aires protégées concernées.
 
+::: {.callout-warning}
+## Limitation des URLs CNLEGIS
+
+Les liens vers CNLEGIS construits automatiquement a partir du numero de texte (par exemple `https://cnlegis.gov.mg/page_num_find_direct/?2015-730`) ne redirigent pas directement vers le decret concerne mais vers une page de recherche generique. Cette limitation empeche la verification directe des sources a partir des URLs. Les numeros de texte (`num_texte`) restent neanmoins fiables comme identifiants pour une recherche manuelle sur le site CNLEGIS.
+:::
+
 ```{r setup}
 library(tidyverse)
 library(sf)
@@ -529,6 +535,45 @@ export_amendments_to_yaml <- function(
     }
   }
 
+  # Helper: generate a human-readable temporal description from amendment fields
+  generate_temporal_description <- function(
+    amendment_type,
+    valid_from,
+    valid_to,
+    legal_instrument
+  ) {
+    type_labels <- c(
+      boundary_modification = "Modification des limites",
+      secondary_zoning = "Zonage secondaire",
+      correction = "Correction de donnees",
+      status_change = "Changement de statut",
+      temporary_protection = "Protection temporaire",
+      governance_change = "Changement de gouvernance"
+    )
+    label <- type_labels[amendment_type] %||% amendment_type
+    parts <- label
+    if (!is.null(valid_from) && !is.null(valid_to)) {
+      parts <- paste0(parts, " du ", valid_from, " au ", valid_to)
+    } else if (!is.null(valid_from)) {
+      parts <- paste0(parts, " depuis le ", valid_from)
+    } else if (!is.null(valid_to)) {
+      parts <- paste0(parts, " jusqu'au ", valid_to)
+    }
+    if (!is.null(legal_instrument) && !is.null(legal_instrument$number)) {
+      instr_type <- legal_instrument$type %||% "texte"
+      # Avoid stutter when instrument type matches the amendment label
+      if (tolower(instr_type) == tolower(label)) {
+        parts <- paste0(parts, " (n. ", legal_instrument$number, ")")
+      } else {
+        parts <- paste0(parts, " selon ", instr_type, " n. ", legal_instrument$number)
+      }
+      if (!is.null(legal_instrument$date)) {
+        parts <- paste0(parts, " du ", legal_instrument$date)
+      }
+    }
+    paste0(parts, ".")
+  }
+
   exported <- list()
 
   # Process spatial amendments
@@ -579,6 +624,12 @@ export_amendments_to_yaml <- function(
           NULL
         },
         legal_instrument = create_legal_instrument(row),
+        temporal_description = generate_temporal_description(
+          row$amendment_type,
+          if (!is.na(row$valid_from)) as.character(row$valid_from) else NULL,
+          if (!is.na(row$valid_to)) as.character(row$valid_to) else NULL,
+          create_legal_instrument(row)
+        ),
         notes = if (!is.na(row$notes)) row$notes else NULL,
         geometry_ref = geom_relative,
         geometry_crs_epsg = 4326L,
@@ -678,6 +729,12 @@ export_amendments_to_yaml <- function(
           NULL
         },
         legal_instrument = create_legal_instrument(row),
+        temporal_description = generate_temporal_description(
+          row$amendment_type,
+          if (!is.na(row$valid_from)) as.character(row$valid_from) else NULL,
+          if (!is.na(row$valid_to)) as.character(row$valid_to) else NULL,
+          create_legal_instrument(row)
+        ),
         notes = if (!is.na(row$notes)) row$notes else NULL,
         attributes = if (length(attributes_list) > 0) attributes_list else NULL
       )
@@ -1022,6 +1079,7 @@ legal_instrument:
   url: "https://cnlegis.gov.mg/..."
 
 notes: "Historical boundary 1958-2015 before extension via Décret 2015-776."
+temporal_description: "Modification des limites du 1958-06-08 au 2015-05-06 selon décret n. 2015-776 du 2015-05-06."
 
 geometry_ref: "geoms/MDG-2314-2015-boundary_modification-001.geojson"
 geometry_crs_epsg: 4326
@@ -1047,6 +1105,7 @@ legal_instrument:
   date: "1956-02-20"
 
 notes: "WDPA incorrectly shows PN/II. Correct designation is RS/IV per Décret 56-208."
+temporal_description: "Correction de donnees du 1956-02-20 au 2015-08-10 selon décret n. 56-208 du 1956-02-20."
 
 attributes:
   DESIG: "Réserve Spéciale"

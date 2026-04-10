@@ -170,7 +170,7 @@ class_results <- all_results %>%
     creation_definitive = str_detect(
       textes,
       regex(
-        "(?<!en )(création|crétion de l'aire protégée)|instituant|classant",
+        "(?<!en )(creation|cretion de l'aire protegee)|instituant(?!.*autour)|classant",
         ignore_case = TRUE
       )
     ),

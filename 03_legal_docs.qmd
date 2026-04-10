@@ -170,7 +170,7 @@ class_results <- all_results %>%
     creation_definitive = str_detect(
       textes,
       regex(
-        "(?<!en )(creation|cretion de l'aire protegee)|instituant(?!.*autour)|classant",
+        "(?<!en )(cr\u00e9ation|cr\u00e9tion de l'aire prot\u00e9g\u00e9e)|instituant(?!.*autour)|classant",
         ignore_case = TRUE
       )
     ),
@@ -457,7 +457,8 @@ decision_pa <- split_class_clean %>%
     conversion_table_verif,
     by = c("single_cleaned_pa" = "original_pa")
   ) %>%
-  distinct(pa, num_texte, .keep_all = TRUE) %>%
+  # Use WDPAID (not pa) so multi-PA decrees keep one row per PA
+  distinct(WDPAID, num_texte, .keep_all = TRUE) %>%
   select(
     date_texte = date_txt,
     ap_nom_texte = pa,

@@ -3117,6 +3117,21 @@ permanent_designations <- pa_decisions |>
   ) |>
   select(WDPAID, perm_date = date_texte, perm_texte = num_texte)
 
+# Supplement with permanent decrees missing from CNLEGIS or mismatched.
+# - Bongolava (352244): Decret 2015-790 absent de CNLEGIS (Goodman et al.)
+# - Manjakatompo (555697911): Decret 2015-711, erreur de metadonnee CNLEGIS
+#     qui l'attribue a Marolambo ; le texte integral confirme Manjakatompo
+# - Tampolo (354011): Decret 2015-789 absent de CNLEGIS
+# - Tsitongambarika (555697878): Decret 2015-720 absent de CNLEGIS
+permanent_designations <- permanent_designations |>
+  bind_rows(tibble::tribble(
+    ~WDPAID,    ~perm_date,               ~perm_texte,
+    352244,     as.Date("2015-04-28"),    "2015-790",
+    555697911,  as.Date("2015-04-21"),    "2015-711",
+    354011,     as.Date("2015-04-28"),    "2015-789",
+    555697878,  as.Date("2015-04-21"),    "2015-720"
+  ))
+
 # Join temporary with permanent info
 temp_full <- temporary_protections |>
   select(
@@ -3360,9 +3375,115 @@ sat |>
 
 Les zonages secondaires sont maintenant documentés dans la table SAT aux côtés des amendements temporels (modifications de frontières, corrections). Lors de l'export YAML, ces entrées seront distinguées par `amendment_type: secondary_zoning` et pourront être filtrées selon les besoins d'analyse.
 
+## Post-traitement : resolution des chevauchements temporels {#sec-post-processing}
+
+Avant l'export, nous resolvons les chevauchements temporels dans la table FAT qui causeraient des conflits lors de la consolidation.
+
+Certaines aires protegees ont recu plusieurs arretes de protection temporaire successifs (2008, 2010, 2013). Par defaut, chaque entree couvre la periode `[date_arrete, date_decret_definitif]`, ce qui cree des periodes chevauchantes avec des valeurs STATUS_YR differentes. Nous chainons ces entrees pour qu'elles deviennent sequentielles : chaque protection temporaire se termine quand la suivante commence.
+
+De plus, pour les aires protegees qui disposaient deja d'un statut permanent avant de recevoir des protections temporaires (extensions de limites), nous ajustons les dates pour eviter les conflits entre les amendements de type correction/status_change et les protections temporaires.
+
+```{r}
+#| label: post-process-temporal-overlaps
+
+n_before <- nrow(fat)
+
+# 1. Chain overlapping temporary_protections: for each WDPAID with multiple
+#    temp protections, sort by valid_from and set each valid_to = next valid_from.
+#    The last entry keeps its original valid_to (permanent decree date or NA).
+fat <- fat |>
+  mutate(.row_id = row_number()) |>
+  group_by(WDPAID, amendment_type) |>
+  arrange(valid_from, .by_group = TRUE) |>
+  mutate(
+    valid_to = if (cur_group()$amendment_type == "temporary_protection" && n() > 1) {
+      c(lead(valid_from)[-n()], valid_to[n()])
+    } else {
+      valid_to
+    }
+  ) |>
+  ungroup() |>
+  arrange(.row_id) |>
+  select(-.row_id)
+
+# 2. Fix temporal inversions: valid_to before valid_from is nonsensical.
+#    This happens when a permanent decree predates the temporary protection
+#    (old PAs that received new temp protections for boundary extensions).
+n_inversions <- sum(
+  !is.na(fat$valid_to) & !is.na(fat$valid_from) & fat$valid_to < fat$valid_from
+)
+fat <- fat |>
+  mutate(valid_to = if_else(
+    !is.na(valid_to) & !is.na(valid_from) & valid_to < valid_from,
+    as.Date(NA),
+    valid_to
+  ))
+
+# 3. For corrections/status_changes that overlap with later temp_protections,
+#    end the correction when the first temp protection starts.
+first_temp <- fat |>
+  filter(amendment_type == "temporary_protection") |>
+  group_by(WDPAID) |>
+  summarise(first_temp_from = min(valid_from, na.rm = TRUE), .groups = "drop")
+
+fat <- fat |>
+  left_join(first_temp, by = "WDPAID") |>
+  mutate(
+    valid_to = case_when(
+      amendment_type %in% c("correction", "status_change") &
+        !is.na(first_temp_from) &
+        (is.na(valid_to) | valid_to > first_temp_from) &
+        !is.na(valid_from) &
+        valid_from < first_temp_from ~ first_temp_from,
+      TRUE ~ valid_to
+    )
+  ) |>
+  select(-first_temp_from)
+
+# 4. For temp_protections with no end date that overlap with a later
+#    correction/status_change (permanent designation), end the temp protection
+#    when the permanent designation starts.
+later_perm <- fat |>
+  filter(amendment_type %in% c("correction", "status_change")) |>
+  group_by(WDPAID) |>
+  summarise(latest_perm_from = max(valid_from, na.rm = TRUE), .groups = "drop")
+
+fat <- fat |>
+  left_join(later_perm, by = "WDPAID") |>
+  mutate(
+    valid_to = case_when(
+      amendment_type == "temporary_protection" &
+        is.na(valid_to) &
+        !is.na(latest_perm_from) &
+        !is.na(valid_from) &
+        valid_from < latest_perm_from ~ latest_perm_from,
+      TRUE ~ valid_to
+    )
+  ) |>
+  select(-latest_perm_from)
+
+# 5. Deduplicate SAT boundary_modifications with identical dates
+#    (merge geometries into multipolygons).
+n_sat_before <- nrow(sat)
+sat <- sat |>
+  group_by(WDPAID, amendment_type, valid_from, valid_to) |>
+  summarise(
+    across(where(~ !inherits(., "sfc")), first),
+    geometry = st_union(geometry),
+    .groups = "drop"
+  ) |>
+  st_as_sf()
+
+cat("Post-processing complete:\n")
+cat("  FAT rows:", n_before, "(unchanged)\n")
+cat("  Temporal inversions fixed:", n_inversions, "\n")
+cat("  SAT rows:", n_sat_before, "->", nrow(sat),
+    "(", n_sat_before - nrow(sat), "duplicates merged)\n")
+```
+
 ## Export des amendements {#sec-export-amendments}
 
-Le processus de curation a documenté les amendements aux données WDPA de Madagascar. Nous exportons maintenant ces amendements vers le schéma YAML standardisé pour le registre `dynamic_wdpa`.
+Le processus de curation a documente les amendements aux donnees WDPA de Madagascar. Nous exportons maintenant ces amendements vers le schema YAML standardise pour le registre `dynamic_wdpa`.
 
 ### Export au format YAML
 

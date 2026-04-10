@@ -1,0 +1,1311 @@
+---
+editor: source
+execute:
+  eval: false
+output: html_document
+editor_options:
+  chunk_output_type: console
+---
+# Construct database for the study of fires in Madagascar
+
+## Introduction
+
+Objective: a fire database serving both the study of the impact of protected areas on fires and a predictive model. We take advantage of a cloud environment offering high-performance data processing conditions to use a raster-centered approach. The results are stored in Parquet format, which provides excellent data compression and fast read performance. We favor a long data format and explain how it offers great flexibility for subsequent analyses.
+
+
+## Technical Environment
+
+This solution is inspired by the methods used in the R package `mapme.biodiversity`, which facilitates the acquisition of raster data and the computation of indicators from these rasters onto vector shapes (polygons). Here, we use this package for data acquisition, but not for indicator computation. The indicators are computed using the `terra` package (which relies on GDAL) to assemble a collection of rasters with identical dimensions, which are then converted into a long-format `data.frame` and saved in Parquet format.
+
+We use INSEE’s [SSP Cloud](https://datalab.sspcloud.fr/), an online platform that provides, through an ergonomic interface (Onyxia), access to a Kubernetes instance for launching pods (virtual machines) dedicated to data science — e.g., R/RStudio, Python/VSCode, etc. It also includes a MinIO data lake for data storage. MinIO uses the same API (communication protocol) as Amazon Web Services (S3). The SSP Cloud data lake is therefore compatible with any software that can interact with AWS, such as the [GDAL virtual file system](https://gdal.org/en/stable/user/virtual_file_systems.html), the R packages `aws.s3` or `paws`, or the Python packages `s3fs`, `boto3`, or `polars`.
+
+The procedure described below is executed after launching a preconfigured RStudio pod ([see configuration here](https://datalab.sspcloud.fr/launcher/ide/rstudio?name=BETSAKA_fires&shared=true&version=2.3.10&persistence.size=%C2%AB20Gi%C2%BB&init.personalInit=%C2%ABhttps%3A%2F%2Fraw.githubusercontent.com%2FBETSAKA%2FTools%2Frefs%2Fheads%2Fmain%2Finit_scripts%2Fgit_pkgs_s3_customui.sh%C2%BB&init.personalInitArgs=%C2%ABBETSAKA%2FPA_impacts_fires%20mapme.biodiversity%C2%BB)) and allows access to SSP Cloud data through three methods:
+- via the `aws.s3` package, by copying data locally using `get_object()` or `s3read_using()`;
+- directly through GDAL using the `terra::rast()` function, by adding the `vsis3/` prefix to the file path;
+- by loading the data onto the SSP Cloud pod at startup. For this purpose, a `.sh` file is created and made available on a public GitHub repository ([see examples for BETSAKA](https://github.com/BETSAKA/Tools/tree/main/init_scripts)), containing `mc cp chemin/du/fichier/sur/s3 destination/sur/le/disque/local` instructions that are executed automatically when the pod starts.
+
+
+::: callout-warning
+When using the `aws.s3` package, the parameter `region = ""` must always be specified (because AWS’s regionalized services do not apply to MinIO). Otherwise, requests will fail, and it can be difficult to understand why.
+:::
+
+We load the required packages in R and define global options.
+
+```{r}
+#| label: load_packages
+
+library(tidyverse) # facilitate data manipulation
+library(dplyr)
+library(aws.s3) # access to data lake of SSP Cloud
+library(terra) # for raster data treatment
+library(tidyterra) # bring tidyr to terra
+library(tictoc) # measure time
+library(arrow) # read/write parquet files
+library(sf) # for polygons
+library(exactextractr) # fast extractions
+library(tmap) # interactive maps
+library(DBI) # operation on parquet
+library(pbapply) # loop with progress bar and paralele computing
+library(geodata)
+
+local_output <- "data_out/fire-db.parquet"
+s3_source <- "PA_impacts_fires/data/source"
+s3_output <- "PA_impacts_fires/data/output/fire-db.parquet"
+```
+
+
+## Create reference grid
+
+Reference grid polygon based on resolution of modis fire data, which cell_id correspond exactly to the ID of the cell in modis fire data.
+
+```{r}
+#| label: reference_grid
+
+# Create a raster with same resolution and origin than MODIS with only 1
+modis_ref <- rast(
+    paste0("/vsis3/projet-betsaka/", s3_source, "/MODIS_Appears/MOD14A2.061_FireMask_doy2000049000000_aid0001.tif")
+  ) %>%
+  # set cell_id as attribute
+  init(fun = "cell")
+
+# Terrestre part of Madagascar
+mdg <- vect(paste0("/vsis3/projet-betsaka/", s3_source, "/admin_boundary/MDG_GADM_admin0.gpkg")) %>%
+  project("+proj=sinu +lon_0=0 +x_0=0 +y_0=0 +a=6371007.181 +b=6371007.181 +units=m")
+
+# remove all that do not touch Madagascar, change in polygons and project to WGS84
+modis_ref_rast <- modis_ref %>%
+  crop(mdg, mask = TRUE, touches = TRUE)
+
+modis_ref_grid <- modis_ref_rast %>%
+  as.polygons(aggregate = FALSE, values = TRUE, na.rm = TRUE) %>%
+  rename(cell_id = cell) %>%
+  terra::project("EPSG:4326")
+
+### Add coordinates of centroids
+modis_ref_grid <- bind_spat_cols(
+  modis_ref_grid,
+  geom(centroids(modis_ref_grid))[, c("x", "y")]
+)
+### Write the final grid to s3
+saveRDS(modis_ref_grid, "./data/source/modis_ref_grid.rds")
+saveRDS(modis_ref_rast, "./data/source/modis_ref_rast.rds")
+put_to_s3(
+  from = "./data/source/modis_ref_grid.rds",
+  to = paste0(s3_source, "/modis_ref_grid.rds")
+)
+put_to_s3(
+  from = "./data/source/modis_ref_rast.rds",
+  to = paste0(s3_source, "/modis_ref_rast.rds")
+)
+
+```
+
+## Data
+
+The target format is a **long format**, with the following fields:
+- `cell_id`: unique identifier of the cell. Includes data extracted from a reference grid (obtained from MODIS data at the same resolution).
+- `xy`: coordinates of the centroid of each cell of the reference grid, projected in WGS84. Allows spatialization of the data.
+- `date`: POSIXct date.
+- `variable`: name of the indicator (e.g., `fire_occurrences_8days`, `fire_occurrences_1year`, `traveltime_city_min_2000`, `traveltime_city_2015`, `biome_tew`, `ecoregion_tew`, …)
+- `value`: the value of the indicator for the given point and date.
+
+
+```{r}
+#| label: define_schema
+
+schema_fire <- schema(
+  cell_id = int32(),
+  x       = float64(),
+  y       = float64(),
+  date    = date32(),
+  value   = int32()
+)
+
+# create metadata empty list
+metadata <- list()
+saveRDS(metadata, "data/output/metadata.rds")
+put_to_s3(
+  from = "data/output/metadata.rds",
+  to = "PA_impacts_fires/data/output/metadata.rds"
+)
+```
+
+All rasters are extracted onto a reference grid defined by the resolution and extent of MODIS (MOD14A2).
+
+
+## MODIS Thermal Anomalies & Fire 8-Day
+
+MODIS fire data are raster data on the occurence of fire every 8-days period.
+This code cell computes the number of fires in each grid cell based on the following rules:
+  - Sensor aqua and terra are merged together: if one sensor detect a fire, the fire is counted
+  - a fire is counted only is there is no more fire 8-days after.
+  - several confident levels are kept
+
+The cell code take about 1 hour to be run.
+
+Data are returned in parquet format for variable:
+  - fire_occurrences_8days: dummy for fire every 8-day period.
+  - fire_occurrences_1year: sum of fires over the calendar year (sum of fire_occurrences_8days in the year)
+
+
+```{r}
+#| label: treat modis fire data
+
+# load grid and project in modis resolution
+grid_df <- readRDS("./data/source/modis_ref_grid.rds") %>%
+  as.data.frame()
+# grid_df <- grid_df[1:10000,]
+
+# list of modis fire files
+modis_files <- list.files("./data/source/MODIS_Appears", full.names = TRUE, pattern = "FireMask")
+
+### Use parallel package
+# cl <- parallel::makeCluster(25)
+# parallel::clusterEvalQ(cl, {
+#   .libPaths("./renv/library/linux-ubuntu-noble/R-4.5/x86_64-pc-linux-gnu")
+#   library(dplyr)
+#   library(tidyverse)
+#   library(pbapply)
+#   library(stringr)
+#   library(terra)
+# })
+# parallel::clusterExport(cl, c("grid_df", "modis_files"))
+
+# function to merge sensor
+# rule: il fire detected in one sensor, this is a fire
+merge_sensor <- function(terra, aqua) {
+  case_when(
+    terra == 1L | aqua == 1L ~ 1L,
+    is.na(terra) & is.na(aqua) ~ NA_integer_,
+    TRUE ~ 0L
+  )
+}
+
+# loop on year from 2000 to 2024
+modis_annual_sum <- pblapply(
+    X = 2000:2024,
+    # cl = cl,
+    FUN = function(year) {
+
+      # list of file for the given year
+      modis_files_year <- str_subset(modis_files, paste0("doy", year))
+
+      # read each modis file and merge with the grid
+      modis_treat <- lapply(
+        X = modis_files_year,
+        FUN = function(file) {
+          r <- rast(file)
+          res <- r %>%
+            as.data.frame(cells = TRUE, na.rm = TRUE) %>%
+            rename(raw_value = names(r[1]))
+
+          fire_grid <- grid_df %>%
+            left_join(res, by = c("cell_id" = "cell")) %>%
+            mutate(
+              # fire are detected when value in c(7,8,9)
+              # low confident value for fire are kept (raw_value = 7)
+              fire_lc = ifelse(raw_value %in% c(7,8,9), 1, 0),
+              fire_nc = ifelse(raw_value %in% c(8,9), 1, 0),
+              fire_hc = ifelse(raw_value %in% c(9), 1, 0),
+              date = as.Date(str_extract(file, "(?<=doy)\\d{7}"), format = "%Y%j"),
+              # factor allow then to expand the value with NA
+              sensor = factor(case_when(
+                str_detect(file, "MOD14") ~ "terra",  # Terra MODIS
+                str_detect(file, "MYD14") ~ "aqua"   # Aqua MODIS
+              ), levels = c("terra", "aqua"))
+            ) %>%
+            select(cell_id, date, sensor, starts_with("fire"))
+          return(fire_grid)
+        }
+      ) %>%
+      # bind all data for the year
+      bind_rows() %>%
+      # pivot sensor, names_expand = TRUE to keep terra and aqua in all years
+      pivot_wider(
+        names_from = "sensor", values_from = paste0("fire", c("_lc", "_nc", "_hc")),
+        names_expand = TRUE
+      ) %>%
+      # rule to merge both sensor: if one detect a fire, the fire is counted
+      mutate(
+        fire_merged_lc = merge_sensor(fire_lc_terra, fire_lc_aqua),
+        fire_merged_nc = merge_sensor(fire_nc_terra, fire_nc_aqua),
+        fire_merged_hc = merge_sensor(fire_hc_terra, fire_hc_aqua)
+        ) %>%
+      select(cell_id, date, starts_with("fire_merged"))
+
+      # rule for lag: do a join, more efficient than lag
+      modis_treat_prev <- modis_treat %>%
+        dplyr::mutate(
+          cell_id,
+          date = date + lubridate::days(8),
+          prev_val_lc = fire_merged_lc,
+          prev_val_nc = fire_merged_nc,
+          prev_val_hc = fire_merged_hc,
+          .keep = "none"
+        )
+      # join and keep fire only if previous value is 0
+      modis_final <- modis_treat %>%
+        left_join(modis_treat_prev, by = c("cell_id", "date")) %>%
+        mutate(
+          fire_lc_occ_8days = if_else(
+            !is.na(prev_val_lc) & prev_val_lc == 1L, 0L, fire_merged_lc,
+            missing = fire_merged_lc
+          ),
+          fire_nc_occ_8days = if_else(
+            !is.na(prev_val_nc) & prev_val_nc == 1L, 0L, fire_merged_nc,
+            missing = fire_merged_nc
+          ),
+          fire_hc_occ_8days = if_else(
+            !is.na(prev_val_hc) & prev_val_hc == 1L, 0L, fire_merged_hc,
+            missing = fire_merged_hc
+        )) %>%
+        select(cell_id, date, ends_with("8days")) %>%
+        pivot_longer(
+          starts_with("fire"), names_to = "variable", values_to = "value"
+        ) %>%
+        mutate(year = lubridate::year(date)) %>%
+        select(cell_id, year, date, variable, value)
+
+      # write partitioned dataset
+      arrow::write_dataset(
+        modis_final,
+        path = "data_out/fire_occ_8days.parquet",
+        format = "parquet",
+        partitioning = c("variable", "year"),
+        existing_data_behavior = "overwrite"
+      )
+
+      ### annual sum of fires
+      modis_annual <- modis_final %>%
+        group_by(cell_id, year, variable) %>%
+        summarise(value = sum(value, na.rm = TRUE)) %>%
+        ungroup() %>%
+        mutate(variable = str_replace(variable, "8days", "1year"))
+
+      return(modis_annual)
+
+  }) %>%
+  bind_rows()
+
+arrow::write_dataset(
+  modis_annual_sum,
+  path = "data_out/fire_occ_1year.parquet",
+  format = "parquet",
+  partitioning = c("variable", "year"),
+  existing_data_behavior = "overwrite"
+)
+
+# parallel::stopCluster(cl)
+
+### Put occurrences 8 days on s3
+parquet_files <- tibble(
+  file = list.files(
+    "data_out/fire_occ_8days.parquet",
+    recursive = TRUE, full.names = TRUE
+  ),
+  destination = str_replace(
+    file, "data_out/fire_occ_8days.parquet", s3_output
+  )
+)
+map2(parquet_files$file, parquet_files$destination, put_to_s3)
+
+### Put data annualized on s3
+parquet_files <- tibble(
+  file = list.files(
+    "data_out/fire_occ_1year.parquet",
+    recursive = TRUE, full.names = TRUE
+  ),
+  destination = str_replace(
+    file, "data_out/fire_occ_1year.parquet", s3_output
+  )
+)
+map2(parquet_files$file, parquet_files$destination, put_to_s3)
+
+### Set up of meta data file
+metadata <- readRDS("data/output/metadata.rds")
+metadata[["fire_lc_occ_8days"]]$Description <- "Dummy for detection of fire in each 8-day period - Low confidence (value 7,8 9)"
+metadata[["fire_nc_occ_8days"]]$Description <- "Dummy for detection of fire in each 8-day period - Nominal confidence (value 8,9)"
+metadata[["fire_hc_occ_8days"]]$Description <- "Dummy for detection of fire in each 8-day period - High confidence (value 9)"
+metadata[["fire_lc_occ_8days"]]$source <- "MODIS data Terra & Acqua combined"
+metadata[["fire_nc_occ_8days"]]$source <- "MODIS data Terra & Acqua combined"
+metadata[["fire_hc_occ_8days"]]$source <- "MODIS data Terra & Acqua combined"
+metadata[["fire_lc_occ_1year"]]$Description <- "Number of yearly fires - Low confidence (value 7,8 9)"
+metadata[["fire_nc_occ_1year"]]$Description <- "Number of yearly fires - Nominal confidence (value 8,9)"
+metadata[["fire_hc_occ_1year"]]$Description <- "Number of yearly fires - High confidence (value 9)"
+metadata[["fire_lc_occ_1year"]]$source <- "MODIS data Terra & Acqua combined"
+metadata[["fire_nc_occ_1year"]]$source <- "MODIS data Terra & Acqua combined"
+metadata[["fire_hc_occ_1year"]]$source <- "MODIS data Terra & Acqua combined"
+saveRDS(metadata, "data/output/metadata.rds")
+put_to_s3(
+  from = "data/output/metadata.rds",
+  to = "PA_impacts_fires/data/output/metadata.rds"
+)
+```
+
+
+## MODIS Burned areas
+
+````{r}
+#| label: treat modis cci data
+
+# 1. PRE-PROCESSING
+# Load grid and convert to SF *once* outside the loop to save massive overhead
+grid_sf <- readRDS("./data/source/modis_ref_grid.rds") %>%
+  sf::st_as_sf()
+
+# 2. PROCESSING LOOP (Year by Year)
+grid_cci_data <- pblapply(
+  X = 2001:2022,
+  FUN = function(yr) {
+
+    modis_cci_jd <- list.files(
+      "./data/source/MODIS_CCI", full.names = TRUE,
+      pattern = paste0("^", yr, "(.*)JD.tif")
+    )
+
+    # Load, Crop, and Classify only this year's slice
+    burn_data <- modis_cci_jd[grep(yr, modis_cci_jd)] %>%
+      rast() %>%
+      crop(ext(grid_sf) + 1) %>%
+      classify(rbind(c(-Inf, -1, NA), c(0, 0, 0), c(1, Inf, 1)), right = NA)
+
+    # --- METRIC 1: SUM ---
+    # Collapse the year stack into a single layer (Sum)
+    burn_yearly_sum <- burn_data %>%
+      app(fun = sum, na.rm = TRUE) %>%
+      exact_extract(
+        grid_sf, 'weighted_sum', weights = 'area',
+        append_cols = c("cell_id", "x", "y"), progress = FALSE
+      ) %>%
+      mutate(
+        variable = "cci_burn_area_sum",
+        value = as.integer(round(weighted_sum)),
+        year = as.integer(yr),
+        date = as.Date(paste0(yr, "-01-01"))
+      ) %>%
+      select(cell_id, x, y, date, variable, year, value)
+
+
+    # --- METRIC 2: MAX (Dummy) ---
+    # Collapse the year stack into a single layer (Max)
+    burn_yearly_max <- burn_data %>%
+      app(fun = max, na.rm = TRUE) %>%
+      exact_extract(
+        grid_sf, 'weighted_sum', weights = 'area',
+        append_cols = c("cell_id", "x", "y"), progress = FALSE
+      ) %>%
+      mutate(
+        variable = "cci_burn_area_max",
+        value = as.integer(round(weighted_sum)),
+        year = as.integer(yr),
+        date = as.Date(paste0(yr, "-01-01"))
+      ) %>%
+      select(cell_id, x, y, date, variable, year, value)
+
+    return(bind_rows(burn_yearly_sum, burn_yearly_max))
+  }) %>%
+  bind_rows()
+
+# Write to parquet
+arrow::write_dataset(
+  grid_cci_data,
+  path = paste0("s3://projet-betsaka/", s3_output),
+  format = "parquet",
+  partitioning = c("variable", "year"),
+  existing_data_behavior = "overwrite"
+)
+
+# add metadata
+metadata <- readRDS("data/output/metadata.rds")
+metadata[["cci_burn_area_sum"]]$Description <- "Total burned area (meter square) --- sum over the year"
+metadata[["cci_burn_area_max"]]$Description <- "Total burned area --- max over the year"
+metadata[["cci_burn_area_sum"]]$unit <- "Meter square"
+metadata[["cci_burn_area_max"]]$unit <- "Meter square"
+metadata[["cci_burn_area_sum"]]$source <- "Fire CCI data (Chuvieco et al (2019))"
+metadata[["cci_burn_area_sum"]]$source <- "Fire CCI data (Chuvieco et al (2019))"
+saveRDS(metadata, "data/output/metadata.rds")
+put_to_s3(
+  from = "data/output/metadata.rds",
+  to = "PA_impacts_fires/data/output/metadata.rds"
+)
+````
+
+
+## VIIRS data on fire
+
+Data from VIIRS S-NPP are downloaded from FIRMS (https://firms.modaps.eosdis.nasa.gov/download/create.php) in csv format.
+Data from 2013 to 2022.
+Each entry correspond to one fire.
+
+````{r}
+
+grid <- readRDS("./data/source/modis_ref_grid.rds")
+
+viirs_snpp <- read.csv("./data/source/VIIRS_SNPP/fire_archive_SV-C2_698738.csv") %>%
+  vect(geom = c("longitude", "latitude")) %>%
+  bind_spat_cols(extract(grid, .)) %>%
+  as.data.table() %>%
+  mutate(year = year(acq_date)) %>%
+  group_by(cell_id, year, confidence) %>%
+  summarise(value = n())
+
+viirs_final <- expand.grid(
+    confidence = c("h", "n", "l"),
+    year = 2013:2024,
+    cell_id = grid$cell_id
+  ) %>%
+  left_join(as.data.table(grid), by = "cell_id") %>%
+  left_join(viirs_snpp, by = c("cell_id", "year", "confidence")) %>%
+  mutate(value = replace_na(value, 0)) %>%
+  # low confidence = sum of low + nominal + high, nominal conf = nominal + high
+  group_by(cell_id, year) %>%
+  mutate(value = cumsum(value)) %>%
+  ungroup() %>%
+  mutate(
+    variable = case_match(
+      confidence,
+      "h" ~ "viirs_fire_hc_occ_1year",
+      "n" ~ "viirs_fire_nc_occ_1year",
+      "l" ~ "viirs_fire_lc_occ_1year"
+    ),
+    date = as.Date(paste0(year,"-01-01"))
+  ) %>%
+  select(cell_id, x, y, date, variable, year, value)
+
+# Write to parquet
+arrow::write_dataset(
+  viirs_final,
+  path = paste0("s3://projet-betsaka/", s3_output),
+  format = "parquet",
+  partitioning = c("variable", "year"),
+  existing_data_behavior = "overwrite"
+)
+
+metadata <- readRDS("data/output/metadata.rds")
+metadata[["viirs_fire_lc_occ_1year"]]$Description <- "Number of yearly fires - Low confidence"
+metadata[["viirs_fire_nc_occ_1year"]]$Description <- "Number of yearly fires - Nominal confidence"
+metadata[["viirs_fire_hc_occ_1year"]]$Description <- "Number of yearly fires - High confidence"
+metadata[["viirs_fire_lc_occ_1year"]]$source <- "VIIRS 375 m (S-NPP) - FIRMS"
+metadata[["viirs_fire_nc_occ_1year"]]$source <- "VIIRS 375 m (S-NPP) - FIRMS"
+metadata[["viirs_fire_hc_occ_1year"]]$source <- "VIIRS 375 m (S-NPP) - FIRMS"
+saveRDS(metadata, "data/output/metadata.rds")
+put_to_s3(
+  from = "data/output/metadata.rds",
+  to = "PA_impacts_fires/data/output/metadata.rds"
+)
+````
+
+
+## Forest cover in 2000
+
+Here we process static forest cover data for 2000 from Global Forest Watch, available on three tiles for Madagascar. We aggregate them on the reference grid using mean of tree cover in each grid cell.
+
+```{r}
+#| label: extract hansen 2000 to parquet
+
+# load grid
+grid <- readRDS("./data/source/modis_ref_grid.rds")
+
+hansen_files <- get_bucket_df(
+  bucket = "projet-betsaka",
+  prefix = paste0(s3_source, "/gfw_treecover/"),
+  region = "",
+  max = Inf
+)
+
+# Load and combine hansen tiles
+hansen_data <- lapply(
+    X = paste0("/vsis3/projet-betsaka/", hansen_files$Key),
+    FUN = rast
+  ) %>%
+  sprc() %>%
+  mosaic()
+names(hansen_data) <- "treecover2000"
+
+# Extract data to grid
+hansen_grid <- hansen_data %>%
+  exact_extract(
+    st_as_sf(grid), fun = "mean", append_cols = c("cell_id", "x", "y")
+  ) %>%
+  mutate(
+    # express in million and convert in integer
+    value = as.integer(round(mean*1e6)),
+    variable = "treecover2000",
+    date = as.Date("2000-01-01"),
+    year = 2000L
+  ) %>%
+  select(cell_id, x, y, date, variable, year, value)
+
+# Write to parquet
+arrow::write_dataset(
+  hansen_grid,
+  path = paste0("s3://projet-betsaka/", s3_output),
+  format = "parquet",
+  partitioning = c("variable", "year"),
+  existing_data_behavior = "overwrite"
+)
+
+# add metadata
+metadata <- readRDS("data/output/metadata.rds")
+metadata[["treecover2000"]]$Description <- "Tree cover in 2000"
+metadata[["treecover2000"]]$unit <- "Tree cover percentage multiply by 1 million"
+metadata[["treecover2000"]]$source <- "Hansen Global Forest Change data (Hansen et al, 2013)"
+saveRDS(metadata, "data/output/metadata.rds")
+put_to_s3(
+  from = "data/output/metadata.rds",
+  to = "PA_impacts_fires/data/output/metadata.rds"
+)
+```
+
+
+## Administratives unit
+
+We associate to each cell the administrative unit (GADM level 2) with the highest covering of the cell.
+This is done by converting admin polygon in a very-high resolution vector which is the extracted on the grid according to the highest covering.
+
+```{r}
+# Load grid
+grid <- readRDS("./data/source/modis_ref_grid.rds")
+
+# Vector admin
+unzip("data/source/admin_boundary/mdg_adm_bngrc_ocha_20181031_shp.zip", exdir = "data/mdg_adm/")
+admin_vect <- vect("data/mdg_adm/mdg_admbnda_adm2_BNGRC_OCHA_20181031.shp") %>%
+  # Recode: "MG11101001A" -> 11101001 (integer)
+  mutate(ADM2_ID = as.integer(parse_number(as.character(ADM2_PCODE)))) %>%
+  rasterize(rast(., ncols=10000, nrows=10000), field = "ADM2_ID")
+
+# Extract Admin id to grid
+admin_grid <- admin_vect %>%
+  exact_extract(
+    st_as_sf(grid), fun = "mode", append_cols = c("cell_id", "x", "y")
+  ) %>%
+  rename(value = mode) %>%
+  mutate(
+    date     = as.Date("2018-01-01"),
+    variable = "ADM2_PCODE",
+    year     = 2018L
+  ) %>%
+  select(cell_id, x, y, date, variable, year, value)
+
+# Export to s3
+arrow::write_dataset(
+  admin_grid,
+  path = paste0("s3://projet-betsaka/", s3_output),
+  format = "parquet",
+  partitioning = c("variable", "year"),
+  existing_data_behavior = "overwrite"
+)
+
+# add metadata
+metadata <- readRDS("data/output/metadata.rds")
+metadata[["ADM2_PCODE"]]$Description <- "Admin unit code level 2"
+metadata[["ADM2_PCODE"]]$source <- "Madagascar National Disaster Management Office (BNGRC)"
+saveRDS(metadata, "data/output/metadata.rds")
+put_to_s3(
+  from = "data/output/metadata.rds",
+  to = "PA_impacts_fires/data/output/metadata.rds"
+)
+
+```
+
+
+## Biomes
+
+File download from https://www.worldwildlife.org/publications/terrestrial-ecoregions-of-the-world
+
+```{r}
+### Load grid
+grid <- readRDS("./data/source/modis_ref_grid.rds")
+
+# WWF's Terrestrial Ecoregions of the World (TEOW) product identifies 7 distinct ecoregion types in Madagascar:
+
+  # -   dry deciduous forests
+  # -   ericoid thickets
+  # -   lowland forests
+  # -   mangroves
+  # -   spiny thickets
+  # -   subhumid forests
+  # -   succulent woodlands
+
+# And 5 distinct biome types:
+
+  # -   tropical & subtropical moist broadleaf forests = 1
+  # -   tropical & subtropical dry broadleaf forests = 2
+  # -   montane grasslands & shrublands = 10
+  # -   deserts & xeric shrublands = 13
+  # -   mangroves = 14
+
+
+# Unzip
+dest_file <- "data/source/teow_data/6kcchn7e3u_official_teow.zip"
+unzip(dest_file, exdir = "data/teow")
+teow <- vect("data/teow/official/wwf_terr_ecos.shp") %>%
+  # keep only Madagascar
+  crop(ext(grid)+1) %>%
+  rasterize(rast(., ncols=10000, nrows=10000), field = "BIOME")
+
+# Extract biome id to grid
+biome_grid <- teow %>%
+  exact_extract(
+    st_as_sf(grid), fun = "mode", append_cols = c("cell_id", "x", "y")
+  ) %>%
+  mutate(
+    date = as.Date("2000-01-01"),
+    year = 2000L,
+    variable = "biome_code",
+    value = as.integer(mode)
+  ) %>%
+  select(cell_id, x, y, date, variable, year, value)
+
+
+# Export to s3
+arrow::write_dataset(
+  biome_grid,
+  path = paste0("s3://projet-betsaka/", s3_output),
+  format = "parquet",
+  partitioning = c("variable", "year"),
+  existing_data_behavior = "overwrite"
+)
+
+
+# Visualization of data
+tm_shape(teow) +
+  tm_raster(col = "BIOME", title = "Ecoregion", palette = "Set3") +
+  tm_layout(title = "Terrestrial Ecoregions of Madagascar")
+
+
+
+# set metadata
+metadata <- readRDS("data/output/metadata.rds")
+metadata[["biome_code"]]$Description <- "Most present biome in grid cell"
+metadata[["biome_code"]]$codebook <- data.frame(
+  level = c(1, 2, 10, 13, 14),
+  label =c(
+    "Tropical & subtropical moist broadleaf forests",
+    "Tropical & subtropical dry broadleaf forests",
+    "Montane grasslands & shrublands",
+    "Deserts & xeric shrublands",
+    "Mangroves"
+))
+metadata[["biome_code"]]$source <- "WWF's Terrestrial Ecoregions of the World (TEOW)"
+saveRDS(metadata, "data/output/metadata.rds")
+put_to_s3(
+  from = "data/output/metadata.rds",
+  to = "PA_impacts_fires/data/output/metadata.rds"
+)
+```
+
+
+## Elevation and slope
+
+
+### Elevation
+
+```{r}
+# Load grid
+grid <- readRDS("./data/source/modis_ref_grid.rds")
+
+# Load nasa srtm data from the bucket
+srtm_files <- get_bucket_df(
+    bucket = "projet-betsaka",
+    prefix = paste0(s3_source, "/nasa_srtm"),
+    region = "",
+    max = Inf
+  ) %>%
+  dplyr::filter(str_ends(Key, "\\.tif")) # keep only tif
+
+# Load and combine elevation tiles
+strm_data <- pblapply(
+    X = paste0("/vsis3/projet-betsaka/", srtm_files$Key),
+    FUN = rast
+  ) %>%
+  sprc() %>%
+  mosaic(fun = "mean")
+
+# Extract data to grid
+strm_grid <- strm_data %>%
+  exact_extract(
+    st_as_sf(grid), fun = "mean", append_cols = c("cell_id", "x", "y")
+  ) %>%
+  mutate(
+    variable = "elevation_fb_average",
+    date = as.Date("2000-01-01"),
+    year = 2000L,
+    value = as.integer(round(mean))
+  ) %>%
+  select(cell_id, x, y, date, variable, year, value)
+
+# Export parquet
+arrow::write_dataset(
+  strm_grid,
+  path = paste0("s3://projet-betsaka/", s3_output),
+  format = "parquet",
+  partitioning = c("variable", "year"),
+  existing_data_behavior = "overwrite"
+)
+
+# add metadata
+metadata <- readRDS("data/output/metadata.rds")
+metadata[["elevation_fb_average"]]$Description <- "Mean elevation of the grid cell"
+metadata[["elevation_fb_average"]]$unit <- "Meter"
+metadata[["elevation_fb_average"]]$source <- "NASA SRTM data"
+saveRDS(metadata, "data/output/metadata.rds")
+put_to_s3(
+  from = "data/output/metadata.rds",
+  to = "PA_impacts_fires/data/output/metadata.rds"
+)
+```
+
+### Slope
+
+```{r}
+# Compute the slope (in degree) from elevation data
+slope_data <- terrain(strm_data, v = "slope", unit = "degrees")
+
+# Conversion au format long
+# Extract data to grid
+slope_grid <- slope_data %>%
+  exact_extract(
+    st_as_sf(grid), fun = "mean", append_cols = c("cell_id", "x", "y")
+  ) %>%
+  mutate(
+    variable = "slope_fb_average",
+    date = as.Date("2000-01-01"),
+    year = 2000L,
+    value = as.integer(round(mean))
+  ) %>%
+  select(cell_id, x, y, date, variable, year, value)
+
+# Export parquet
+arrow::write_dataset(
+  slope_grid,
+  path = paste0("s3://projet-betsaka/", s3_output),
+  format = "parquet",
+  partitioning = c("variable", "year"),
+  existing_data_behavior = "overwrite"
+)
+
+# set metadata
+metadata <- readRDS("data/output/metadata.rds")
+metadata[["slope_fb_average"]]$Description <- "Mean slope of the grid cell"
+metadata[["slope_fb_average"]]$unit <- "Degree"
+metadata[["slope_fb_average"]]$source <- "NASA SRTM data"
+saveRDS(metadata, "data/output/metadata.rds")
+put_to_s3(
+  from = "data/output/metadata.rds",
+  to = "PA_impacts_fires/data/output/metadata.rds"
+)
+```
+
+## Travel time from 50k city (Nelson et al, reference year: 2000)
+
+```{r}
+# Load grid
+grid <- readRDS("./data/source/modis_ref_grid.rds")
+
+# Load Nelson et al data
+nelson_file <- rast(paste0("/vsis3/projet-betsaka/", s3_source, "/accessibility_2000/acc_50k.tif"))
+
+# Crop on grid extent + 1
+access_data <- nelson_file %>%
+  crop(ext(grid)+1) %>%
+  ### Use gausian matrix to fill missing values (interpolation near coast)
+  focal(
+    w=focalMat(., 2, "Gauss"), fun=mean,
+    na.policy="only", na.rm=F, expand = TRUE
+  )
+
+access_grid <- access_data %>%
+  exact_extract(
+    st_as_sf(grid), fun = "mean", append_cols = c("cell_id", "x", "y")
+  ) %>%
+  mutate(
+    variable = "access_time",
+    date = as.Date("2000-01-01"),
+    year = 2000L,
+    value = as.integer(round(mean))
+  ) %>%
+  select(cell_id, x, y, date, variable, year, value)
+
+
+# Export parquet
+arrow::write_dataset(
+  access_grid,
+  path = paste0("s3://projet-betsaka/", s3_output),
+  format = "parquet",
+  partitioning = c("variable", "year"),
+  existing_data_behavior = "overwrite"
+)
+
+# set metadata
+metadata <- readRDS("data/output/metadata.rds")
+metadata[["access_time"]]$Description <- "Travel time to nearest city"
+metadata[["access_time"]]$unit <- "minutes"
+metadata[["access_time"]]$source <- "Nelson, A. (2008) Estimated travel time to the nearest city of 50,000 or more people in year 2000. Global Environment Monitoring Unit - Joint Research Centre of the European Commission, Ispra Italy."
+metadata[["access_time"]]$link <- "https://forobs.jrc.ec.europa.eu/data/products/gam/access_50k.zip"
+saveRDS(metadata, "data/output/metadata.rds")
+put_to_s3(
+  from = "data/output/metadata.rds",
+  to = "PA_impacts_fires/data/output/metadata.rds"
+)
+```
+
+## Population density
+
+```{r}
+# Load grid
+grid <- readRDS("./data/source/modis_ref_grid.rds")
+
+# Load data from the bucket
+pop_data <- rast(paste0("/vsis3/projet-betsaka/", s3_source, "/worldpop/mdg_ppp_2000.tif"))
+
+pop_grid <- pop_data %>%
+  exact_extract(
+    st_as_sf(grid), fun = "sum", default_value = 0,
+    append_cols = c("cell_id", "x", "y")
+  ) %>%
+  mutate(
+    variable = "pop_km2",
+    date = as.Date("2000-01-01"),
+    year = 2000L,
+    value = as.integer(round(sum / expanse(grid, unit="km")))
+  ) %>%
+  select(cell_id, x, y, date, variable, year, value)
+
+# Export parquet
+arrow::write_dataset(
+  pop_grid,
+  path = paste0("s3://projet-betsaka/", s3_output),
+  format = "parquet",
+  partitioning = c("variable", "year"),
+  existing_data_behavior = "overwrite"
+)
+
+# set metadata
+metadata <- readRDS("data/output/metadata.rds")
+metadata[["pop_km2"]]$Description <- "Population density by grid cell in 2000"
+metadata[["pop_km2"]]$unit <- "Habitants by kilometer square"
+metadata[["pop_km2"]]$source <- "WorldPop - Unconstrained 2000-2020 (100m resolution)"
+metadata[["pop_km2"]]$link <- "https://hub.worldpop.org/geodata/summary?id=24757"
+saveRDS(metadata, "data/output/metadata.rds")
+put_to_s3(
+  from = "data/output/metadata.rds",
+  to = "PA_impacts_fires/data/output/metadata.rds"
+)
+```
+
+
+## Land cover data
+
+### GLAD data on land cover
+
+```{r}
+# Load grid
+grid <- readRDS("./data/source/modis_ref_grid.rds")
+# Load data from the bucket
+glad_files <- get_bucket_df(
+  bucket = "projet-betsaka",
+  prefix = paste0(s3_source, "/GLAD_landcover/"),
+  region = "",
+  max = Inf
+)
+
+# Load and combine glad tiles
+# loop for all year
+for (year in seq(2000, 2020, 5)) {
+
+  message(paste("Processing Year:", year))
+
+  glad_files_year <- glad_files$Key[str_detect(glad_files$Key, paste0("GLAD_Landcover_", year))]
+
+  # reclassify values and merge tiles
+  glad_data <- vrt(paste0("/vsis3/projet-betsaka/", glad_files_year)) %>%
+    classify(
+      rcl = rbind(
+        c(0,1,1), # terra - desert
+        c(2,18,2), # terra - semi-arid
+        c(19,24,3), # terra - dense short vegetation
+        c(25,48,4), # terra - tree cover
+        c(100,101,5), # wetland - salt pan
+        c(102,118,6), # wetland - sparse vegetation
+        c(119,124,7), # wetland - dense short vegetation
+        c(125,148,8), # wetland - tree cover
+        c(200,207,9), # open surface water
+        c(241,241,10), # snow/ice
+        c(244,244,11), # cropland
+        c(250,250,12), # built-up
+        c(254,254,13), # ocean
+        c(255,255,14) # no data
+      ), right = NA, others = 14
+    )
+
+  # Extract data to grid
+  glad_grid <- glad_data %>%
+    exact_extract(
+      st_as_sf(grid),
+      fun = function(df) {
+        options("dplyr.summarise.inform" = FALSE)
+        df %>%
+          mutate(frac_total = coverage_fraction / sum(coverage_fraction)) %>%
+          group_by(cell_id, value) %>%
+          summarize(freq = sum(frac_total))
+      },
+      summarize_df = TRUE, include_cols = c("cell_id"), progress = TRUE
+    ) %>%
+    ungroup()
+
+  # write final data in parquet
+  glad_final <- glad_grid %>%
+    # fill with 0 category that does not appear
+    complete(cell_id, value, fill = list(freq = 0)) %>%
+    mutate(
+      variable = case_match(
+        value,
+        1  ~ "glad_desert_share",
+        2  ~ "glad_semiarid_share",
+        3  ~ "glad_dense_short_veget_share",
+        4  ~ "glad_tree_cover_share",
+        5  ~ "glad_saltpan_share",
+        6  ~ "glad_wet_sparse_veget_share",
+        7  ~ "glad_wet_dense_short_veget_share",
+        8  ~ "glad_wet_tree_cover_share",
+        9  ~ "glad_open_surf_water_share",
+        10 ~ "glad_snow_ice_share",
+        11 ~ "glad_cropland_share",
+        12 ~ "glad_builtup_share",
+        13 ~ "glad_ocean_share",
+        14 ~ "glad_nodata_share"
+      ),
+      year = as.integer(year),
+      value = as.integer(round(freq*1e6))
+    ) %>%
+    select(cell_id, variable, year, value)
+
+  # Write to parquet
+  arrow::write_dataset(
+    glad_final,
+    path = paste0("s3://projet-betsaka/", s3_output),
+    format = "parquet",
+    partitioning = c("variable", "year"),
+    existing_data_behavior = "overwrite"
+  )
+
+  message(paste("Done for year", year))
+  rm(glad_data, glad_grid, glad_final)
+}
+
+# metadata
+metadata <- readRDS("data/output/metadata.rds")
+meta <- list(
+      variable = c(
+        "glad_desert_share", "glad_semiarid_share", "glad_dense_short_veget_share",
+        "glad_tree_cover_share", "glad_saltpan_share", "glad_wet_sparse_veget_share",
+        "glad_wet_dense_short_veget_share", "glad_wet_tree_cover_share",
+        "glad_open_surf_water_share", "glad_snow_ice_share", "glad_cropland_share",
+        "glad_builtup_share", "glad_ocean_share", "glad_nodata_share"
+      ),
+      Description = c(
+        "Share of desert (GLAD)",
+        "Share of semi-arid land (GLAD)",
+        "Share of dense short veg (GLAD)",
+        "Share of tree cover land (GLAD)",
+        "Share of salt pan land (GLAD)",
+        "Share of sparse veg wetland (GLAD)",
+        "Share of dense short veg wetland (GLAD)",
+        "Share of tree cover wetland (GLAD)",
+        "Share of open surf water land (GLAD)",
+        "Share of snow/ice land (GLAD)",
+        "Share of cropland (GLAD)",
+        "Share of built-up (GLAD)",
+        "Share of ocean (GLAD)",
+        "Share of no data (GLAD)"
+      ),
+      unit = rep("Cell's share multiply by 1 million", 14),
+      source = rep("GLAD Land Cover data", 14)
+    )
+for (i in 1:14) {
+  metadata[[meta$variable[i]]] <- list(
+    Description = meta$Description[i],
+    unit = meta$unit[i],
+    source = meta$source[i]
+  )
+}
+saveRDS(metadata, "data/output/metadata.rds")
+put_to_s3(
+  from = "data/output/metadata.rds",
+  to = "PA_impacts_fires/data/output/metadata.rds"
+)
+
+```
+
+
+### World settlement footprint evolution (WSF)
+```{r}
+#| label: extract settlment footprint share by year
+
+# load grid
+grid <- readRDS("./data/source/modis_ref_grid.rds")
+
+wsf_files <- get_bucket_df(
+  bucket = "projet-betsaka",
+  prefix = paste0(s3_source, "/WSF_EVO/"),
+  region = "",
+  max = Inf
+)
+
+# Load and combine hansen tiles
+wsf_data <- lapply(
+    X = paste0("/vsis3/projet-betsaka/", wsf_files$Key),
+    FUN = rast
+  ) %>%
+  sprc() %>%
+  mosaic()
+
+# Extract data to grid
+wsf_grid <- wsf_data %>%
+  exact_extract(
+    st_as_sf(grid),
+    fun = function(df) {
+      options("dplyr.summarise.inform" = FALSE)
+      df %>%
+        mutate(frac_total = coverage_fraction / sum(coverage_fraction)) %>%
+        group_by(cell_id, value) %>%
+        summarize(freq = sum(frac_total))
+    },
+    summarize_df = TRUE, include_cols = c("cell_id"), progress = TRUE
+  )
+
+
+wsf_final <- expand.grid(
+    year = 1985:2020, cell_id = grid$cell_id
+  ) %>%
+  left_join(wsf_grid, by = c("cell_id", "year" = "value")) %>%
+  mutate(freq = replace_na(freq, 0)) %>%
+  group_by(cell_id) %>%
+  mutate(freq = cumsum(freq)) %>%
+  ungroup() %>%
+  mutate(
+    variable = "settlement_footprint_share",
+    year = as.integer(year),
+    value = as.integer(round(freq*1e6))
+  ) %>%
+  select(cell_id, variable, year, value)
+
+# Write to parquet
+arrow::write_dataset(
+  wsf_final,
+  path = paste0("s3://projet-betsaka/", s3_output),
+  format = "parquet",
+  partitioning = c("variable", "year"),
+  existing_data_behavior = "overwrite"
+)
+
+# set metadata
+metadata <- readRDS("data/output/metadata.rds")
+metadata[["settlement_footprint_share"]]$Description <- "Share of human settlements"
+metadata[["settlement_footprint_share"]]$unit <- "Cell's settlement share multiply by 1 million"
+metadata[["settlement_footprint_share"]]$source <- "World settlement footprint evolution (WSF)"
+saveRDS(metadata, "data/output/metadata.rds")
+put_to_s3(
+  from = "data/output/metadata.rds",
+  to = "PA_impacts_fires/data/output/metadata.rds"
+)
+```
+
+## Protected areas
+
+Compute treament variables based on protected areas polygons.
+Protected areas polygons came from: `mad_clean_wdpa.gpkg` download with the wdpar package.
+
+The variables created are:
+- WDPAID_{touch|include|5km|10km|20km}: ID of protected areas.
+- IUCN_{touch|include|5km|10km|20km}: IUCN status of protected areas.
+
+include = cell strictly inside PA
+touch = cell strictly inside or on the border of PA
+5km|10km|20km = touch the buffer of corresponding distance of the PA
+
+The two variables are constructed in a staggered design from 2000 to 2024. When several PA are recovering a cell, the oldest one is kept.
+
+
+```{r}
+### load grid
+grid_sf <- readRDS("./data/source/modis_ref_grid.rds") %>%
+  st_as_sf()
+
+# The wdpar package cannot be used on the cloud because it requires access to Chrome or a Chromium browser.
+# We create a separate script (wdpa_download.R) for local execution and manually upload the WDPA database to S3.
+
+### Add data from legal texts
+# legal_texts <- readRDS("./data/source/WDPA_data/legal_texts.rds") %>%
+#   mutate(year_decret = year(date_texte), year_decret_jo = year(date_jo)) %>%
+#   select(WDPAID, year_decret, year_decret_jo) %>%
+#   group_by(WDPAID) %>%
+#   summarise(year_decret = min(year_decret), year_decret_jo = min(year_decret_jo))
+
+### We build a database of status year corrected
+status_yr_cor <- read.csv("./data/source/WDPA_data/wdpaid_stausyr_harmonized.csv") %>%
+  select(WDPAID, STATUS_YR) %>%
+  rename(STATUS_YR_DEC = STATUS_YR)
+
+# Load data frl
+mad_clean_wdpa <- vect(paste0("/vsis3/projet-betsaka/", s3_source, "/WDPA_data/mad_clean_wdpa.gpkg")) %>%
+  dplyr::filter(STATUS %in% c("Designated", "Inscribed", "Established") & REALM != "Marine") %>%
+  rename(WDPAID = SITE_PID) %>%
+  # "Complexe des  AP Ambohimirahavavy Marivorahona" does not have a STATUS_YR, we set it to 2015 as per WDPA website: https://protectedareas.mg/fr/landscape/show/79?geoShapeFilterField=location&location=48.727807188419%2C-14.2119746670021%2C49.0930733591917%2C-14.2119746670021%2C49.0930733591917%2C-13.734131335043%2C48.727807188419%2C-13.734131335043%2C48.727807188419%2C-14.2119746670021&max=8&mediaFilter=no_of_images%2Cno_of_videos%2Cno_of_audio&offset=0&sort=created_on&view=stats
+  mutate(
+    STATUS_YR = as.integer(ifelse(WDPAID == 555697871, 2015, STATUS_YR)),
+    WDPAID = as.integer(WDPAID),
+    IUCN = recode(
+      IUCN_CAT,
+      "Ia" = 1L, "Ib" = 2L, "II" = 3L,
+      "III" = 4L, "IV" = 5L, "V" = 6L, "VI" = 7L,
+      "Not Reported" = NA_integer_,
+      "Not Applicable" = NA_integer_,
+      .default = NA_integer_
+  )) %>%
+  st_as_sf() %>%
+  st_make_valid() %>%
+  # join status year base on decree and compute min
+  # left_join(legal_texts, by = "WDPAID") %>%
+  left_join(status_yr_cor, by = "WDPAID") %>%
+  # mutate(STATUS_YR_DEC = pmin(STATUS_YR, year_decret, year_decret_jo, na.rm = TRUE)) %>%
+  ### arrange by year, to then keep the first status year
+  # arrange(STATUS_YR, STATUS_YR_DEC)
+  arrange(STATUS_YR_DEC)
+
+# visual control with tmap
+# tm_shape(mad_clean_wdpa) +
+#   tm_borders() +
+#   tm_fill("IUCN_CAT", fill.legend = tm_legend(title = "Catégorie IUCN"))
+
+# Helper functions (vectorized)
+first_or_na <- function(lst, values) {
+  na_value <- values[NA_integer_][1]  # preserves type of 'values'
+  vapply(lst, function(i) if (length(i)) values[i[1]] else na_value, na_value)
+}
+
+# Compute intersections
+intersects_wdpa <- st_intersects(grid_sf, mad_clean_wdpa)
+within_wdpa <- st_within(grid_sf, mad_clean_wdpa)
+intersects_wdpa5km <- st_intersects(grid_sf, st_buffer(mad_clean_wdpa, 5000))
+intersects_wdpa10km <- st_intersects(grid_sf, st_buffer(mad_clean_wdpa, 10000))
+intersects_wdpa20km <- st_intersects(grid_sf, st_buffer(mad_clean_wdpa, 20000))
+
+
+treatment_status <- grid_sf %>%
+  st_drop_geometry() %>%
+  mutate(
+    WDPAID_touch = first_or_na(intersects_wdpa, mad_clean_wdpa$WDPAID),
+    WDPAID_include = first_or_na(within_wdpa, mad_clean_wdpa$WDPAID),
+    WDPAID_5km    = first_or_na(intersects_wdpa5km, mad_clean_wdpa$WDPAID),
+    WDPAID_10km   = first_or_na(intersects_wdpa10km, mad_clean_wdpa$WDPAID),
+    WDPAID_20km   = first_or_na(intersects_wdpa20km, mad_clean_wdpa$WDPAID),
+
+    IUCN_touch = first_or_na(intersects_wdpa, mad_clean_wdpa$IUCN),
+    IUCN_include = first_or_na(within_wdpa, mad_clean_wdpa$IUCN),
+    IUCN_5km    = first_or_na(intersects_wdpa5km, mad_clean_wdpa$IUCN),
+    IUCN_10km   = first_or_na(intersects_wdpa10km, mad_clean_wdpa$IUCN),
+    IUCN_20km   = first_or_na(intersects_wdpa20km, mad_clean_wdpa$IUCN),
+
+    year_touch = first_or_na(intersects_wdpa, mad_clean_wdpa$STATUS_YR_DEC),
+    year_include = first_or_na(within_wdpa, mad_clean_wdpa$STATUS_YR_DEC),
+    year_5km    = first_or_na(intersects_wdpa5km, mad_clean_wdpa$STATUS_YR_DEC),
+    year_10km   = first_or_na(intersects_wdpa10km, mad_clean_wdpa$STATUS_YR_DEC),
+    year_20km   = first_or_na(intersects_wdpa20km, mad_clean_wdpa$STATUS_YR_DEC),
+
+    yearwdpa_touch = first_or_na(intersects_wdpa, mad_clean_wdpa$STATUS_YR),
+    yearwdpa_include = first_or_na(within_wdpa, mad_clean_wdpa$STATUS_YR),
+    yearwdpa_5km    = first_or_na(intersects_wdpa5km, mad_clean_wdpa$STATUS_YR),
+    yearwdpa_10km   = first_or_na(intersects_wdpa10km, mad_clean_wdpa$STATUS_YR),
+    yearwdpa_20km   = first_or_na(intersects_wdpa20km, mad_clean_wdpa$STATUS_YR)
+  )
+
+grid_treat <- treatment_status %>%
+  select(cell_id, x, y, starts_with(c("WDPAID", "IUCN", "year_", "yearwdpa_"))) %>%
+  pivot_longer(
+    cols = starts_with(c("WDPAID", "IUCN", "year_", "yearwdpa_")),
+    names_to = "variable", values_to = "value"
+  ) %>%
+  mutate(year = 2025L, date = as.Date("2025-07-29"))
+
+### Write the final database
+write_dataset(
+  grid_treat,
+  path = paste0("s3://projet-betsaka/", s3_output),
+  format = "parquet",
+  partitioning = c("variable", "year"),
+  existing_data_behavior = "overwrite"
+)
+
+# set metadata
+metadata <- readRDS("data/output/metadata.rds")
+### WDPAID
+metadata[["WDPAID_touch"]]$Description <- "Unique id of the first PA touching the cell"
+metadata[["WDPAID_touch"]]$source <- "World Database on Protected Areas (WDPA)"
+metadata[["WDPAID_include"]]$Description <- "Unique id of the first PA including the cell"
+metadata[["WDPAID_include"]]$source <- "World Database on Protected Areas (WDPA)"
+metadata[["WDPAID_5km"]]$Description <- "Unique id of the first 5-km buffer of a PA touching the cell"
+metadata[["WDPAID_5km"]]$source <- "World Database on Protected Areas (WDPA)"
+metadata[["WDPAID_10km"]]$Description <- "Unique id of the first 10-km buffer of a PA touching the cell"
+metadata[["WDPAID_10km"]]$source <- "World Database on Protected Areas (WDPA)"
+metadata[["WDPAID_20km"]]$Description <- "Unique id of the first 20-km buffer of a PA touching the cell"
+metadata[["WDPAID_20km"]]$source <- "World Database on Protected Areas (WDPA)"
+### IUCN
+metadata[["IUCN_touch"]]$Description <- "IUCN category of the first PA touching the cell"
+metadata[["IUCN_touch"]]$source <- "World Database on Protected Areas (WDPA)"
+metadata[["IUCN_include"]]$Description <- "IUCN category of the first PA including the cell"
+metadata[["IUCN_include"]]$source <- "World Database on Protected Areas (WDPA)"
+metadata[["IUCN_5km"]]$Description <- "IUCN category of the first 5-km buffer of a PA touching the cell"
+metadata[["IUCN_5km"]]$source <- "World Database on Protected Areas (WDPA)"
+metadata[["IUCN_10km"]]$Description <- "IUCN category of the first 10-km buffer of a PA touching the cell"
+metadata[["IUCN_10km"]]$source <- "World Database on Protected Areas (WDPA)"
+metadata[["IUCN_20km"]]$Description <- "IUCN category of the first 20-km buffer of a PA touching the cell"
+metadata[["IUCN_20km"]]$source <- "World Database on Protected Areas (WDPA)"
+### Year
+metadata[["year_touch"]]$Description <- "Year of establishment of the first PA touching the cell"
+metadata[["year_touch"]]$source <- "Legal documents --- first decree"
+metadata[["year_include"]]$Description <- "Year of establishment of the first PA including the cell"
+metadata[["year_include"]]$source <- "Legal documents --- first decree"
+metadata[["year_5km"]]$Description <- "Year of establishment of the first 5-km buffer of a PA touching the cell"
+metadata[["year_5km"]]$source <- "Legal documents --- first decree"
+metadata[["year_10km"]]$Description <- "Year of establishment of the first 10-km buffer of a PA touching the cell"
+metadata[["year_10km"]]$source <- "Legal documents --- first decree"
+metadata[["year_20km"]]$Description <- "Year of establishment of the first 20-km buffer of a PA touching the cell"
+metadata[["year_20km"]]$source <- "Legal documents --- first decree"
+### Year
+metadata[["yearwdpa_touch"]]$Description <- "Year of establishment of the first PA touching the cell"
+metadata[["yearwdpa_touch"]]$source <- "World Database on Protected Areas (WDPA)"
+metadata[["yearwdpa_include"]]$Description <- "Year of establishment of the first PA including the cell"
+metadata[["yearwdpa_include"]]$source <- "World Database on Protected Areas (WDPA)"
+metadata[["yearwdpa_5km"]]$Description <- "Year of establishment of the first 5-km buffer of a PA touching the cell"
+metadata[["yearwdpa_5km"]]$source <- "World Database on Protected Areas (WDPA)"
+metadata[["yearwdpa_10km"]]$Description <- "Year of establishment of the first 10-km buffer of a PA touching the cell"
+metadata[["yearwdpa_10km"]]$source <- "World Database on Protected Areas (WDPA)"
+metadata[["yearwdpa_20km"]]$Description <- "Year of establishment of the first 20-km buffer of a PA touching the cell"
+metadata[["yearwdpa_20km"]]$source <- "World Database on Protected Areas (WDPA)"
+# save metadata
+saveRDS(metadata, "data/output/metadata.rds")
+put_to_s3(
+  from = "data/output/metadata.rds",
+  to = "PA_impacts_fires/data/output/metadata.rds"
+)
+
+```
+
+
+## Database test
+
+```{r}
+# Load sample from bucket
+ds_fire <- open_dataset(
+  paste0("s3://projet-betsaka/", s3_output),
+  partitioning = c("variable", "year"),
+  format = "parquet"
+)
+
+# check size
+objs <- get_bucket(bucket = "projet-betsaka", prefix = s3_output, region = "")
+print(paste("Parquet size = ", round(sum(sapply(objs, function(x) x$Size)) / 1024^3, digits = 3), "GB"))
+
+```

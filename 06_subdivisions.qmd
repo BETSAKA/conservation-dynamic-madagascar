@@ -1715,13 +1715,985 @@ On observe un léger décallage systématique des données (problème de project
 
 Les données semblent cohérentes. Le Noyau dur est codé : SubZone == "Noyau Dur".
 
+# Données complémentaires (avril 2026)
+
+Les sections qui suivent documentent les données de subdivision reçues en avril 2026. Elles couvrent des zonages internes provenant de différents gestionnaires : MNP, MBG, GERP, Blues Aventures, Planete Urgence et WWF.
+
+## MNP (données combinées, 43 AP)
+
+Le fichier fourni par Madagascar National Parks contient les zonages internes de 43 AP dans un seul shapefile, avec les colonnes `AP` (nom de l'AP) et `ZONAGE` (type de zone : Noyau Dur, Zone Tampon, Zone de Protection).
+
+```{r}
+sub_mnp <- st_read(
+  "data/subdivisions/MNP/Pg_zonage_AP_MNP_20190312_lab.shp",
+  quiet = TRUE
+) |>
+  st_set_crs(29702) |>
+  st_make_valid()
+
+sub_mnp |>
+  st_drop_geometry() |>
+  count(AP, ZONAGE) |>
+  pivot_wider(names_from = ZONAGE, values_from = n, values_fill = 0)
+```
+
+A titre illustratif, on visualise les zonages MNP pour le Parc National de Ranomafana superposés aux données WDPA.
+
+```{r}
+wdpa_ranomafana <- wdpa_mdg |>
+  filter(str_detect(NAME, regex("Ranomafana", ignore_case = TRUE)))
+
+sub_mnp_ranomafana <- sub_mnp |>
+  filter(AP == "Ranomafana") |>
+  st_transform(st_crs(wdpa_ranomafana))
+
+tm_shape(wdpa_ranomafana) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(sub_mnp_ranomafana) +
+  tm_polygons(fill = "ZONAGE", fill_alpha = 0.5) +
+  tm_add_legend(
+    type = "lines",
+    labels = c("WDPA"),
+    col = c("red")
+  )
+```
+
+Les périmètres MNP sont globalement bien alignés avec WDPA. Le fichier est en projection Laborde (EPSG:29702). Les 43 AP couvertes comprennent l'ensemble du réseau géré par MNP. Les noyaux durs sont codés `ZONAGE == "Noyau Dur"`.
+
+## Agnalazaha
+
+```{r}
+list.files("data/subdivisions/Agnalazaha", pattern = "\\.shp") |>
+  cat(sep = "\n")
+```
+
+```{r}
+wdpa_agnalazaha <- wdpa_mdg |>
+  filter(str_detect(NAME, regex("Agnalazaha", ignore_case = TRUE)))
+
+sub_agnalazaha_nap <- st_read(
+  "data/subdivisions/Agnalazaha/nap_agnalazaha.shp",
+  quiet = TRUE
+) |>
+  st_set_crs(29702) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_agnalazaha))
+
+sub_agnalazaha_zpc <- st_read(
+  "data/subdivisions/Agnalazaha/agnalazaha_zone_prioritaire_conservation.shp",
+  quiet = TRUE
+) |>
+  st_set_crs(29702) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_agnalazaha))
+
+tm_shape(wdpa_agnalazaha) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(sub_agnalazaha_nap) +
+  tm_borders(col = "blue") +
+  tm_shape(sub_agnalazaha_zpc) +
+  tm_polygons(fill = "green", fill_alpha = 0.5) +
+  tm_add_legend(
+    type = "lines",
+    labels = c("WDPA", "Limite NAP"),
+    col = c("red", "blue")
+  ) +
+  tm_add_legend(
+    type = "fill",
+    labels = c("Zone prioritaire conservation"),
+    col = c("lightgreen")
+  )
+```
+
+Données MBG. Le périmètre NAP et la zone prioritaire de conservation sont disponibles. On assimile la zone prioritaire de conservation au noyau dur.
+
+## Ambalabe Vohibe
+
+```{r}
+list.files("data/subdivisions/Ambalabe Vohibe", pattern = "\\.shp") |>
+  cat(sep = "\n")
+```
+
+```{r}
+# Ambalabe Vohibe est situe dans le Corridor Ankeniheny Zahamena (CAZ)
+wdpa_ambalabe <- wdpa_mdg |>
+  filter(WDPAID == 352256)
+
+sub_ambalabe_nap <- st_read(
+  "data/subdivisions/Ambalabe Vohibe/NAP ambalabe.shp",
+  quiet = TRUE
+) |>
+  st_set_crs(4326) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_ambalabe))
+
+sub_ambalabe_droit <- st_read(
+  "data/subdivisions/Ambalabe Vohibe/zone de droit d'usage.shp",
+  quiet = TRUE
+) |>
+  st_set_crs(4326) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_ambalabe))
+
+sub_ambalabe_eco <- st_read(
+  "data/subdivisions/Ambalabe Vohibe/zone ecotouristique.shp",
+  quiet = TRUE
+) |>
+  st_set_crs(4326) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_ambalabe))
+
+tm_shape(wdpa_ambalabe) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(sub_ambalabe_nap) +
+  tm_borders(col = "blue") +
+  tm_shape(sub_ambalabe_droit) +
+  tm_borders(col = "orange") +
+  tm_shape(sub_ambalabe_eco) +
+  tm_borders(col = "purple") +
+  tm_add_legend(
+    type = "lines",
+    labels = c(
+      "WDPA (CAZ)",
+      "Limite NAP",
+      "Zone droit usage",
+      "Zone ecotouristique"
+    ),
+    col = c("red", "blue", "orange", "purple")
+  )
+```
+
+Données MBG. Ambalabe Vohibe se situe dans le Corridor Ankeniheny Zahamena (CAZ, WDPAID 352256) : 97,3 % de sa superficie tombe dans le périmètre du corridor. Le périmètre NAP est disponible avec des zones fonctionnelles (droit d'usage, écotouristique). Pas de noyau dur explicitement nommé. Les coordonnées sont en WGS84.
+
+## Amoron'i Onilahy
+
+```{r}
+list.files("data/subdivisions/Amoron i Onilahy", pattern = "\\.shp") |>
+  cat(sep = "\n")
+```
+
+```{r}
+wdpa_onilahy <- wdpa_mdg |>
+  filter(str_detect(NAME, regex("Onilahy|Amoron", ignore_case = TRUE)))
+
+sub_onilahy_nd <- st_read(
+  "data/subdivisions/Amoron i Onilahy/amoron_i_onilahy_V_ND.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_onilahy))
+
+sub_onilahy_zoc <- st_read(
+  "data/subdivisions/Amoron i Onilahy/amoron_i_onilahy_V_ZOC.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_onilahy))
+
+sub_onilahy_zud <- st_read(
+  "data/subdivisions/Amoron i Onilahy/amoron_i_onilahy_V_zud.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_onilahy))
+
+sub_onilahy_restauration <- st_read(
+  "data/subdivisions/Amoron i Onilahy/amoron_i_onilahy_V_restauration.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_onilahy))
+
+sub_onilahy_paturage <- st_read(
+  "data/subdivisions/Amoron i Onilahy/amoron_i_onilahy_V_paturage.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_onilahy))
+
+sub_onilahy_service <- st_read(
+  "data/subdivisions/Amoron i Onilahy/amoron_i_onilahy_V_zone_service.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_onilahy))
+
+sub_onilahy_misdefen <- st_read(
+  "data/subdivisions/Amoron i Onilahy/amoron_i_onilahy_V_mis_defen.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_onilahy))
+
+tm_shape(wdpa_onilahy) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(sub_onilahy_nd) +
+  tm_polygons(fill = "green", fill_alpha = 0.6, col = "darkgreen") +
+  tm_shape(sub_onilahy_zoc) +
+  tm_borders(col = "purple") +
+  tm_shape(sub_onilahy_zud) +
+  tm_borders(col = "orange") +
+  tm_shape(sub_onilahy_restauration) +
+  tm_borders(col = "blue") +
+  tm_shape(sub_onilahy_paturage) +
+  tm_borders(col = "brown") +
+  tm_shape(sub_onilahy_service) +
+  tm_borders(col = "yellow") +
+  tm_shape(sub_onilahy_misdefen) +
+  tm_borders(col = "cyan") +
+  tm_add_legend(
+    type = "lines",
+    labels = c(
+      "WDPA",
+      "ZOC",
+      "ZUD",
+      "Restauration",
+      "Paturage",
+      "Service",
+      "Mise en defens"
+    ),
+    col = c("red", "purple", "orange", "blue", "brown", "yellow", "cyan")
+  ) +
+  tm_add_legend(
+    type = "fill",
+    labels = c("Noyau dur"),
+    col = c("lightgreen")
+  )
+```
+
+Données WWF. Le zonage est détaillé avec 7 couches dont un noyau dur exploitable.
+
+## Analavelona
+
+```{r}
+list.files("data/subdivisions/Analavelona", pattern = "\\.shp") |>
+  cat(sep = "\n")
+```
+
+```{r}
+wdpa_analavelona <- wdpa_mdg |>
+  filter(str_detect(NAME, regex("Analavelona", ignore_case = TRUE)))
+
+sub_analavelona_nap <- st_read(
+  "data/subdivisions/Analavelona/nap_analavelona.shp",
+  quiet = TRUE
+) |>
+  st_set_crs(29702) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_analavelona))
+
+sub_analavelona_nd <- st_read(
+  "data/subdivisions/Analavelona/nd_analavelona.shp",
+  quiet = TRUE
+) |>
+  st_set_crs(29702) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_analavelona))
+
+tm_shape(wdpa_analavelona) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(sub_analavelona_nap) +
+  tm_borders(col = "blue") +
+  tm_shape(sub_analavelona_nd) +
+  tm_polygons(fill = "green", fill_alpha = 0.6, col = "darkgreen") +
+  tm_add_legend(
+    type = "lines",
+    labels = c("WDPA", "Limite NAP"),
+    col = c("red", "blue")
+  ) +
+  tm_add_legend(
+    type = "fill",
+    labels = c("Noyau dur"),
+    col = c("lightgreen")
+  )
+```
+
+Données MBG. Le périmètre NAP et le noyau dur sont disponibles. A vérifier si l'alignement avec WDPA est correct.
+
+## Ankarabolava Agnakatrika
+
+```{r}
+list.files("data/subdivisions/Ankarabolava Agnakatrika", pattern = "\\.shp") |>
+  cat(sep = "\n")
+```
+
+```{r}
+wdpa_ankarabolava <- wdpa_mdg |>
+  filter(str_detect(
+    NAME,
+    regex("Ankarabolava|Agnakatrika", ignore_case = TRUE)
+  ))
+
+sub_ankarabolava_nap <- st_read(
+  "data/subdivisions/Ankarabolava Agnakatrika/nap_ankarabolava_agnakatrika.shp",
+  quiet = TRUE
+) |>
+  st_set_crs(29702) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_ankarabolava))
+
+sub_ankarabolava_nd <- st_read(
+  "data/subdivisions/Ankarabolava Agnakatrika/nd_ankarabolava_agnakatrika.shp",
+  quiet = TRUE
+) |>
+  st_set_crs(29702) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_ankarabolava))
+
+tm_shape(wdpa_ankarabolava) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(sub_ankarabolava_nap) +
+  tm_borders(col = "blue") +
+  tm_shape(sub_ankarabolava_nd) +
+  tm_polygons(fill = "green", fill_alpha = 0.6, col = "darkgreen") +
+  tm_add_legend(
+    type = "lines",
+    labels = c("WDPA", "Limite NAP"),
+    col = c("red", "blue")
+  ) +
+  tm_add_legend(
+    type = "fill",
+    labels = c("Noyau dur"),
+    col = c("lightgreen")
+  )
+```
+
+Données MBG. Le périmètre NAP et le noyau dur sont disponibles. A vérifier si l'alignement avec WDPA est correct.
+
+## Arivomamo II
+
+```{r}
+list.files("data/subdivisions/Arivomamo II", pattern = "\\.shp") |>
+  cat(sep = "\n")
+```
+
+```{r}
+# Arivomamo II n'est pas referencee dans WDPA (APC)
+sub_arivomamo_nd <- st_read(
+  "data/subdivisions/Arivomamo II/APC_Arivonimamo_II_VI_ND.shp",
+  quiet = TRUE
+) |>
+  st_make_valid()
+
+sub_arivomamo_zoc <- st_read(
+  "data/subdivisions/Arivomamo II/APC_Arivonimamo_II_VI_ZOC.shp",
+  quiet = TRUE
+) |>
+  st_make_valid()
+
+sub_arivomamo_zud <- st_read(
+  "data/subdivisions/Arivomamo II/APC_Arivonimamo_II_VI_ZUD.shp",
+  quiet = TRUE
+) |>
+  st_make_valid()
+
+tm_shape(sub_arivomamo_nd) +
+  tm_polygons(fill = "green", fill_alpha = 0.6, col = "darkgreen") +
+  tm_shape(sub_arivomamo_zoc) +
+  tm_borders(col = "purple") +
+  tm_shape(sub_arivomamo_zud) +
+  tm_borders(col = "orange") +
+  tm_add_legend(
+    type = "lines",
+    labels = c("ZOC", "ZUD"),
+    col = c("purple", "orange")
+  ) +
+  tm_add_legend(
+    type = "fill",
+    labels = c("Noyau dur"),
+    col = c("lightgreen")
+  )
+```
+
+Donnees Planete Urgence. Cette APC (Aire Protegee Communautaire) n'est pas referencee dans WDPA. Le zonage comprend un noyau dur, une zone d'occupation controlee et une zone d'utilisation durable.
+
+## COMATSA Nord Sud
+
+```{r}
+list.files("data/subdivisions/COMATSA Nord Sud", pattern = "\\.shp") |>
+  cat(sep = "\n")
+```
+
+```{r}
+wdpa_comatsa <- wdpa_mdg |>
+  filter(str_detect(NAME, regex("COMATSA", ignore_case = TRUE)))
+
+sub_comatsa_nd <- st_read(
+  "data/subdivisions/COMATSA Nord Sud/Corridor Marojejy-Anjanaharibe Sud- Tsaratanana, PartieNord_VI,Partie_Sud_V_ND.shp",
+  quiet = TRUE
+) |>
+  st_set_crs(29702) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_comatsa))
+
+sub_comatsa_zasp <- st_read(
+  "data/subdivisions/COMATSA Nord Sud/Corridor Marojejy-Anjanaharibe Sud- Tsaratanana, PartieNord_VI,Partie_Sud_V_ZASP.shp",
+  quiet = TRUE
+) |>
+  st_set_crs(29702) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_comatsa))
+
+sub_comatsa_zoc <- st_read(
+  "data/subdivisions/COMATSA Nord Sud/Corridor Marojejy-Anjanaharibe Sud- Tsaratanana, PartieNord_VI,Partie_Sud_V_ZOC.shp",
+  quiet = TRUE
+) |>
+  st_set_crs(29702) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_comatsa))
+
+sub_comatsa_zud <- st_read(
+  "data/subdivisions/COMATSA Nord Sud/Corridor Marojejy-Anjanaharibe Sud- Tsaratanana, PartieNord_VI,Partie_Sud_V_ZUD.shp",
+  quiet = TRUE
+) |>
+  st_set_crs(29702) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_comatsa))
+
+tm_shape(wdpa_comatsa) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(sub_comatsa_nd) +
+  tm_polygons(fill = "green", fill_alpha = 0.6, col = "darkgreen") +
+  tm_shape(sub_comatsa_zasp) +
+  tm_borders(col = "blue") +
+  tm_shape(sub_comatsa_zoc) +
+  tm_borders(col = "purple") +
+  tm_shape(sub_comatsa_zud) +
+  tm_borders(col = "orange") +
+  tm_add_legend(
+    type = "lines",
+    labels = c("WDPA", "ZASP", "ZOC", "ZUD"),
+    col = c("red", "blue", "purple", "orange")
+  ) +
+  tm_add_legend(
+    type = "fill",
+    labels = c("Noyau dur"),
+    col = c("lightgreen")
+  )
+```
+
+Données WWF. Le zonage du corridor COMATSA (Nord et Sud) comprend un noyau dur, une zone d'activités socio-professionnelles (ZASP), une ZOC et une ZUD.
+
+## Efatsy Manombo
+
+```{r}
+list.files("data/subdivisions/Efatsy Manombo", pattern = "\\.shp") |>
+  cat(sep = "\n")
+```
+
+```{r}
+wdpa_efatsy <- wdpa_mdg |>
+  filter(str_detect(NAME, regex("Manombo|Efatsy", ignore_case = TRUE)))
+
+sub_efatsy_nd <- st_read(
+  "data/subdivisions/Efatsy Manombo/Efatsy Manombo_ND.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_efatsy))
+
+sub_efatsy_restauration <- st_read(
+  "data/subdivisions/Efatsy Manombo/Efatsy Manombo_restauration.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_efatsy))
+
+sub_efatsy_zoc <- st_read(
+  "data/subdivisions/Efatsy Manombo/Efatsy Manombo_ZOC.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_efatsy))
+
+sub_efatsy_eco <- st_read(
+  "data/subdivisions/Efatsy Manombo/Efatsy Manombo_Zone Ecotouristique.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_efatsy))
+
+sub_efatsy_zuc <- st_read(
+  "data/subdivisions/Efatsy Manombo/Efatsy Manombo_ZUC.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_efatsy))
+
+tm_shape(wdpa_efatsy) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(sub_efatsy_nd) +
+  tm_polygons(fill = "green", fill_alpha = 0.6, col = "darkgreen") +
+  tm_shape(sub_efatsy_restauration) +
+  tm_borders(col = "blue") +
+  tm_shape(sub_efatsy_zoc) +
+  tm_borders(col = "purple") +
+  tm_shape(sub_efatsy_eco) +
+  tm_borders(col = "orange") +
+  tm_shape(sub_efatsy_zuc) +
+  tm_borders(col = "brown") +
+  tm_add_legend(
+    type = "lines",
+    labels = c("WDPA", "Restauration", "ZOC", "Zone ecotouristique", "ZUC"),
+    col = c("red", "blue", "purple", "orange", "brown")
+  ) +
+  tm_add_legend(
+    type = "fill",
+    labels = c("Noyau dur"),
+    col = c("lightgreen")
+  )
+```
+
+Données GERP. Le zonage est détaillé avec 5 couches dont un noyau dur exploitable. Attention : le filtre WDPA renvoie la Réserve Spéciale de Manombo (WDPAID 5028), mais la superposition spatiale ne montre que 2,8 % de recouvrement avec un décalage de ~5,8 km. Efatsy Manombo est une AP distincte, non référencée dans WDPA.
+
+## Ibity
+
+```{r}
+list.files("data/subdivisions/Ibity", pattern = "\\.shp") |>
+  cat(sep = "\n")
+```
+
+```{r}
+wdpa_ibity <- wdpa_mdg |>
+  filter(str_detect(NAME, regex("Ibity", ignore_case = TRUE)))
+
+sub_ibity_nap <- st_read(
+  "data/subdivisions/Ibity/nap_ibity.shp",
+  quiet = TRUE
+) |>
+  st_set_crs(29702) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_ibity))
+
+sub_ibity_nd <- st_read(
+  "data/subdivisions/Ibity/nd_ibity.shp",
+  quiet = TRUE
+) |>
+  st_set_crs(29702) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_ibity))
+
+tm_shape(wdpa_ibity) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(sub_ibity_nap) +
+  tm_borders(col = "blue") +
+  tm_shape(sub_ibity_nd) +
+  tm_polygons(fill = "green", fill_alpha = 0.6, col = "darkgreen") +
+  tm_add_legend(
+    type = "lines",
+    labels = c("WDPA", "Limite NAP"),
+    col = c("red", "blue")
+  ) +
+  tm_add_legend(
+    type = "fill",
+    labels = c("Noyau dur"),
+    col = c("lightgreen")
+  )
+```
+
+Données MBG. Le périmètre NAP et le noyau dur sont disponibles.
+
+## Iles Barren
+
+```{r}
+list.files("data/subdivisions/Iles Barren", pattern = "\\.shp") |>
+  cat(sep = "\n")
+```
+
+```{r}
+wdpa_barren <- wdpa_mdg |>
+  filter(str_detect(NAME, regex("Barren", ignore_case = TRUE)))
+
+sub_barren <- st_read(
+  "data/subdivisions/Iles Barren/BI_Internal_Zones.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_barren))
+
+tm_shape(wdpa_barren) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(sub_barren) +
+  tm_polygons(fill = "grey", fill_alpha = 0.4) +
+  tm_borders(col = "blue") +
+  tm_add_legend(
+    type = "lines",
+    labels = c("WDPA", "Zones internes"),
+    col = c("red", "blue")
+  )
+```
+
+Données Blues Aventures. Le fichier contient des zones internes. A vérifier si les attributs permettent d'identifier un noyau dur.
+
+## Makirovana Tsihomanaomby
+
+```{r}
+list.files("data/subdivisions/Makirovana Tsihomanaomby", pattern = "\\.shp") |>
+  cat(sep = "\n")
+```
+
+```{r}
+wdpa_makirovana <- wdpa_mdg |>
+  filter(str_detect(
+    NAME,
+    regex("Makirovana|Tsihomanaomby", ignore_case = TRUE)
+  ))
+
+sub_makirovana_nap <- st_read(
+  "data/subdivisions/Makirovana Tsihomanaomby/nap_makirovana.shp",
+  quiet = TRUE
+) |>
+  st_set_crs(29702) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_makirovana))
+
+sub_makirovana_nd <- st_read(
+  "data/subdivisions/Makirovana Tsihomanaomby/nd_makirovana.shp",
+  quiet = TRUE
+) |>
+  st_set_crs(29702) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_makirovana))
+
+tm_shape(wdpa_makirovana) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(sub_makirovana_nap) +
+  tm_borders(col = "blue") +
+  tm_shape(sub_makirovana_nd) +
+  tm_polygons(fill = "green", fill_alpha = 0.6, col = "darkgreen") +
+  tm_add_legend(
+    type = "lines",
+    labels = c("WDPA", "Limite NAP"),
+    col = c("red", "blue")
+  ) +
+  tm_add_legend(
+    type = "fill",
+    labels = c("Noyau dur"),
+    col = c("lightgreen")
+  )
+```
+
+Données MBG. Le périmètre NAP et le noyau dur sont disponibles.
+
+## Maromizaha
+
+```{r}
+list.files("data/subdivisions/Maromizaha", pattern = "\\.shp") |>
+  cat(sep = "\n")
+```
+
+```{r}
+wdpa_maromizaha <- wdpa_mdg |>
+  filter(str_detect(NAME, regex("Maromizaha", ignore_case = TRUE)))
+
+sub_maromizaha_zcs <- st_read(
+  "data/subdivisions/Maromizaha/Maromizaha_ZCS.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_maromizaha))
+
+sub_maromizaha_ze <- st_read(
+  "data/subdivisions/Maromizaha/Maromizaha_ZE.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_maromizaha))
+
+sub_maromizaha_zoc <- st_read(
+  "data/subdivisions/Maromizaha/Maromizaha_ZOC.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_maromizaha))
+
+sub_maromizaha_zr <- st_read(
+  "data/subdivisions/Maromizaha/Maromizaha_ZR.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_maromizaha))
+
+sub_maromizaha_zrec <- st_read(
+  "data/subdivisions/Maromizaha/Maromizaha_ZREC.shp",
+  quiet = TRUE
+) |>
+  st_make_valid()
+# Note : ZREC est vide (0 entite), on ne la transforme pas
+
+sub_maromizaha_zt <- st_read(
+  "data/subdivisions/Maromizaha/Maromizaha_ZT.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_maromizaha))
+
+sub_maromizaha_zuc <- st_read(
+  "data/subdivisions/Maromizaha/Maromizaha_ZUC.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_maromizaha))
+
+tm_shape(wdpa_maromizaha) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(sub_maromizaha_zcs) +
+  tm_borders(col = "darkgreen") +
+  tm_shape(sub_maromizaha_ze) +
+  tm_borders(col = "orange") +
+  tm_shape(sub_maromizaha_zoc) +
+  tm_borders(col = "purple") +
+  tm_shape(sub_maromizaha_zr) +
+  tm_borders(col = "blue") +
+  tm_shape(sub_maromizaha_zt) +
+  tm_borders(col = "cyan") +
+  tm_shape(sub_maromizaha_zuc) +
+  tm_borders(col = "grey") +
+  tm_add_legend(
+    type = "lines",
+    labels = c("WDPA", "ZCS", "ZE", "ZOC", "ZR", "ZT", "ZUC"),
+    col = c("red", "darkgreen", "orange", "purple", "blue", "cyan", "grey")
+  )
+```
+
+Données GERP. Le zonage est détaillé avec 7 couches (ZCS, ZE, ZOC, ZR, ZREC, ZT, ZUC). La couche ZREC est vide. Pas de noyau dur explicitement nommé ; la zone de conservation stricte (ZCS) pourrait en tenir lieu. Le SCR natif des fichiers est EPSG:4626 (Réunion 1947). Les paramètres de transformation de ce datum sont calibrés pour l'île de la Réunion, ce qui produit un décalage d'environ 388 m à Madagascar.
+
+## Miarinarivo II
+
+```{r}
+list.files("data/subdivisions/Miarinarivo II", pattern = "\\.shp") |>
+  cat(sep = "\n")
+```
+
+```{r}
+# Miarinarivo II n'est pas referencee dans WDPA (APC)
+sub_miarinarivo_nd <- st_read(
+  "data/subdivisions/Miarinarivo II/APC_Miarinarivo_II_VI_ND.shp",
+  quiet = TRUE
+) |>
+  st_make_valid()
+
+sub_miarinarivo_zoc <- st_read(
+  "data/subdivisions/Miarinarivo II/APC_Miarinarivo_II_VI_ZOC.shp",
+  quiet = TRUE
+) |>
+  st_make_valid()
+
+sub_miarinarivo_zud <- st_read(
+  "data/subdivisions/Miarinarivo II/APC_Miarinarivo_II_VI_ZUD.shp",
+  quiet = TRUE
+) |>
+  st_make_valid()
+
+tm_shape(sub_miarinarivo_nd) +
+  tm_polygons(fill = "green", fill_alpha = 0.6, col = "darkgreen") +
+  tm_shape(sub_miarinarivo_zoc) +
+  tm_borders(col = "purple") +
+  tm_shape(sub_miarinarivo_zud) +
+  tm_borders(col = "orange") +
+  tm_add_legend(
+    type = "lines",
+    labels = c("ZOC", "ZUD"),
+    col = c("purple", "orange")
+  ) +
+  tm_add_legend(
+    type = "fill",
+    labels = c("Noyau dur"),
+    col = c("lightgreen")
+  )
+```
+
+Donnees Planete Urgence. Cette APC n'est pas referencee dans WDPA. Le zonage comprend un noyau dur, une ZOC et une ZUD.
+
+## Oronjia
+
+```{r}
+list.files("data/subdivisions/Oronjia", pattern = "\\.shp") |>
+  cat(sep = "\n")
+```
+
+```{r}
+wdpa_oronjia <- wdpa_mdg |>
+  filter(str_detect(NAME, regex("Oronjia", ignore_case = TRUE)))
+
+sub_oronjia_nap <- st_read(
+  "data/subdivisions/Oronjia/nap_oronjia.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_oronjia))
+
+sub_oronjia_nd <- st_read(
+  "data/subdivisions/Oronjia/ND_oronjia.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_oronjia))
+
+tm_shape(wdpa_oronjia) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(sub_oronjia_nap) +
+  tm_borders(col = "blue") +
+  tm_shape(sub_oronjia_nd) +
+  tm_polygons(fill = "green", fill_alpha = 0.6, col = "darkgreen") +
+  tm_add_legend(
+    type = "lines",
+    labels = c("WDPA", "Limite NAP"),
+    col = c("red", "blue")
+  ) +
+  tm_add_legend(
+    type = "fill",
+    labels = c("Noyau dur"),
+    col = c("lightgreen")
+  )
+```
+
+Données MBG. Le périmètre NAP et le noyau dur sont disponibles.
+
+## Pointe a Larree
+
+```{r}
+list.files("data/subdivisions/Pointe a Larree", pattern = "\\.shp") |>
+  cat(sep = "\n")
+```
+
+```{r}
+wdpa_larree <- wdpa_mdg |>
+  filter(str_detect(NAME, regex("Larr|Pointe", ignore_case = TRUE)))
+
+sub_larree_nap <- st_read(
+  "data/subdivisions/Pointe a Larree/NAP_pointe_a_larree.shp",
+  quiet = TRUE
+) |>
+  st_set_crs(29702) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_larree))
+
+sub_larree_nd <- st_read(
+  "data/subdivisions/Pointe a Larree/ND_pointe_a_larree.shp",
+  quiet = TRUE
+) |>
+  st_set_crs(29702) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_larree))
+
+tm_shape(wdpa_larree) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(sub_larree_nap) +
+  tm_borders(col = "blue") +
+  tm_shape(sub_larree_nd) +
+  tm_polygons(fill = "green", fill_alpha = 0.6, col = "darkgreen") +
+  tm_add_legend(
+    type = "lines",
+    labels = c("WDPA", "Limite NAP"),
+    col = c("red", "blue")
+  ) +
+  tm_add_legend(
+    type = "fill",
+    labels = c("Noyau dur"),
+    col = c("lightgreen")
+  )
+```
+
+Données MBG. Le périmètre NAP et le noyau dur sont disponibles. Un second fichier NAP en WGS84 est aussi fourni (`NAP_PTAL_wgs84.shp`).
+
+## Velondrika
+
+```{r}
+list.files("data/subdivisions/Velondrika", pattern = "\\.shp") |>
+  cat(sep = "\n")
+```
+
+```{r}
+wdpa_velondrika <- wdpa_mdg |>
+  filter(str_detect(NAME, regex("Velondri", ignore_case = TRUE)))
+
+sub_velondrika <- st_read(
+  "data/subdivisions/Velondrika/Velondriake_Internal_Zones.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_velondrika))
+
+tm_shape(wdpa_velondrika) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(sub_velondrika) +
+  tm_polygons(fill = "grey", fill_alpha = 0.4) +
+  tm_borders(col = "blue") +
+  tm_add_legend(
+    type = "lines",
+    labels = c("WDPA", "Zones internes"),
+    col = c("red", "blue")
+  )
+```
+
+Données Blues Aventures. Le fichier contient des zones internes. A vérifier si les attributs permettent d'identifier un noyau dur.
+
+## Vohidava Betsimalaho
+
+```{r}
+list.files("data/subdivisions/Vohidava Betsimalaho", pattern = "\\.shp") |>
+  cat(sep = "\n")
+```
+
+```{r}
+wdpa_vohidava <- wdpa_mdg |>
+  filter(str_detect(
+    NAME,
+    regex("Vohidava|Betsimalaho|Anadabolava", ignore_case = TRUE)
+  ))
+
+sub_vohidava_nap <- st_read(
+  "data/subdivisions/Vohidava Betsimalaho/nap_anadabolava.shp",
+  quiet = TRUE
+) |>
+  st_set_crs(29702) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_vohidava))
+
+sub_vohidava_nd <- st_read(
+  "data/subdivisions/Vohidava Betsimalaho/nd_anadabolava_update.shp",
+  quiet = TRUE
+) |>
+  st_set_crs(29702) |>
+  st_make_valid() |>
+  st_transform(st_crs(wdpa_vohidava))
+
+tm_shape(wdpa_vohidava) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(sub_vohidava_nap) +
+  tm_borders(col = "blue") +
+  tm_shape(sub_vohidava_nd) +
+  tm_polygons(fill = "green", fill_alpha = 0.6, col = "darkgreen") +
+  tm_add_legend(
+    type = "lines",
+    labels = c("WDPA", "Limite NAP"),
+    col = c("red", "blue")
+  ) +
+  tm_add_legend(
+    type = "fill",
+    labels = c("Noyau dur"),
+    col = c("lightgreen")
+  )
+```
+
+Données MBG. Les shapefiles sont nommés "anadabolava" mais correspondent a l'AP Vohidava Betsimalaho. Le périmètre NAP et le noyau dur sont disponibles.
+
 # Synthèse
 
-**17 AP avec un noyau dur exploitable à ce stade** : • Allée des Baobabs • Ambatofotsy • Ampotaka Ankorabe • Analabe Betanantanana • Analalava • Andrafiamena Andavakoera • Anjozorobe Angavo • Antrema • Beanka • Bemanevika • Mahialambo • Mangoky Ihotry • Mandrozo • Manambato • Menabe Antimena • Sahafina • Tsimembo
+**17 AP avec un noyau dur exploitable dans les données initiales** : • Allée des Baobabs • Ambatofotsy • Ampotaka Ankorabe • Analabe Betanantanana • Analalava • Andrafiamena Andavakoera • Anjozorobe Angavo • Antrema • Beanka • Bemanevika • Mahialambo • Mangoky Ihotry • Mandrozo • Manambato • Menabe Antimena • Sahafina • Tsimembo
 
 Parmi ces 17, **5 AP ont encore des données à corriger et fiabiliser** : • Analabe Betanantanana (fort décalage WDPA vs limite transmise, recouvrement partiel) • Ampotaka Ankorabe (ND dépasse du périmètre WDPA) • Mangoky Ihotry (décalage notable limite transmise vs WDPA) • Mandrozo (décalage systématique, suspicion de projection) • Tsimembo (décalage systématique, suspicion de projection)
 
 **7 AP dont les données sont manquantes ou inexploitables à ce stade** : • Alaotra (pas de subdivision interne exploitable, seulement une limite proche de WDPA) • Ambondrobe (idem) • Ambohidray (script actuel ne charge pas les objets affichés, donc pas de conclusion ni ND exploitable dans l’état) • Behasina (géométries vides ou aberrantes pour plusieurs couches, seule la ZUC semble exploitable) • Mangabe (seulement limite externe) • Mahimborondro (subdivisions sans attributs, ND non identifiable) • Ivohiboro (fichier illisible)
+
+**13 AP supplémentaires avec noyau dur exploitable (avril 2026)** : • Agnalazaha (MBG, zone prioritaire de conservation assimilee au ND) • Analavelona (MBG) • Ankarabolava Agnakatrika (MBG) • Ibity (MBG) • Makirovana Tsihomanaomby (MBG) • Oronjia (MBG) • Pointe a Larree (MBG) • Vohidava Betsimalaho (MBG) • Efatsy Manombo (GERP) • Arivomamo II (Planete Urgence) • Miarinarivo II (Planete Urgence) • Amoron'i Onilahy (WWF) • COMATSA Nord Sud (WWF)
+
+**43 AP supplémentaires avec noyau dur via le fichier combiné MNP** : Ambatovaky, Ambohitantely, Analamazaotra, Analamerana, Andohahela, Andranomena, Andringitra, Anjanaharibe Sud, Ankarafantsika, Ankarana, Baie de Baly, Befotaka-Midongy, Bemaraha, Betampona, Beza Mahafaly, Cap Ste Marie, Isalo, Ivohibe, Kalambatritra, Kirindy Mite, Lokobe, Mananara Nord, Mangerivola, Manombo, Manongarivo, Mantadia, Marojejy, Marolambo, Marotandrano, Masoala, Mikea, Montagne d'Ambre, Nosy Hara, Nosy Mangabe, Nosy Tanihely, Nosy ve Androka, Ranomafana, Sahamalaza-Iles Radama, Tsaratanana, Tsimanampesotse, Tsingy de Namoroka, Zahamena, Zombitse-Vohibasia.
+
+**4 AP avec des zones internes mais sans noyau dur explicitement identifié** : • Ambalabe Vohibe (MBG, zone droit d'usage et ecotouristique) • Maromizaha (GERP, ZCS potentiellement assimilable a un ND) • Iles Barren (Blues Aventures, zones internes a verifier) • Velondrika (Blues Aventures, zones internes a verifier)
+
+Au total, on dispose de noyaux durs exploitables pour **73 AP** (17 initiales + 13 nouvelles individuelles + 43 MNP), avant deduplication eventuelle.
 
 ## On exporte finalement les noyaux durs exploitables pour utilisation ultérieure
 
@@ -1847,10 +2819,82 @@ nd_rows <- list(
     wdpa_tsimembo,
     sub_tsimembo |>
       filter(str_detect(SubZone, regex("Noyau\\s*Dur", ignore_case = TRUE)))
-  )
+  ),
+
+  # Nouvelles AP (avril 2026)
+  make_nd_row("Agnalazaha", wdpa_agnalazaha, sub_agnalazaha_zpc),
+  make_nd_row("Analavelona", wdpa_analavelona, sub_analavelona_nd),
+  make_nd_row(
+    "Ankarabolava Agnakatrika",
+    wdpa_ankarabolava,
+    sub_ankarabolava_nd
+  ),
+  make_nd_row("Ibity", wdpa_ibity, sub_ibity_nd),
+  make_nd_row("Makirovana Tsihomanaomby", wdpa_makirovana, sub_makirovana_nd),
+  make_nd_row("Oronjia", wdpa_oronjia, sub_oronjia_nd),
+  make_nd_row("Pointe a Larree", wdpa_larree, sub_larree_nd),
+  make_nd_row("Vohidava Betsimalaho", wdpa_vohidava, sub_vohidava_nd),
+  # Efatsy Manombo : AP distincte, ne correspond pas a la RS Manombo (5028) dans WDPA
+  st_sf(
+    pa_label = "Efatsy Manombo",
+    WDPAID = NA_real_,
+    NAME = "Efatsy Manombo",
+    geometry = nd_to_multipolygon(
+      sub_efatsy_nd,
+      crs_target = st_crs(sub_efatsy_nd)
+    ),
+    crs = st_crs(sub_efatsy_nd)
+  ),
+
+  # APC non referencees dans WDPA : on construit les lignes manuellement
+  st_sf(
+    pa_label = "Arivomamo II",
+    WDPAID = NA_real_,
+    NAME = "Arivomamo II",
+    geometry = nd_to_multipolygon(
+      sub_arivomamo_nd,
+      crs_target = st_crs(sub_arivomamo_nd)
+    ),
+    crs = st_crs(sub_arivomamo_nd)
+  ),
+  st_sf(
+    pa_label = "Miarinarivo II",
+    WDPAID = NA_real_,
+    NAME = "Miarinarivo II",
+    geometry = nd_to_multipolygon(
+      sub_miarinarivo_nd,
+      crs_target = st_crs(sub_miarinarivo_nd)
+    ),
+    crs = st_crs(sub_miarinarivo_nd)
+  ),
+
+  make_nd_row("Amoron'i Onilahy", wdpa_onilahy, sub_onilahy_nd),
+  make_nd_row("COMATSA Nord Sud", wdpa_comatsa, sub_comatsa_nd)
 )
 
-nd_sf <- nd_rows |>
+# Noyaux durs MNP (43 AP depuis le fichier combiné)
+mnp_ap_names <- sub_mnp |>
+  st_drop_geometry() |>
+  filter(ZONAGE == "Noyau Dur") |>
+  pull(AP) |>
+  unique()
+
+mnp_nd_rows <- map(mnp_ap_names, \(ap_name) {
+  wdpa_match <- wdpa_mdg |>
+    filter(str_detect(NAME, regex(ap_name, ignore_case = TRUE)))
+  if (nrow(wdpa_match) == 0) {
+    return(NULL)
+  }
+  nd_geom <- sub_mnp |>
+    filter(AP == ap_name, ZONAGE == "Noyau Dur")
+  tryCatch(
+    make_nd_row(ap_name, wdpa_match, nd_geom),
+    error = function(e) NULL
+  )
+}) |>
+  compact()
+
+nd_sf <- c(nd_rows, mnp_nd_rows) |>
   bind_rows() |>
   st_make_valid() |>
   mutate(
@@ -1868,4 +2912,4 @@ st_write(
 
 ```
 
-Les données contenant les périmètres internes des 17 AP exploitables sont maintenant enregistrées.
+Les donnees contenant les perimetres internes des 73 AP exploitables (avant deduplication) sont maintenant enregistrees.

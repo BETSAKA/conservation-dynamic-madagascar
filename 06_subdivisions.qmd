@@ -1715,11 +1715,11 @@ On observe un léger décallage systématique des données (problème de project
 
 Les données semblent cohérentes. Le Noyau dur est codé : SubZone == "Noyau Dur".
 
-# Données complémentaires (avril 2026)
+## Données complémentaires (avril 2026)
 
 Les sections qui suivent documentent les données de subdivision reçues en avril 2026. Elles couvrent des zonages internes provenant de différents gestionnaires : MNP, MBG, GERP, Blues Aventures, Planete Urgence et WWF.
 
-## MNP (données combinées, 43 AP)
+### MNP (données combinées, 43 AP)
 
 Le fichier fourni par Madagascar National Parks contient les zonages internes de 43 AP dans un seul shapefile, avec les colonnes `AP` (nom de l'AP) et `ZONAGE` (type de zone : Noyau Dur, Zone Tampon, Zone de Protection).
 
@@ -1760,7 +1760,7 @@ tm_shape(wdpa_ranomafana) +
 
 Les périmètres MNP sont globalement bien alignés avec WDPA. Le fichier est en projection Laborde (EPSG:29702). Les 43 AP couvertes comprennent l'ensemble du réseau géré par MNP. Les noyaux durs sont codés `ZONAGE == "Noyau Dur"`.
 
-## Agnalazaha
+### Agnalazaha
 
 ```{r}
 list.files("data/subdivisions/Agnalazaha", pattern = "\\.shp") |>
@@ -1865,7 +1865,7 @@ tm_shape(wdpa_ambalabe) +
 
 Données MBG. Ambalabe Vohibe se situe dans le Corridor Ankeniheny Zahamena (CAZ, WDPAID 352256) : 97,3 % de sa superficie tombe dans le périmètre du corridor. Le périmètre NAP est disponible avec des zones fonctionnelles (droit d'usage, écotouristique). Pas de noyau dur explicitement nommé. Les coordonnées sont en WGS84.
 
-## Amoron'i Onilahy
+### Amoron'i Onilahy
 
 ```{r}
 list.files("data/subdivisions/Amoron i Onilahy", pattern = "\\.shp") |>
@@ -1963,7 +1963,7 @@ tm_shape(wdpa_onilahy) +
 
 Données WWF. Le zonage est détaillé avec 7 couches dont un noyau dur exploitable.
 
-## Analavelona
+### Analavelona
 
 ```{r}
 list.files("data/subdivisions/Analavelona", pattern = "\\.shp") |>
@@ -2010,7 +2010,7 @@ tm_shape(wdpa_analavelona) +
 
 Données MBG. Le périmètre NAP et le noyau dur sont disponibles. A vérifier si l'alignement avec WDPA est correct.
 
-## Ankarabolava Agnakatrika
+### Ankarabolava Agnakatrika
 
 ```{r}
 list.files("data/subdivisions/Ankarabolava Agnakatrika", pattern = "\\.shp") |>
@@ -2060,7 +2060,7 @@ tm_shape(wdpa_ankarabolava) +
 
 Données MBG. Le périmètre NAP et le noyau dur sont disponibles. A vérifier si l'alignement avec WDPA est correct.
 
-## Arivomamo II
+### Arivomamo II
 
 ```{r}
 list.files("data/subdivisions/Arivomamo II", pattern = "\\.shp") |>
@@ -2107,7 +2107,7 @@ tm_shape(sub_arivomamo_nd) +
 
 Donnees Planete Urgence. Cette APC (Aire Protegee Communautaire) n'est pas referencee dans WDPA. Le zonage comprend un noyau dur, une zone d'occupation controlee et une zone d'utilisation durable.
 
-## COMATSA Nord Sud
+### COMATSA Nord Sud
 
 ```{r}
 list.files("data/subdivisions/COMATSA Nord Sud", pattern = "\\.shp") |>
@@ -2174,7 +2174,7 @@ tm_shape(wdpa_comatsa) +
 
 Données WWF. Le zonage du corridor COMATSA (Nord et Sud) comprend un noyau dur, une zone d'activités socio-professionnelles (ZASP), une ZOC et une ZUD.
 
-## Efatsy Manombo
+### Efatsy Manombo
 
 ```{r}
 list.files("data/subdivisions/Efatsy Manombo", pattern = "\\.shp") |>
@@ -2246,7 +2246,7 @@ tm_shape(wdpa_efatsy) +
 
 Données GERP. Le zonage est détaillé avec 5 couches dont un noyau dur exploitable. Attention : le filtre WDPA renvoie la Réserve Spéciale de Manombo (WDPAID 5028), mais la superposition spatiale ne montre que 2,8 % de recouvrement avec un décalage de ~5,8 km. Efatsy Manombo est une AP distincte, non référencée dans WDPA.
 
-## Ibity
+### Ibity
 
 ```{r}
 list.files("data/subdivisions/Ibity", pattern = "\\.shp") |>
@@ -2293,7 +2293,7 @@ tm_shape(wdpa_ibity) +
 
 Données MBG. Le périmètre NAP et le noyau dur sont disponibles.
 
-## Iles Barren
+### Iles Barren
 
 ```{r}
 list.files("data/subdivisions/Iles Barren", pattern = "\\.shp") |>
@@ -2325,7 +2325,7 @@ tm_shape(wdpa_barren) +
 
 Données Blues Aventures. Le fichier contient des zones internes. A vérifier si les attributs permettent d'identifier un noyau dur.
 
-## Makirovana Tsihomanaomby
+### Makirovana Tsihomanaomby
 
 ```{r}
 list.files("data/subdivisions/Makirovana Tsihomanaomby", pattern = "\\.shp") |>
@@ -2375,7 +2375,7 @@ tm_shape(wdpa_makirovana) +
 
 Données MBG. Le périmètre NAP et le noyau dur sont disponibles.
 
-## Maromizaha
+### Maromizaha
 
 ```{r}
 list.files("data/subdivisions/Maromizaha", pattern = "\\.shp") |>
@@ -2458,7 +2458,7 @@ tm_shape(wdpa_maromizaha) +
 
 Données GERP. Le zonage est détaillé avec 7 couches (ZCS, ZE, ZOC, ZR, ZREC, ZT, ZUC). La couche ZREC est vide. Pas de noyau dur explicitement nommé ; la zone de conservation stricte (ZCS) pourrait en tenir lieu. Le SCR natif des fichiers est EPSG:4626 (Réunion 1947). Les paramètres de transformation de ce datum sont calibrés pour l'île de la Réunion, ce qui produit un décalage d'environ 388 m à Madagascar.
 
-## Miarinarivo II
+### Miarinarivo II
 
 ```{r}
 list.files("data/subdivisions/Miarinarivo II", pattern = "\\.shp") |>
@@ -2505,7 +2505,7 @@ tm_shape(sub_miarinarivo_nd) +
 
 Donnees Planete Urgence. Cette APC n'est pas referencee dans WDPA. Le zonage comprend un noyau dur, une ZOC et une ZUD.
 
-## Oronjia
+### Oronjia
 
 ```{r}
 list.files("data/subdivisions/Oronjia", pattern = "\\.shp") |>
@@ -2550,7 +2550,7 @@ tm_shape(wdpa_oronjia) +
 
 Données MBG. Le périmètre NAP et le noyau dur sont disponibles.
 
-## Pointe a Larree
+### Pointe a Larree
 
 ```{r}
 list.files("data/subdivisions/Pointe a Larree", pattern = "\\.shp") |>
@@ -2597,7 +2597,7 @@ tm_shape(wdpa_larree) +
 
 Données MBG. Le périmètre NAP et le noyau dur sont disponibles. Un second fichier NAP en WGS84 est aussi fourni (`NAP_PTAL_wgs84.shp`).
 
-## Velondrika
+### Velondrika
 
 ```{r}
 list.files("data/subdivisions/Velondrika", pattern = "\\.shp") |>
@@ -2629,7 +2629,7 @@ tm_shape(wdpa_velondrika) +
 
 Données Blues Aventures. Le fichier contient des zones internes. A vérifier si les attributs permettent d'identifier un noyau dur.
 
-## Vohidava Betsimalaho
+### Vohidava Betsimalaho
 
 ```{r}
 list.files("data/subdivisions/Vohidava Betsimalaho", pattern = "\\.shp") |>
@@ -2695,7 +2695,9 @@ Parmi ces 17, **5 AP ont encore des données à corriger et fiabiliser** : • A
 
 Au total, on dispose de noyaux durs exploitables pour **73 AP** (17 initiales + 13 nouvelles individuelles + 43 MNP), avant deduplication eventuelle.
 
-## On exporte finalement les noyaux durs exploitables pour utilisation ultérieure
+## Export
+
+On exporte finalement les noyaux durs exploitables pour utilisation ultérieure.
 
 ```{r}
 library(lwgeom)

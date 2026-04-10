@@ -1745,17 +1745,23 @@ WDPA 2025 montre STATUS_YR=1953, ce qui est incorrect. Cette date correspond aux
 
 ```{r befotaka-fat}
 # FAT: Correction du STATUS_YR
+# Using manual_decision because Befotaka-Midongy (WDPAID 20272) is not matched
+# in the CNLEGIS extraction pipeline (chapter 03 name-matching gap).
 fat <- add_modif_fat(
   fat = fat,
   decisions = pa_decisions,
   wdpa_name_or_id = 20272,
-  decision_filter = list(num_texte = "97-1451"),
+  manual_decision = list(
+    date_texte = "1997-12-18",
+    type_texte = "Decret",
+    num_texte = "97-1451"
+  ),
   attributes = list(
     STATUS_YR = 1997
   ),
   amendment_type = "correction",
   valid_from = "1997-12-18",
-  notes = "WDPA incorrectly shows STATUS_YR=1953 (date of classified forests that were not protected areas). PN Befotaka-Midongy du Sud was created in 1997 (Décret 97-1451), incorporating parts of the Soarano and Befotaka classified forests from 1953."
+  notes = "WDPA incorrectly shows STATUS_YR=1953 (date of classified forests that were not protected areas). PN Befotaka-Midongy du Sud was created in 1997 (Decret 97-1451), incorporating parts of the Soarano and Befotaka classified forests from 1953."
 )
 ```
 
@@ -3285,7 +3291,10 @@ Chaque noyau dur validé est ajouté à la table SAT avec le type d'amendement `
 
 ```{r add-secondary-zones-to-sat}
 # Prepare geometries with required attributes (vectorized)
+# Exclude entries without a matched WDPAID (e.g. Efatsy Manombo, Arivomamo II,
+# Miarinarivo II) that could not be linked to a WDPA record.
 nd_geoms <- noyaux_durs |>
+  filter(!is.na(WDPAID)) |>
   select(geometry, WDPAID, NAME, pa_label) |>
   mutate(dataset_id = "MEDD_subdivisions_2024")
 

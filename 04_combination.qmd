@@ -146,14 +146,14 @@ mnp_2010 <- mnp_2010 |>
   rename(NAME = NOM) |>
   mutate(dataset_id = "MNP_2010") |>
   select(NAME, dataset_id, geometry)
-mnp_anka_rni_pre2002 <- mnp_anka_rni_pre2002 |
-  rename(NAME = NOM) |
-  mutate(dataset_id = "MNP_Anka_RNI_pre2002") |
+mnp_anka_rni_pre2002 <- mnp_anka_rni_pre2002 |>
+  rename(NAME = NOM) |>
+  mutate(dataset_id = "MNP_Anka_RNI_pre2002") |>
   select(NAME, dataset_id, geometry)
 
-mnp_mantadia_pre2002 <- mnp_mantadia_pre2002 |
-  rename(NAME = NOM) |
-  mutate(dataset_id = "MNP_Mantadia_pre2002") |
+mnp_mantadia_pre2002 <- mnp_mantadia_pre2002 |>
+  rename(NAME = NOM) |>
+  mutate(dataset_id = "MNP_Mantadia_pre2002") |>
   select(NAME, dataset_id, geometry)
 
 sapm_2010 <- sapm_2010 |>

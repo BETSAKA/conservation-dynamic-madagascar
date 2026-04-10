@@ -10,6 +10,12 @@ La première porte d’entrée pour identifier des amendements spatiaux est cons
 
 Dans cette section, nous identifions les décisions légales qui mentionnent explicitement une modification, et les aires protégées concernées.
 
+::: {.callout-warning}
+## Limitation des URLs CNLEGIS
+
+Les liens vers CNLEGIS construits automatiquement a partir du numero de texte (par exemple `https://cnlegis.gov.mg/page_num_find_direct/?2015-730`) ne redirigent pas directement vers le decret concerne mais vers une page de recherche generique. Cette limitation empeche la verification directe des sources a partir des URLs. Les numeros de texte (`num_texte`) restent neanmoins fiables comme identifiants pour une recherche manuelle sur le site CNLEGIS.
+:::
+
 ```{r setup}
 library(tidyverse)
 library(sf)
@@ -529,6 +535,45 @@ export_amendments_to_yaml <- function(
     }
   }
 
+  # Helper: generate a human-readable temporal description from amendment fields
+  generate_temporal_description <- function(
+    amendment_type,
+    valid_from,
+    valid_to,
+    legal_instrument
+  ) {
+    type_labels <- c(
+      boundary_modification = "Modification des limites",
+      secondary_zoning = "Zonage secondaire",
+      correction = "Correction de donnees",
+      status_change = "Changement de statut",
+      temporary_protection = "Protection temporaire",
+      governance_change = "Changement de gouvernance"
+    )
+    label <- type_labels[amendment_type] %||% amendment_type
+    parts <- label
+    if (!is.null(valid_from) && !is.null(valid_to)) {
+      parts <- paste0(parts, " du ", valid_from, " au ", valid_to)
+    } else if (!is.null(valid_from)) {
+      parts <- paste0(parts, " depuis le ", valid_from)
+    } else if (!is.null(valid_to)) {
+      parts <- paste0(parts, " jusqu'au ", valid_to)
+    }
+    if (!is.null(legal_instrument) && !is.null(legal_instrument$number)) {
+      instr_type <- legal_instrument$type %||% "texte"
+      # Avoid stutter when instrument type matches the amendment label
+      if (tolower(instr_type) == tolower(label)) {
+        parts <- paste0(parts, " (n. ", legal_instrument$number, ")")
+      } else {
+        parts <- paste0(parts, " selon ", instr_type, " n. ", legal_instrument$number)
+      }
+      if (!is.null(legal_instrument$date)) {
+        parts <- paste0(parts, " du ", legal_instrument$date)
+      }
+    }
+    paste0(parts, ".")
+  }
+
   exported <- list()
 
   # Process spatial amendments
@@ -579,6 +624,12 @@ export_amendments_to_yaml <- function(
           NULL
         },
         legal_instrument = create_legal_instrument(row),
+        temporal_description = generate_temporal_description(
+          row$amendment_type,
+          if (!is.na(row$valid_from)) as.character(row$valid_from) else NULL,
+          if (!is.na(row$valid_to)) as.character(row$valid_to) else NULL,
+          create_legal_instrument(row)
+        ),
         notes = if (!is.na(row$notes)) row$notes else NULL,
         geometry_ref = geom_relative,
         geometry_crs_epsg = 4326L,
@@ -678,6 +729,12 @@ export_amendments_to_yaml <- function(
           NULL
         },
         legal_instrument = create_legal_instrument(row),
+        temporal_description = generate_temporal_description(
+          row$amendment_type,
+          if (!is.na(row$valid_from)) as.character(row$valid_from) else NULL,
+          if (!is.na(row$valid_to)) as.character(row$valid_to) else NULL,
+          create_legal_instrument(row)
+        ),
         notes = if (!is.na(row$notes)) row$notes else NULL,
         attributes = if (length(attributes_list) > 0) attributes_list else NULL
       )
@@ -1022,6 +1079,7 @@ legal_instrument:
   url: "https://cnlegis.gov.mg/..."
 
 notes: "Historical boundary 1958-2015 before extension via Décret 2015-776."
+temporal_description: "Modification des limites du 1958-06-08 au 2015-05-06 selon décret n. 2015-776 du 2015-05-06."
 
 geometry_ref: "geoms/MDG-2314-2015-boundary_modification-001.geojson"
 geometry_crs_epsg: 4326
@@ -1047,6 +1105,7 @@ legal_instrument:
   date: "1956-02-20"
 
 notes: "WDPA incorrectly shows PN/II. Correct designation is RS/IV per Décret 56-208."
+temporal_description: "Correction de donnees du 1956-02-20 au 2015-08-10 selon décret n. 56-208 du 1956-02-20."
 
 attributes:
   DESIG: "Réserve Spéciale"
@@ -1531,13 +1590,38 @@ plot_pa_sources(
 )
 ```
 
-L'extension de 2002 a fait l'objet d'une cartographie détaillée par Conservation International [@alonso2002], mais les périmètres antérieurs à 2002 sont en cours de re-vectorisation et ne sont pas encore disponibles pour documentation dans la SAT.
+L'extension de 2002 a fait l'objet d'une cartographie détaillée par Conservation International [@alonso2002]. Le MNP a fourni le périmètre de la Réserve Naturelle Intégrale n. 7 telle que délimitée par le Décret 66-242 (~57 000 ha), antérieur a la consolidation de 2002.
 
 ![Ankarafantsika 2002 expansion](data/Alonso_Shuldenberg_2002.png){fig-alt="Carte d'Ankarafantsika avant 2002."}
 
-Les textes légaux identifient plusieurs décisions modificatives, notamment en 2002 (création du PN par consolidation) et 2015 (modification des limites). Après inspection visuelle, on retient ANGAP_2002 comme source du périmètre avant la modification de 2015.
+```{r ankarafantsika-sources-pre2002}
+plot_pa_sources(
+  "Ankarafantsika",
+  sources = c("MNP_Anka_RNI_pre2002", "ANGAP_2002", "WDPA_2025")
+)
+```
+
+Les textes légaux identifient plusieurs décisions modificatives, notamment en 2002 (création du PN par consolidation) et 2015 (modification des limites). On documente les deux transitions :
+
+1. **Périmètre RNI pré-2002** (MNP_Anka_RNI_pre2002) : la géométrie de la RNI n. 7 avant la consolidation en PN.
+2. **Périmètre PN 2002-2015** (ANGAP_2002) : le PN après consolidation mais avant la modification de 2015.
+
+```{r ankarafantsika-sat-pre2002}
+# SAT: pre-2002 RNI boundary (Décret 66-242)
+sat <- sat |>
+  add_modif_sat(
+    data = all_PAs_conso,
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Ankarafantsika",
+    decision_filter = list(year = 2002, type_decision_pattern = "modifiant"),
+    source_dataset_id = "MNP_Anka_RNI_pre2002",
+    valid_from = "1927-12-31",
+    notes = "Périmètre de la RNI n. 7 d'Ankarafantsika (Décret 66-242, ~57 000 ha) avant la consolidation en PN en 2002 (Décret 2002-798, 130 000 ha). Géométrie fournie par MNP."
+  )
+```
 
 ```{r ankarafantsika-sat}
+# SAT: PN boundary 2002-2015
 sat <- sat |>
   add_modif_sat(
     data = all_PAs_conso,
@@ -1546,7 +1630,7 @@ sat <- sat |>
     decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
     source_dataset_id = "ANGAP_2002",
     valid_from = "2002-08-07",
-    notes = "Périmètre 2002-2015 avant modification des limites (géométrie ANGAP_2002 retenue après vérification visuelle). Périmètres pré-2002 en cours de re-vectorisation."
+    notes = "Périmètre 2002-2015 avant modification des limites (géométrie ANGAP_2002 retenue après vérification visuelle)."
   )
 ```
 
@@ -1661,17 +1745,23 @@ WDPA 2025 montre STATUS_YR=1953, ce qui est incorrect. Cette date correspond aux
 
 ```{r befotaka-fat}
 # FAT: Correction du STATUS_YR
+# Using manual_decision because Befotaka-Midongy (WDPAID 20272) is not matched
+# in the CNLEGIS extraction pipeline (chapter 03 name-matching gap).
 fat <- add_modif_fat(
   fat = fat,
   decisions = pa_decisions,
   wdpa_name_or_id = 20272,
-  decision_filter = list(num_texte = "97-1451"),
+  manual_decision = list(
+    date_texte = "1997-12-18",
+    type_texte = "Decret",
+    num_texte = "97-1451"
+  ),
   attributes = list(
     STATUS_YR = 1997
   ),
   amendment_type = "correction",
   valid_from = "1997-12-18",
-  notes = "WDPA incorrectly shows STATUS_YR=1953 (date of classified forests that were not protected areas). PN Befotaka-Midongy du Sud was created in 1997 (Décret 97-1451), incorporating parts of the Soarano and Befotaka classified forests from 1953."
+  notes = "WDPA incorrectly shows STATUS_YR=1953 (date of classified forests that were not protected areas). PN Befotaka-Midongy du Sud was created in 1997 (Decret 97-1451), incorporating parts of the Soarano and Befotaka classified forests from 1953."
 )
 ```
 
@@ -2184,11 +2274,29 @@ Les métadonnées confirment que cette aire protégée a été créée en 1989 c
 show_cnlegis_for_pa("Mantadia", pa_decisions)
 ```
 
-Malheureusement, on ne dispose pas de source géométrique antérieure à 2002 pour cette AP.
+Le MNP a fourni le périmètre original de 1989 (Décret 89-011, ~9 930 ha), antérieur a l'extension de 2002 (Décret 2002-790, 15 480 ha). Ce périmètre est disponible dans le jeu `MNP_Mantadia_pre2002`.
 
-::: {.callout-note}
-Voir avec MNP s'il est possible de reconstituer la géométrie initiale de 1989.
-:::
+```{r mantadia-sources}
+plot_pa_sources(
+  "Mantadia",
+  sources = c("MNP_Mantadia_pre2002", "WDPA_2025")
+)
+```
+
+Conformément aux regles de construction de la SAT, on ajoute la géométrie antérieure a la modification de 2002.
+
+```{r mantadia-sat}
+sat <- sat |>
+  add_modif_sat(
+    data = all_PAs_conso,
+    decisions = pa_decisions,
+    wdpa_name_or_id = "Mantadia",
+    decision_filter = list(year = 2002, type_decision_pattern = "modifiant"),
+    source_dataset_id = "MNP_Mantadia_pre2002",
+    valid_from = "1989-01-11",
+    notes = "Périmètre original du PN Mantadia (Décret 89-011, ~9 930 ha) avant l'extension de 2002 (Décret 2002-790, 15 480 ha). Géométrie fournie par MNP."
+  )
+```
 
 
 ### Marojejy
@@ -3183,7 +3291,10 @@ Chaque noyau dur validé est ajouté à la table SAT avec le type d'amendement `
 
 ```{r add-secondary-zones-to-sat}
 # Prepare geometries with required attributes (vectorized)
+# Exclude entries without a matched WDPAID (e.g. Efatsy Manombo, Arivomamo II,
+# Miarinarivo II) that could not be linked to a WDPA record.
 nd_geoms <- noyaux_durs |>
+  filter(!is.na(WDPAID)) |>
   select(geometry, WDPAID, NAME, pa_label) |>
   mutate(dataset_id = "MEDD_subdivisions_2024")
 

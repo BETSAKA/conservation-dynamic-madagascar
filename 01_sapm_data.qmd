@@ -292,6 +292,48 @@ tm_shape(sapm_2017) +
   tm_polygons(col = "CATEG_IUCN")
 ```
 
+## Compléments MNP (périmètres historiques)
+
+Le MNP a fourni les périmètres historiques (antérieurs a 2002) de deux aires protégées pour lesquelles aucune donnée spatiale numérisée n'était disponible :
+
+- **Ankarafantsika** : périmètre de la Réserve Naturelle Intégrale n. 7, délimitée par le Décret n. 66-242 du 1er juin 1966 (~57 000 ha). Ce périmètre est antérieur a la consolidation de 2002 qui a créé le Parc National (130 000 ha).
+- **Mantadia** : périmètre original du Parc National créé par le Décret n. 89-011 du 11 janvier 1989 (~9 930 ha), avant l'extension de 2002 (Décret 2002-790, 15 480 ha).
+
+```{r}
+# Ankarafantsika RNI pre-2002 (Laborde, CRS absent du .prj)
+anka_rni_pre2002 <- st_read(
+  paste0(data_dir, "complement_MNP/Ankarafantsika_pre2002/Ankarafantsika_RNI_66242_20260409_v2_lab.shp"),
+  quiet = TRUE
+) |>
+  st_set_crs(my_crs) |> # Laborde (EPSG:29702), CRS absent du fichier
+  st_make_valid() |>
+  clean_pa_names_cols(name_cols = "NOM") |>
+  select(NOM) |>
+  mutate(NOM = "Ankarafantsika")
+
+write_rds(anka_rni_pre2002, "data/no_id/mnp_anka_rni_pre2002.rds")
+
+# Mantadia PN pre-2002 (Laborde / Hotine Oblique Mercator)
+mantadia_pre2002 <- st_read(
+  paste0(data_dir, "complement_MNP/Mantadia_pre2002/MTD_05_2008.shp"),
+  quiet = TRUE
+) |>
+  st_transform(my_crs) |> # Reprojection en Laborde
+  st_make_valid() |>
+  select(NOM) |>
+  mutate(NOM = "Mantadia")
+
+write_rds(mantadia_pre2002, "data/no_id/mnp_mantadia_pre2002.rds")
+
+# Verification visuelle
+tm_shape(anka_rni_pre2002) +
+  tm_fill(col = "red", alpha = 0.3) +
+  tm_borders(col = "red") +
+  tm_shape(mantadia_pre2002) +
+  tm_fill(col = "blue", alpha = 0.3) +
+  tm_borders(col = "blue")
+```
+
 ## Vahatra 2017
 
 ```{r}

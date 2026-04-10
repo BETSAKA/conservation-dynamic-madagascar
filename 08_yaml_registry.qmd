@@ -29,6 +29,13 @@ cat("Nombre total d'amendements :", length(yaml_files), "\n\n")
 # Lire tous les amendements pour statistiques
 amendments_list <- map(yaml_files, ~ yaml::read_yaml(.x))
 
+# Nombre d'aires protegees distinctes
+n_pas <- map_int(amendments_list, ~ .x$wdpaid) |>
+  unique() |>
+  length()
+
+cat("Nombre total d'aires protegees concernees :", n_pas, "\n\n")
+
 # Extraire les types
 types_summary <- map_chr(amendments_list, ~ .x$amendment_type) |>
   table() |>
@@ -69,10 +76,24 @@ amendments_summary <- map_dfr(yaml_files, function(yaml_path) {
 datatable(
   amendments_summary,
   filter = "top",
+  extensions = "Buttons",
   options = list(
     pageLength = 25,
     autoWidth = TRUE,
-    scrollX = TRUE
+    scrollX = TRUE,
+    dom = "Bfrtip",
+    buttons = list(
+      list(
+        extend = "collection",
+        text = "Reinitialiser les filtres",
+        action = DT::JS(
+          "function(e, dt, node, config) {",
+          "  dt.search('').columns().search('').draw();",
+          "  $(dt.table().header()).find('input').val('');",
+          "}"
+        )
+      )
+    )
   ),
   caption = "Registre complet des amendements (filtrable par colonne)"
 )

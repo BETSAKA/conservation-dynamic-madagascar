@@ -38,6 +38,8 @@ sapm_2017 <- read_rds("data/no_id/sapm_2017.rds")
 sapm_2024 <- read_rds("data/no_id/sapm_2024.rds")
 sapm_evol_2001_2011 <- read_rds("data/no_id/sapm_evol_2001_2011.rds")
 vahatra <- read_rds("data/no_id/vahatra.rds")
+mnp_anka_rni_pre2002 <- read_rds("data/no_id/mnp_anka_rni_pre2002.rds")
+mnp_mantadia_pre2002 <- read_rds("data/no_id/mnp_mantadia_pre2002.rds")
 wdpa_mdg_2025 <- wdpa_read("sources/WDPA_WDOECM_mar2025_Public_MDG.zip")
 
 # Read WDPA historical parquet file
@@ -144,7 +146,15 @@ mnp_2010 <- mnp_2010 |>
   rename(NAME = NOM) |>
   mutate(dataset_id = "MNP_2010") |>
   select(NAME, dataset_id, geometry)
+mnp_anka_rni_pre2002 <- mnp_anka_rni_pre2002 |>
+  rename(NAME = NOM) |>
+  mutate(dataset_id = "MNP_Anka_RNI_pre2002") |>
+  select(NAME, dataset_id, geometry)
 
+mnp_mantadia_pre2002 <- mnp_mantadia_pre2002 |>
+  rename(NAME = NOM) |>
+  mutate(dataset_id = "MNP_Mantadia_pre2002") |>
+  select(NAME, dataset_id, geometry)
 
 sapm_2010 <- sapm_2010 |>
   select(NAME = NOM, DESIG = DESCRIPTIO, MANG_AUTH = DATAADMIN) |>
@@ -229,6 +239,8 @@ Tous les jeux de données sont fusionnés dans un unique tableau avec un schéma
 all_PAs <- bind_rows(
   angap_2002,
   mnp_2010,
+  mnp_anka_rni_pre2002,
+  mnp_mantadia_pre2002,
   sapm_2010,
   sapm_2017,
   sapm_2024,

@@ -1,0 +1,436 @@
+---
+output: html_document
+editor_options:
+  chunk_output_type: console
+execute:
+  eval: false
+---
+# Data Acquisition
+
+```{r}
+# Load necessary libraries
+library(dplyr)
+library(tidyverse)
+library(mapme.biodiversity)
+library(terra)
+library(geodata)
+library(sf)
+library(progressr)
+#library(rstac)
+library(httr)
+library(wdpar)
+library(tmap)
+library(pbapply)
+
+local_output <- "data_out"
+data_dest <- "PA_impacts_fires/data/source"
+```
+
+
+## Vector data
+
+### National Boundaries
+
+```{r}
+mdg_0 <- gadm(country = "MDG", level = 0, path = "data")
+mdg_1 <- gadm(country = "MDG", level = 1, path = "data")
+mdg_2 <- gadm(country = "MDG", level = 2, path = "data")
+# Store it locally
+dir.create(paste0(local_output, "/admin_boundary"), recursive = TRUE, showWarnings = FALSE)
+writeVector(mdg_0, paste0(local_output, "/admin_boundary/MDG_GADM_admin0.gpkg"), overwrite=TRUE)
+writeVector(mdg_1, paste0(local_output, "/admin_boundary/MDG_GADM_admin1.gpkg"), overwrite=TRUE)
+writeVector(mdg_2, paste0(local_output, "/admin_boundary/MDG_GADM_admin2.gpkg"), overwrite=TRUE)
+# put to s3
+map2(
+  paste0(local_output, "/admin_boundary/MDG_GADM_admin", 0:2, ".gpkg"),
+  paste0(data_dest, "/admin_boundary/MDG_GADM_admin", 0:2, ".gpkg"),
+  put_to_s3
+)
+```
+
+
+### Protected Areas
+
+The download of WDPA data requires Chromium browser to be installed.
+Followed the two subsequent cells to install it.
+```{bash}
+# 1. Gain root access and add the non-snap Chromium repository
+sudo add-apt-repository ppa:xtradeb/apps -y
+
+# 2. Update the package list
+sudo apt-get update
+
+# 3. Install the actual Chromium binary (and dependencies)
+sudo apt-get install -y chromium
+
+chmod +x /home/onyxia/work/PA_impacts_fires/renv/library/linux-ubuntu-noble/R-4.5/x86_64-pc-linux-gnu/processx/bin/supervisor
+```
+
+```{r}
+# 1. Point R to the new binary location
+Sys.setenv(CHROMOTE_CHROME = "/usr/bin/chromium")
+
+# 2. Set the 'No-Sandbox' flag (Critical for Docker/Onyxia)
+library(chromote)
+set_chrome_args(c(default_chrome_args(), "--no-sandbox", "--disable-dev-shm-usage"))
+
+# 3. Verify it works - this should return a path without erroring
+chromote::find_chrome()
+```
+
+Load and clean WDPA data.
+
+```{r}
+# download protected area data for Madagascar
+# (excluding areas represented as point localities)
+mad_raw_wdpa <- wdpa_fetch(
+  "Madagascar", wait = TRUE, download_dir = rappdirs::user_data_dir("wdpar")
+)
+# clean the data with high geometry precision
+mad_clean_wdpa <- wdpa_clean(
+  mad_raw_wdpa, geometry_precision = 10000,
+  retain_status = NULL
+)
+
+#Load the boundary data
+mad_boundary <- vect(paste0("/vsis3/projet-betsaka/", data_dest, "/admin_boundary/MDG_GADM_admin0.gpkg")) %>%
+  sf::st_as_sf() %>%
+  # repair any geometry issues, dissolve the border, reproject to same
+  # coordinate system as the protected area data, and repair the geometry again
+  st_set_precision(1000) %>%
+  sf::st_make_valid() %>%
+  st_set_precision(1000) %>%
+  st_combine() %>%
+  st_union() %>%
+  st_set_precision(1000) %>%
+  sf::st_make_valid() %>%
+  st_transform(st_crs(mad_clean_wdpa)) %>%
+  sf::st_make_valid()
+
+# clip Madagscar's protected areas to the coastline
+mad_clean_wdpa <- mad_clean_wdpa %>%
+  dplyr::filter(REALM == "Terrestrial") %>%
+  st_intersection(mad_boundary) %>%
+  rbind(
+    mad_clean_wdpa %>%
+      dplyr::filter(REALM == "Marine") %>%
+      st_difference(mad_boundary)
+  ) %>%
+  rbind(mad_clean_wdpa %>% dplyr::filter(!REALM %in% c("Terrestrial", "Marine")))
+
+# recalculate the area of each protected area
+mad_clean_wdpa <- mad_clean_wdpa %>%
+  mutate(AREA_KM2 = as.numeric(st_area(.)) * 1e-6) %>%
+  st_transform(4326) %>%
+  sf::st_make_valid() %>%
+  mutate(
+    SHORT_NAME = case_match(NAME,
+    "Betampona"                                              ~ "Betampona",
+    "Tsimanampesotse"                                        ~ "Tsimanampe",
+    "Befotaka Midongy"                                       ~ "Befotaka",
+    "Isalo"                                                  ~ "Isalo",
+    "Mantadia"                                               ~ "Mantadia",
+    "Mananara Nord"                                          ~ "Mananara",
+    "Ranomafana"                                             ~ "Ranomafana",
+    "Tsaratanana"                                            ~ "Tsarata.",
+    "Masoala"                                                ~ "Masoala",
+    "Baie de Baly"                                           ~ "Baie Baly",
+    "Bemaraha"                                               ~ "Bemaraha",
+    "Marojejy"                                               ~ "Marojejy",
+    "Andringitra"                                            ~ "Andringi.",
+    "Namoroka"                                               ~ "Namoroka",
+    "Mikea"                                                  ~ "Mikea",
+    "Makira"                                                 ~ "Makira",
+    "Ankarafantsika"                                         ~ "Ankaraf.",
+    "Andohahela"                                             ~ "Andohahela",
+    "Montagne d'Ambre"                                       ~ "Mont Ambre",
+    "Analamazaotra"                                          ~ "Analamaz.",
+    "Analamerana"                                            ~ "Analamer.",
+    "Zombitse Vohibasia"                                     ~ "Zombitse",
+    "Zahamena"                                               ~ "Zahamena",
+    "Complexe des lacs Ambondro et Sirave (CLAS)"            ~ "CLAS Lakes",
+    "Marolambo"                                              ~ "Marolambo",
+    "Zones Humides Ankarafantsika  (CLSA)"                   ~ "CLSA Ank.",
+    "Analavelona"                                            ~ "Analavelon",
+    "Allées des Baobabs"                                     ~ "Baobabs",
+    "Bemarivo"                                               ~ "Bemarivo",
+    "Bora"                                                   ~ "Bora",
+    "Kasijy"                                                 ~ "Kasijy",
+    "Maningoza"                                              ~ "Maningoza",
+    "Ambohijanahary"                                         ~ "Ambohijan.",
+    "Ambatovaky"                                             ~ "Ambatovaky",
+    "Mangerivola"                                            ~ "Mangeri.",
+    "Kalambatrika"                                           ~ "Kalamba.",
+    "Tampoketsa Analamaitso"                                 ~ "Tampoketsa",
+    "Manombo"                                                ~ "Manombo",
+    "Ivohibe"                                                ~ "Ivohibe",
+    "Ambohitantely"                                          ~ "Ambohita.",
+    "Beza Mahafaly"                                          ~ "Beza Maha.",
+    "Le Lac Alaotra : Les Zones Humides et Bassins Versants" ~ "Lac Alaotra",
+    "Anjanaharibe_sud"                                       ~ "Anjanaha.",
+    "Ankarana"                                               ~ "Ankarana",
+    "Manongarivo"                                            ~ "Manongari.",
+    "Marotandrano"                                           ~ "Marotandra",
+    "Nosy Mangabe"                                           ~ "Nosy Manga",
+    "Andranomena"                                            ~ "Andranome.",
+    "Cap Sainte Marie"                                       ~ "Cap Ste Ma",
+    "Analalava"                                              ~ "Analalava",
+    "Réserve spéciale Pointe à Larrée"                       ~ "Pte Larree",
+    "Kinkony Lake"                                           ~ "Kinkony Lk",
+    "Site Bioculturel d'Antrema"                             ~ "Antrema",
+    "Complexe Tsimembo Manambolomaty"                        ~ "Tsimembo",
+    "Parc Alarobia"                                          ~ "Alarobia",
+    "Zones humides de Bedo"                                  ~ "Bedo",
+    "Rivière Nosivolo et affluents"                          ~ "Nosivo Af",
+    "Lac Mandrozo"                                           ~ "Mandrozo",
+    "Complexe Anjozorobe Angavo"                             ~ "Anjozorobe",
+    "Ankodida"                                               ~ "Ankodida",
+    "Corridor forestier Bongolava"                           ~ "Bongolava",
+    "Nord fotaky"                                            ~ "Fotaky",
+    "Mandena"                                                ~ "Mandena",
+    "Menabe Antimena"                                        ~ "Menabe Ant",
+    "Ambohitr'Antsingy Montagne des Français"                ~ "Mont Franc",
+    "Amoron'i Onilahy"                                       ~ "Amoro Onil",
+    "Ambatoatsinanana"                                       ~ "Ambatoatsi",
+    "Réserve de Tampolo"                                     ~ "Tampolo",
+    "Rivière Nosivolo"                                       ~ "Nosivolo",
+    "Complexe Lac Forêt Ambondrobe"                          ~ "Lac Ambond.",
+    "Complexe Zones Humides Mangoky Ihotry"                  ~ "Mangoky",
+    "Beanka"                                                 ~ "Beanka",
+    "Sahafina"                                               ~ "Sahafina",
+    "Corridor Forestier Ambositra Vondrozo"                  ~ "Ambositra",
+    "Massif d'Itremo"                                        ~ "Itremo",
+    "Ambatofotsy"                                            ~ "Ambatofo.",
+    "Ampotaka Ankorabe"                                      ~ "Ampotaka",
+    "Ampanganandehibe-Behasina"                              ~ "Ampanga.",
+    "Ampasindava"                                            ~ "Ampasindav",
+    "Galoko Kalobinono"                                      ~ "Galoko Kal",
+    "Oronjia"                                                ~ "Oronjia",
+    "Massif d'Ibity"                                         ~ "Ibity",
+    "Forêt Naturel de Petriky"                               ~ "Petriky",
+    "Andreba"                                                ~ "Andreba",
+    "COMATSA Sud"                                            ~ "COMATSA S",
+    "Bemanevika"                                             ~ "Bemanevika",
+    "Loky Manambato"                                         ~ "Loky Manam",
+    "Andrafiamena Andavakoera"                               ~ "Andrafiame",
+    "Complexe des Zones Humides de Bemanevika"               ~ "ZH Bemane.",
+    "Zones humides de l'Onilahy"                             ~ "Onilahy",
+    "Anjajavy"                                               ~ "Anjajavy",
+    "Ivohiboro"                                              ~ "Ivohiboro",
+    "Corridor Ankeniheny Zahamena"                           ~ "Ankeniheny",
+    "Forêt Naturelle de Tsitongambarika"                     ~ "Tsitongamb",
+    "Maromizaha"                                             ~ "Maromizaha",
+    "Mangabe-Ranomena-Sahasarotra"                           ~ "Mangabe",
+    "Analabe-Betanatanana"                                   ~ "Analabe",
+    "Agnalazaha"                                             ~ "Agnalazaha",
+    "Makirovana Tsihomanaomby"                               ~ "Makirovana",
+    "Vohidava Betsimalao"                                    ~ "Vohidava",
+    "Ankarabolava"                                           ~ "Ankarabola",
+    "Agnakatrika"                                            ~ "Agnakatri.",
+    "Mahimborondro"                                          ~ "Mahimboron",
+    "COMATSA Nord"                                           ~ "COMATSA N",
+    "Manjakatompo Ankaratra"                                 ~ "Ankaratra",
+    "Zones humides d'Ambondrobe"                             ~ "ZH Ambond.",
+    "Parc national Tsimanampesotse"                          ~ "PN Tsimana",
+    "Torotorofotsy"                                          ~ "Torotorofo",
+    "Ambatotsirongorongo"                                    ~ "Ambatotsir",
+    "Vohidefo"                                               ~ "Vohidefo",
+    "Angavo"                                                 ~ "Angavo",
+    "Behara-Tranomaro"                                       ~ "Behara",
+    "Sud-Ouest Ifotaky"                                      ~ "Ifotaky",
+    "Ranobe PK 32"                                           ~ "Ranobe",
+    "Ambohidray"                                             ~ "Ambohidray",
+    "Ambararata Londa"                                       ~ "Ambararata",
+    "Vohimana"                                               ~ "Vohimana",
+    "Madiro Mirafy"                                          ~ "Madiro Mir",
+    "APC Miary"                                              ~ "APC Miary",
+    "Makay"                                                  ~ "Makay",
+    "Lac Sofia"                                              ~ "Lac Sofia",
+    "Ankafobe"                                               ~ "Ankafobe",
+    "APC Vezo"                                               ~ "APC Vezo",
+    "Beampingaratsy"                                         ~ "Beampinga.",
+    "Ankirihitra"                                            ~ "Ankirihi.",
+    "APC Agnala"                                             ~ "APC Agnala",
+    "APC Loharano"                                           ~ "APC Lohara",
+    "APC Lovasoa"                                            ~ "APC Lovaso",
+    "APC Mikea Mitambatra"                                   ~ "APC Mikea",
+    "Tsinjoarivo Ambalaomby"                                 ~ "Tsinjoariv",
+    "Complexe Bobaomby"                                      ~ "Bobaomby",
+    "Complexe des  AP Ambohimirahavavy Marivorahona"         ~ "Ambohimira",
+    "Andrefana Dry Forests"                                  ~ "Andrefana",
+    "Forêts humides de l’Atsinanana"                         ~ "Atsinanana",
+    "Kirindy Mite"                                           ~ "Kirindy M",
+    "Sahamalaza Iles Radama"                                 ~ "Sahamalaza",
+    "Lokobe"                                                 ~ "Lokobe",
+    "Complexe Zones Humides Mahavavy Kinkony"                ~ "Mahavavy K",
+    "Nosy Antsoha"                                           ~ "Nosy Antso",
+    "Tsinjoriake"                                            ~ "Tsinjoriak",
+    "Mangroves de Tsiribihina"                               ~ "Tsiribihi.",
+    "Bombetoka Beloboka"                                     ~ "Bombetoka",
+    "Ankingabe"                                              ~ "Ankingabe",
+    "Mangroves de la Baie d'Ambaro"                          ~ "Ambaro",
+    .default = NAME
+  ))
+
+# visual check with tmap
+tmap_mode("view")
+
+tm_shape(mad_clean_wdpa) +
+  tm_borders() +
+  tm_fill("IUCN_CAT", fill.legend = tm_legend(title = "Catégorie IUCN"))
+
+tm_shape(mad_clean_wdpa) +
+  tm_borders() +
+  tm_fill("STATUS", fill.legend = tm_legend(title = "Status"))
+
+#Export the cleaned data
+sf::st_write(
+  mad_clean_wdpa,
+  dsn = "data/source/WDPA_data/mad_clean_wdpa.gpkg",
+  delete_dsn = TRUE
+)
+# put to s3
+map2(
+  paste0("data/source/WDPA_data/mad_clean_wdpa.gpkg"),
+  paste0(data_dest, "/WDPA_data/mad_clean_wdpa.gpkg"),
+  put_to_s3
+)
+```
+
+## Raster data
+
+
+```{r}
+# Use the mapme package to download available resources
+mapme_dest <- paste0("/vsis3/projet-betsaka", data_dest)
+mapme_options(outdir = mapme_dest)
+
+# Convert to sf
+mdg_sf <- st_as_sf(mdg)
+
+# The latter could have been written more simply with:
+with_progress({
+  mdg_sf <- mdg_sf %>%
+    get_resources(
+      get_mcd64a1(years = 2000:2024), # MODIS MCD64A1
+      get_gfw_treecover(version = "GFC-2024-v1.12"), # Global forest cover 2000
+      get_nasa_srtm(), # NASADEM HGT v001
+      get_accessibility_2000(), # JRC accessibility maps from 2000
+      get_worldpop(years = 2000)
+    )
+})
+# get_teow(path = NULL) for biomes should work but https://github.com/mapme-initiative/mapme.biodiversity/issues/450
+
+```
+
+
+## Global land cover datasets
+
+```{r}
+# list of URLs for GLAD database land cover data for Madagascar
+# https://storage.googleapis.com/earthenginepartners-hansen/GLCLU2000-2020/v2/download.html
+year <- c("2000", "2005", "2010", "2015", "2020")
+tiles <- c("10S_040E", "10S_050E", "20S_040E", "20S_050E")
+download_df <- expand.grid(year = year, tile = tiles)
+# Create folder to save files
+dir.create(paste0("./", local_output, "/GLAD_landcover"), recursive = TRUE)
+# Download loop
+lapply(
+  X = 1:nrow(download_df),
+  FUN = function(i) {
+    url = paste0("https://storage.googleapis.com/earthenginepartners-hansen/GLCLU2000-2020/v2/", download_df$year[i], "/", download_df$tile[i], ".tif")
+    download.file(
+      url,
+      paste0(local_output, "/GLAD_landcover/GLAD_Landcover_", download_df$year[i], "_", download_df$tile[i], ".tif"),
+      mode = "wb"
+)})
+# put on s3
+map2(
+  paste0(local_output, "/GLAD_landcover/GLAD_Landcover_", download_df$year, "_", download_df$tile, ".tif"),
+  paste0(data_dest, "/GLAD_landcover/GLAD_Landcover_", download_df$year, "_", download_df$tile, ".tif"),
+  put_to_s3
+)
+
+```
+
+## World settlements footprint evolution data
+
+```{r}
+# List of tile coordinates (just the number pairs)
+# list of tiles come from https://download.geoservice.dlr.de/WSF_EVO
+tiles <- c(
+  "46_-22", "44_-22", "42_-22", "42_-24", "42_-26", "44_-26",
+  "46_-26", "44_-24", "46_-24", "48_-24", "48_-22", "48_-20",
+  "44_-20", "42_-18", "44_-18", "46_-18", "46_-20", "48_-18",
+  "50_-18", "50_-16", "48_-16", "46_-16", "44_-16", "44_-14",
+  "46_-14", "48_-14", "50_-14", "48_-12"
+)
+urls <- paste0("https://download.geoservice.dlr.de/WSF_EVO/files/WSFevolution_v1_", tiles, ".tif")
+
+# Create folder to save files
+dir.create(paste0("./", local_output, "/WSF_EVO"), recursive = TRUE)
+
+# Download loop
+lapply(
+  X = urls,
+  function(url) {
+  download.file(
+    url,
+    paste0(local_output, "/WSF_EVO/", str_extract(url,"WSFevolution_v1_(.*).tif")),
+    mode = "wb"
+  )
+})
+# put on s3
+map2(
+  paste0(local_output, "/WSF_EVO/WSFevolution_v1_", tiles, ".tif"),
+  paste0(data_dest, "/WSF_EVO/WSFevolution_v1_", tiles, ".tif"),
+  put_to_s3
+)
+```
+
+
+### Fire data
+
+Batch download data from MODIS, using Appears.
+Necessary to be login into Earthdata.
+To obtain the download list, a request must be done in Appears. Then, select all the files in the request, click download and save download list.
+````{r}
+# Batch download from Appears, require authentification
+
+# Put on s3
+modis_files <- list.files(paste0(local_output, "/MODIS_Appears"), recursive = TRUE)
+map2(
+  paste0(local_output, "/MODIS_Appears/", modis_files),
+  paste0(data_dest, "/MODIS_Appears/", modis_files),
+  put_to_s3
+)
+````
+
+Fire CCI data from ESA.
+````{r}
+library(httr)
+dir.create(paste0("./", local_output, "/MODIS_CCI"), recursive = TRUE)
+
+for (year in 2019:2022) {
+  for (month in str_pad(1:12, width = 2, pad = "0")) {
+    if (year == 2007 | (year == 2019 & month >= 10)) {
+      target_url = paste0("https://dap.ceda.ac.uk/neodc/esacci/fire/data/burned_area/MODIS/pixel/v5.1/compressed/", year, "/new-corrected/", year, month, "01-ESACCI-L3S_FIRE-BA-MODIS-AREA_5-fv5.1.tar.gz?download=1")
+    }  else {
+      target_url = paste0("https://dap.ceda.ac.uk/neodc/esacci/fire/data/burned_area/MODIS/pixel/v5.1/compressed/", year, "/", year, month, "01-ESACCI-L3S_FIRE-BA-MODIS-AREA_5-fv5.1.tar.gz?download=1")
+    }
+    filename <- sub("?download=1", "", basename(target_url), fixed = TRUE)
+    save_path <- paste0("./", local_output, "/MODIS_CCI/", filename)
+    response <- download.file(target_url, save_path)
+    archive::archive_extract(save_path, paste0("./", local_output, "/MODIS_CCI"))
+    unlink(save_path)
+  }
+}
+
+# Put on s3
+burn_files <- list.files(paste0(local_output, "/MODIS_CCI"), recursive = TRUE)
+map2(
+  paste0(local_output, "/MODIS_CCI/", burn_files),
+  paste0(data_dest, "/MODIS_CCI/", burn_files),
+  put_to_s3
+)
+````

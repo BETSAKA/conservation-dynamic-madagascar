@@ -13,3 +13,4 @@ Backlog*
 **/*.quarto_ipynb
 *.md
 !README.md
+treatment_assignation_fire/02a_indicator_computation_cell.qmd

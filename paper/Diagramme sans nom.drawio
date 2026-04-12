@@ -1,9 +1,45 @@
 <mxfile host="app.diagrams.net">
   <diagram name="Page-1" id="wBsMpywlRCfnyYtZdpVJ">
-    <mxGraphModel>
+    <mxGraphModel dx="1030" dy="510" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-16" edge="1" parent="1" source="swD6DeWIQdFqMDn-KdO4-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="swD6DeWIQdFqMDn-KdO4-13" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;" value="&lt;b&gt;Input Data&lt;/b&gt;" vertex="1">
+          <mxGeometry height="370" width="140" x="30" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;div align=&quot;center&quot;&gt;WDPA archives&lt;br&gt;15 snapshots 2010-2024&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="40" y="207" as="geometry" />
+        </mxCell>
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="SAPM archives&lt;br&gt;8 national datasets" vertex="1">
+          <mxGeometry height="60" width="120" x="40" y="139" as="geometry" />
+        </mxCell>
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="WDPA working reference&lt;br&gt;Oct. 2025" vertex="1">
+          <mxGeometry height="60" width="120" x="40" y="73" as="geometry" />
+        </mxCell>
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-6" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="CNLEGIS&amp;nbsp;&lt;br&gt;legal texts&amp;nbsp;&lt;br&gt;200 decisions" vertex="1">
+          <mxGeometry height="60" width="120" x="40" y="275" as="geometry" />
+        </mxCell>
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-7" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Expert literature&lt;br&gt;Goodman et al. 2018" vertex="1">
+          <mxGeometry height="60" width="120" x="40" y="343" as="geometry" />
+        </mxCell>
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-9" parent="1" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;" value="&lt;b&gt;Consolidation &amp;amp;&lt;br&gt;Verification&lt;/b&gt;" vertex="1">
+          <mxGeometry height="250" width="140" x="216" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Case-by-case curation" vertex="1">
+          <mxGeometry height="45" width="120" x="226" y="177" as="geometry" />
+        </mxCell>
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-11" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Interactive visual&lt;br&gt;verificatoin" vertex="1">
+          <mxGeometry height="43" width="120" x="226" y="127" as="geometry" />
+        </mxCell>
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-12" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Cross-source matching" vertex="1">
+          <mxGeometry height="39" width="120" x="226" y="81" as="geometry" />
+        </mxCell>
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-13" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Internal zoning validation" vertex="1">
+          <mxGeometry height="47" width="120" x="226" y="229" as="geometry" />
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>

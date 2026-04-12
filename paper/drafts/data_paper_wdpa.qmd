@@ -1,0 +1,71 @@
+**Reconstructing Protected Area Histories: A 15-Year Consolidated WDPA
+Dataset (2010-2024)**
+
+**Florent Bédécarrats**
+
+**Summary**
+
+Protected areas spatial data, which includes their location and
+characteristics, is an essential source for conservation studies.
+National and international databases that provide this information
+typically include the current boundaries of protected areas, as well as
+their attributes such as creation date, status, and manager. However,
+this data structure results in a significant loss of information
+regarding past states of protected areas when their boundaries or
+characteristics have changed over time. This practice leads to erroneous
+results when using the data to analyze the evolution of protected areas
+or evaluate their impact on the environment and living conditions. It
+also omits phenomena like degazetting, leading to previously existing
+protected areas being treated as if they never existed.
+
+To address this problem, we developed a spatiotemporal dataset
+consolidating data published by the World Database on Protected Areas
+(WDPA) since 2010. We compiled an annual dataset, referencing the month
+of October or the closest available month when October data was not
+available.
+
+The data for 2010-2024 was obtained through extensive archival research
+to retrieve historical records published by WDPA, as only the latest
+public datasets are available on protectedplanet.net. Google Earth
+Engine archives data from as far back as 2017, and we found data for the
+years 2010 to 2016 in UNEP-WCMC\'s AWS public repository.
+
+Data schemas have evolved over time, and we undertook harmonization
+efforts to align attributes across different versions of the dataset.
+
+All processing was carried out on the SSP Cloud platform, provided by
+INSEE for data scientists working with the French public
+administrations. This platform consists of a Kubernetes cluster with a
+simplified interface for configuring, launching, and managing pods,
+along with a data lake for large-scale and efficient storage using S3.
+
+The result is a dataset comprising 2,721,134 protected area-year
+records, producing a 22.3GB parquet file. The geometries of protected
+areas are complex and account for over 95% of the data volume.
+De-duplicating this number of observations is computationally intensive.
+We use the Blake3 algorithm, a deterministic cryptographic hash function
+that consistently produces the same hash value for identical input data,
+making it highly effective for data de-duplication. It is among the most
+efficient available, implemented in C within our code. The hashes
+produced by Blake3 serve as keys to separate attribute data from spatial
+data.
+
+As a result, we obtained two parquet files that contain all the WDPA
+data for the past 15 years for 365,592 PAs: one containing 2,721,134 PA
+annual attributes (190MB) and another containing 1,425,023 unique
+spatial geometries (13.9GB).
+
+Using Parquet format provides advantages for handling large datasets,
+including efficient reading and writing speed, compression, selective
+column access, and partitioning, allowing users to filter and load only
+portions of the data into memory. Parquet\'s compatibility with various
+data processing tools also facilitates integration into different
+research workflows.
+
+The WDPA dataset used in this study is subject to specific licensing
+conditions provided by UNEP-WCMC. The data is available for
+non-commercial use only, and any derivative work may not be used for
+commercial purposes without prior written permission. Redistribution or
+sub-licensing of the data is also prohibited. Proper attribution is
+required for any use or publication involving the dataset, and users
+must ensure that the latest version of the data is being used.

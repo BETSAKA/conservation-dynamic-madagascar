@@ -5,7 +5,6 @@
 *.rds
 sources/*
 data/*
-test_*
 /.quarto/
 *.Rproj
 Backlog*

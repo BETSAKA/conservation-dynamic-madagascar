@@ -184,14 +184,36 @@ generate_timeline <- function(wdpaid_val, wdpa, amendments) {
     pa_amendments$valid_to[!is.na(pa_amendments$valid_to)]
   )
 
-  # STATUS_YR as fallback: only used when no amendments provide dated history.
-  # When amendments exist, their valid_from/valid_to already capture the real
+  # STATUS_YR fallback logic:
+  # 1. Always used when no amendments exist (baseline-only PA).
+  # 2. Also used when a boundary_modification has valid_to but no valid_from
+  #    AND no other amendment provides a date earlier than that valid_to.
+  #    This ensures the pre-modification period is represented.
+  # 3. Skipped otherwise: amendments already provide the correct temporal
+  #    segmentation and STATUS_YR would create spurious intervals.
+  wdpa_date <- NULL
+  if (nrow(wdpa_record) > 0) {
+    status_yr_date <- as.Date(paste0(wdpa_record$STATUS_YR[1], "-01-01"))
 
-  # temporal breakpoints. Using STATUS_YR in that case would create spurious
-  # intervals (STATUS_YR is the year of the last WDPA update, not a historical
-  # event date).
-  wdpa_date <- if (nrow(wdpa_record) > 0 && length(amendment_dates) == 0) {
-    as.Date(paste0(wdpa_record$STATUS_YR[1], "-01-01"))
+    if (length(amendment_dates) == 0) {
+      # Case 1: no amendments at all
+      wdpa_date <- status_yr_date
+    } else {
+      # Case 2: check for spatial amendments missing valid_from
+      spatial_no_from <- pa_amendments |>
+        filter(amendment_kind == "spatial",
+               amendment_type == "boundary_modification",
+               is.na(valid_from),
+               !is.na(valid_to))
+
+      if (nrow(spatial_no_from) > 0) {
+        earliest_valid_to <- min(spatial_no_from$valid_to)
+        # Only add STATUS_YR if it is strictly earlier than all existing dates
+        if (status_yr_date < min(amendment_dates)) {
+          wdpa_date <- status_yr_date
+        }
+      }
+    }
   }
 
   dates <- c(wdpa_date, amendment_dates) |>
@@ -311,7 +333,7 @@ check_conflicts <- function(amendments_active, type = "boundary") {
               "' in same period:\n",
               paste(
                 conflicting$amendment_id,
-                "→",
+                ":",
                 values,
                 collapse = "\n"
               )
@@ -450,10 +472,10 @@ consolidate_pa_states <- function(wdpaid, wdpa, amendments) {
     #
     # Two cases:
     # 1. A status_change/temporary_protection is active in this interval:
-    #    → STATUS_YR = year(valid_from) of that amendment (= when this
+    #    then STATUS_YR = year(valid_from) of that amendment (= when this
     #      historical status started).
     # 2. No status amendment active in this interval:
-    #    → STATUS_YR comes from WDPA baseline or from a `correction` amendment
+    #    then STATUS_YR comes from WDPA baseline or from a `correction` amendment
     #      if one exists. Corrections are open-ended and already applied above.
     #      When WDPA eventually fixes its STATUS_YR, the correction simply
     #      overwrites with the same value (idempotent, no conflict).
@@ -461,7 +483,7 @@ consolidate_pa_states <- function(wdpaid, wdpa, amendments) {
       filter(amendment_type %in% c("status_change", "temporary_protection"))
 
     if (nrow(status_amendments) > 0) {
-      # Case 1: active status amendment → year of its valid_from
+      # Case 1: active status amendment -- year of its valid_from
       status_yr_date <- max(status_amendments$valid_from, na.rm = TRUE)
       state_attrs[["STATUS_YR"]] <- as.character(year(status_yr_date))
     }

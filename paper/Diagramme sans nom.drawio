@@ -4,10 +4,7 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="swD6DeWIQdFqMDn-KdO4-16" edge="1" parent="1" source="swD6DeWIQdFqMDn-KdO4-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="swD6DeWIQdFqMDn-KdO4-13" value="">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="swD6DeWIQdFqMDn-KdO4-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;" value="&lt;b&gt;Input Data&lt;/b&gt;" vertex="1">
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;" value="&lt;b&gt;Historical Data&lt;/b&gt;" vertex="1">
           <mxGeometry height="370" width="140" x="30" y="40" as="geometry" />
         </mxCell>
         <mxCell id="swD6DeWIQdFqMDn-KdO4-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;div align=&quot;center&quot;&gt;WDPA archives&lt;br&gt;15 snapshots 2010-2024&lt;/div&gt;" vertex="1">
@@ -23,7 +20,7 @@
           <mxGeometry height="60" width="120" x="40" y="275" as="geometry" />
         </mxCell>
         <mxCell id="swD6DeWIQdFqMDn-KdO4-7" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Expert literature&lt;br&gt;Goodman et al. 2018" vertex="1">
-          <mxGeometry height="60" width="120" x="40" y="343" as="geometry" />
+          <mxGeometry height="60" width="120" x="41" y="343" as="geometry" />
         </mxCell>
         <mxCell id="swD6DeWIQdFqMDn-KdO4-9" parent="1" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;" value="&lt;b&gt;Consolidation &amp;amp;&lt;br&gt;Verification&lt;/b&gt;" vertex="1">
           <mxGeometry height="250" width="140" x="216" y="40" as="geometry" />
@@ -39,6 +36,60 @@
         </mxCell>
         <mxCell id="swD6DeWIQdFqMDn-KdO4-13" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Internal zoning validation" vertex="1">
           <mxGeometry height="47" width="120" x="226" y="229" as="geometry" />
+        </mxCell>
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-23" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;entryX=0.003;entryY=0.646;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.994;exitY=0.437;exitDx=0;exitDy=0;exitPerimeter=0;strokeWidth=3;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="169.16000000000008" y="123.69000000000005" as="sourcePoint" />
+            <mxPoint x="216.42000000000007" y="123.5" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-28" connectable="0" parent="1" style="group" value="&#xa;Collection of R functions for combination and audit&#xa;&#xa;" vertex="1">
+          <mxGeometry height="240" width="291" x="401" y="39" as="geometry" />
+        </mxCell>
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-25" parent="swD6DeWIQdFqMDn-KdO4-28" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;" value="&lt;div&gt;&lt;b&gt;Amendment Registry&lt;/b&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="120" width="140" as="geometry" />
+        </mxCell>
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-26" parent="swD6DeWIQdFqMDn-KdO4-28" style="rounded=0;whiteSpace=wrap;html=1;" value="YAML files" vertex="1">
+          <mxGeometry height="26" width="120" x="9" y="36" as="geometry" />
+        </mxCell>
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-27" parent="swD6DeWIQdFqMDn-KdO4-28" style="rounded=0;whiteSpace=wrap;html=1;" value="GeoJSON&lt;br&gt;geometries" vertex="1">
+          <mxGeometry height="37" width="120" x="9" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-36" connectable="0" parent="swD6DeWIQdFqMDn-KdO4-28" style="group" value="" vertex="1">
+          <mxGeometry height="80" width="241" x="50" y="164" as="geometry" />
+        </mxCell>
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-34" parent="swD6DeWIQdFqMDn-KdO4-36" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=default;align=center;verticalAlign=top;fontFamily=Helvetica;fontSize=12;fontColor=default;fillColor=default;" value="&lt;div&gt;&lt;b&gt;Consolidation&lt;/b&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="80" width="241" as="geometry" />
+        </mxCell>
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-35" parent="swD6DeWIQdFqMDn-KdO4-36" style="rounded=0;whiteSpace=wrap;html=1;" value="Collection of R functions for combination and audit" vertex="1">
+          <mxGeometry height="40" width="221" x="9" y="34" as="geometry" />
+        </mxCell>
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-37" edge="1" parent="swD6DeWIQdFqMDn-KdO4-28" source="swD6DeWIQdFqMDn-KdO4-25" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;strokeWidth=3;entryX=0.414;entryY=0.022;entryDx=0;entryDy=0;entryPerimeter=0;" target="swD6DeWIQdFqMDn-KdO4-34" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="-31" y="137.19000000000005" as="sourcePoint" />
+            <mxPoint x="159" y="161" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-30" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;entryX=0.003;entryY=0.646;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.994;exitY=0.437;exitDx=0;exitDy=0;exitPerimeter=0;strokeWidth=3;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="356" y="122.19000000000005" as="sourcePoint" />
+            <mxPoint x="403.26" y="122" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-33" connectable="0" parent="1" style="group" value="" vertex="1">
+          <mxGeometry height="100" width="140" x="580" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-31" parent="swD6DeWIQdFqMDn-KdO4-33" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;" value="&lt;b&gt;Current&amp;nbsp;Data&lt;/b&gt;" vertex="1">
+          <mxGeometry height="100" width="140" as="geometry" />
+        </mxCell>
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-32" parent="swD6DeWIQdFqMDn-KdO4-33" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;div&gt;WDPA&lt;/div&gt;&lt;div&gt;Up-to-date version&lt;br&gt;at generation time&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="9" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-38" edge="1" parent="1" source="swD6DeWIQdFqMDn-KdO4-31" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;strokeWidth=3;entryX=0.55;entryY=0.002;entryDx=0;entryDy=0;entryPerimeter=0;" target="swD6DeWIQdFqMDn-KdO4-34" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="550" y="146" as="sourcePoint" />
+            <mxPoint x="630" y="192" as="targetPoint" />
+          </mxGeometry>
         </mxCell>
       </root>
     </mxGraphModel>

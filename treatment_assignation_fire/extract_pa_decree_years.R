@@ -30,13 +30,17 @@ dw_ext <- dw |>
 dw_ext <- dw_ext |>
   mutate(
     protection_type = if_else(
-      DESIG == "Protection Temporaire", "temporary", "permanent",
+      DESIG == "Protection Temporaire",
+      "temporary",
+      "permanent",
       missing = "permanent"
     )
   )
 
 # -- Helper: min that returns NA instead of Inf on empty input ---------------
-safe_min <- function(x) if (length(x) == 0 || all(is.na(x))) NA_integer_ else min(x, na.rm = TRUE)
+safe_min <- function(x) {
+  if (length(x) == 0 || all(is.na(x))) NA_integer_ else min(x, na.rm = TRUE)
+}
 
 # -- Extract decree years per PA ---------------------------------------------
 decree_years <- dw_ext |>
@@ -49,7 +53,11 @@ decree_years <- dw_ext |>
       as.integer(STATUS_YR[protection_type == "permanent"])
     ),
     first_valid_from = min(valid_from, na.rm = TRUE),
-    latest_valid_to = if (all(is.na(valid_to))) NA_Date_ else max(valid_to, na.rm = TRUE),
+    latest_valid_to = if (all(is.na(valid_to))) {
+      NA_Date_
+    } else {
+      max(valid_to, na.rm = TRUE)
+    },
     .groups = "drop"
   )
 
@@ -57,12 +65,21 @@ decree_years <- dw_ext |>
 write_csv(decree_years, output_path)
 
 cat(
-  "Wrote", nrow(decree_years), "PAs to", output_path, "\n",
-  "  - with temporary year:", sum(!is.na(decree_years$temporary_decree_year)), "\n",
-  "  - with permanent year:", sum(!is.na(decree_years$permanent_decree_year)), "\n",
+  "Wrote",
+  nrow(decree_years),
+  "PAs to",
+  output_path,
+  "\n",
+  "  - with temporary year:",
+  sum(!is.na(decree_years$temporary_decree_year)),
+  "\n",
+  "  - with permanent year:",
+  sum(!is.na(decree_years$permanent_decree_year)),
+  "\n",
   "  - with both:          ",
   sum(
     !is.na(decree_years$temporary_decree_year) &
       !is.na(decree_years$permanent_decree_year)
-  ), "\n"
+  ),
+  "\n"
 )

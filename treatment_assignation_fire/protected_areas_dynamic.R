@@ -53,8 +53,13 @@ dw_ext <- dw |>
     STATUS_YR_int = as.integer(STATUS_YR),
     IUCN = case_match(
       IUCN_CAT,
-      "Ia" ~ 1L, "Ib" ~ 2L, "II" ~ 3L,
-      "III" ~ 4L, "IV" ~ 5L, "V" ~ 6L, "VI" ~ 7L,
+      "Ia" ~ 1L,
+      "Ib" ~ 2L,
+      "II" ~ 3L,
+      "III" ~ 4L,
+      "IV" ~ 5L,
+      "V" ~ 6L,
+      "VI" ~ 7L,
       .default = NA_integer_
     ),
     is_temporary = as.integer(DESIG == "Protection Temporaire"),
@@ -78,7 +83,9 @@ if (file.exists(grid_path)) {
   grid_sf <- readRDS(grid_path) |> st_as_sf()
 } else {
   stop(
-    "Reference grid not found at ", grid_path, "\n",
+    "Reference grid not found at ",
+    grid_path,
+    "\n",
     "Please ensure the MODIS reference grid is available."
   )
 }
@@ -111,22 +118,29 @@ cat("  Intersections computed.\n")
 # (oldest PA first, as in the static approach).
 
 build_year <- function(year, intersects_idx, within_idx, dw_ext, grid_sf) {
-
   # Which PA-states are active this year?
   active <- which(dw_ext$year_from <= year & dw_ext$year_to > year)
-  if (length(active) == 0) return(NULL)
+  if (length(active) == 0) {
+    return(NULL)
+  }
 
   # Pre-sort active states by year_from for "first_or_na" logic
   active_sorted <- active[order(dw_ext$year_from[active])]
 
   # Helper: for each cell, find the first active PA-state index
   first_active <- function(idx_list) {
-    vapply(idx_list, function(hits) {
-      matched <- intersect(hits, active_sorted)
-      if (length(matched) == 0L) return(NA_integer_)
-      # Return the one that appears first in active_sorted
-      active_sorted[which(active_sorted %in% matched)[1]]
-    }, integer(1))
+    vapply(
+      idx_list,
+      function(hits) {
+        matched <- intersect(hits, active_sorted)
+        if (length(matched) == 0L) {
+          return(NA_integer_)
+        }
+        # Return the one that appears first in active_sorted
+        active_sorted[which(active_sorted %in% matched)[1]]
+      },
+      integer(1)
+    )
   }
 
   touch_idx <- first_active(intersects_idx)
@@ -142,14 +156,18 @@ build_year <- function(year, intersects_idx, within_idx, dw_ext, grid_sf) {
     WDPAID_touch_dyn = dw_ext$WDPAID_int[touch_idx],
     IUCN_touch_dyn = dw_ext$IUCN[touch_idx],
     desig_type_touch_dyn = if_else(
-      dw_ext$is_temporary[touch_idx] == 1L, 2L, 1L
+      dw_ext$is_temporary[touch_idx] == 1L,
+      2L,
+      1L
     ),
     year_created_touch_dyn = dw_ext$year_from[touch_idx],
     # include-level
     WDPAID_include_dyn = dw_ext$WDPAID_int[include_idx],
     IUCN_include_dyn = dw_ext$IUCN[include_idx],
     desig_type_include_dyn = if_else(
-      dw_ext$is_temporary[include_idx] == 1L, 2L, 1L
+      dw_ext$is_temporary[include_idx] == 1L,
+      2L,
+      1L
     ),
     year_created_include_dyn = dw_ext$year_from[include_idx]
   )
@@ -177,8 +195,10 @@ cat("Pivoting to long format...\n")
 treatment_long <- treatment_all |>
   pivot_longer(
     cols = c(
-      starts_with("WDPAID_"), starts_with("IUCN_"),
-      starts_with("desig_type_"), starts_with("year_created_")
+      starts_with("WDPAID_"),
+      starts_with("IUCN_"),
+      starts_with("desig_type_"),
+      starts_with("year_created_")
     ),
     names_to = "variable",
     values_to = "value"

@@ -13,3 +13,4 @@ Backlog*
 **/*.quarto_ipynb
 *.md
 !README.md
+paper/*

@@ -91,6 +91,18 @@
             <mxPoint x="630" y="192" as="targetPoint" />
           </mxGeometry>
         </mxCell>
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-40" parent="1" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=default;align=center;verticalAlign=top;fontFamily=Helvetica;fontSize=12;fontColor=default;fillColor=default;" value="&lt;b&gt;Output dataset&lt;/b&gt;" vertex="1">
+          <mxGeometry height="80" width="241" x="451" y="323" as="geometry" />
+        </mxCell>
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-41" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Spatiotemporal states of PAs&lt;br&gt;Geopackage and GeoParquet" vertex="1">
+          <mxGeometry height="40" width="221" x="461" y="356" as="geometry" />
+        </mxCell>
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-42" edge="1" parent="1" source="swD6DeWIQdFqMDn-KdO4-34" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;strokeWidth=3;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="swD6DeWIQdFqMDn-KdO4-40" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="510" y="180" as="sourcePoint" />
+            <mxPoint x="590" y="226" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>

@@ -285,6 +285,16 @@ add_modif_sat <- function(
 
   wdpaid <- resolve_wdpaid(wdpa_name_or_id, decisions)
 
+  # Warn when boundary_modification lacks valid_from: without it,
+  # generate_timeline() cannot create the pre-modification temporal state.
+  if (amendment_type == "boundary_modification" && is.null(valid_from)) {
+    warning(
+      "add_modif_sat(): boundary_modification for WDPAID=", wdpaid,
+      " has no valid_from. The pre-modification period will not be ",
+      "represented in the timeline unless STATUS_YR provides a fallback."
+    )
+  }
+
   # Use manual_decision if provided, otherwise search CNLEGIS database
   if (!is.null(manual_decision)) {
     # Manual decision provided - use it directly
@@ -1180,7 +1190,8 @@ sat <- NULL |>
     wdpa_name_or_id = "Ambatovaky",
     decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
     source_dataset_id = "MNP_2010",
-    notes = "Périmètre antérieur au décret modifiant (géométrie MNP_2010 retenue après vérification visuelle)."
+    valid_from = "1958-10-28",
+    notes = "Périmètre antérieur au décret modifiant (géométrie MNP_2010 retenue après vérification visuelle). Création par Décret 58-10 du 28 octobre 1958."
   )
 
 ```
@@ -1345,7 +1356,8 @@ sat <- sat |>
     wdpa_name_or_id = "Andohahela",
     decision_filter = list(year = 2015, type_decision_pattern = "modifiant"),
     source_dataset_id = "SAPM_evol_2001-2011",
-    notes = "Périmètre antérieur au décret modifiant (géométrie SAPM_2010 retenue après vérification visuelle)."
+    valid_from = "1939-06-11",
+    notes = "Périmètre antérieur au décret modifiant (géométrie SAPM_2010 retenue après vérification visuelle). Création comme RNI #11 le 11 juin 1939."
   )
 ```
 
@@ -3078,8 +3090,8 @@ fat <- add_modif_fat(
   ),
   amendment_type = "status_change",
   valid_from = "1997-08-07",
-  valid_to = "2015-04-21",
-  notes = "Décret 97-1044 established mixed status: PN (42,300 ha, IUCN II) + RNI (22,100 ha, IUCN Ia) with Antenina enclave (350 ha). Boundaries reduced from ~73,160 ha to 64,378 ha. Unified to PN only via Décret 2015-737 du 21 avril 2015, eliminating previous composite PN+RNI zoning. Boundaries expanded from 64,378 ha to 64,935 ha. "
+  valid_to = "2015-04-28",
+  notes = "Décret 97-1044 established mixed status: PN (42,300 ha, IUCN II) + RNI (22,100 ha, IUCN Ia) with Antenina enclave (350 ha). Boundaries reduced from ~73,160 ha to 64,378 ha. Unified to PN only via Décret 2015-737 (CNLEGIS date 2015-04-28), eliminating previous composite PN+RNI zoning. Boundaries expanded from 64,378 ha to 64,935 ha."
 )
 ```
 

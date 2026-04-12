@@ -5,7 +5,6 @@
 *.rds
 sources/*
 data/*
-test_*
 /.quarto/
 *.Rproj
 Backlog*
@@ -13,4 +12,3 @@ Backlog*
 **/*.quarto_ipynb
 *.md
 !README.md
-paper/*

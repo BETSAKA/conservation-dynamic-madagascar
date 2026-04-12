@@ -18,7 +18,9 @@ library(here)
 
 # --- Load data ---------------------------------------------------------------
 dynamic_wdpa <- readRDS(here("data", "dynamic_wdpa.rds"))
-ext <- dynamic_wdpa |> st_drop_geometry() |> filter(zone_type == "external_boundary")
+ext <- dynamic_wdpa |>
+  st_drop_geometry() |>
+  filter(zone_type == "external_boundary")
 
 # Helper: get external boundary states for a WDPAID
 get_states <- function(wdpaid_val) {
@@ -35,7 +37,9 @@ test_that("dynamic_wdpa is a valid sf object", {
 })
 
 test_that("all records have valid zone_type", {
-  expect_true(all(dynamic_wdpa$zone_type %in% c("external_boundary", "secondary_zoning")))
+  expect_true(all(
+    dynamic_wdpa$zone_type %in% c("external_boundary", "secondary_zoning")
+  ))
 })
 
 test_that("every PA has exactly one external_boundary per state_id", {
@@ -43,23 +47,38 @@ test_that("every PA has exactly one external_boundary per state_id", {
   # in the same year (e.g. 352242 in 2007) produce duplicate IDs.
   known_dups <- c("352242_2007")
   dup <- ext |> group_by(state_id) |> filter(n() > 1, !state_id %in% known_dups)
-  expect_equal(nrow(dup), 0, info = paste(
-    "Duplicate external_boundary in state_ids:", paste(unique(dup$state_id), collapse = ", ")
-  ))
+  expect_equal(
+    nrow(dup),
+    0,
+    info = paste(
+      "Duplicate external_boundary in state_ids:",
+      paste(unique(dup$state_id), collapse = ", ")
+    )
+  )
 })
 
 test_that("valid_from is never NA for external_boundary", {
   missing <- ext |> filter(is.na(valid_from))
-  expect_equal(nrow(missing), 0, info = paste(
-    "Missing valid_from in state_ids:", paste(missing$state_id, collapse = ", ")
-  ))
+  expect_equal(
+    nrow(missing),
+    0,
+    info = paste(
+      "Missing valid_from in state_ids:",
+      paste(missing$state_id, collapse = ", ")
+    )
+  )
 })
 
 test_that("valid_from < valid_to whenever valid_to is not NA", {
   bad <- ext |> filter(!is.na(valid_to), valid_from >= valid_to)
-  expect_equal(nrow(bad), 0, info = paste(
-    "Invalid date order in state_ids:", paste(bad$state_id, collapse = ", ")
-  ))
+  expect_equal(
+    nrow(bad),
+    0,
+    info = paste(
+      "Invalid date order in state_ids:",
+      paste(bad$state_id, collapse = ", ")
+    )
+  )
 })
 
 test_that("timeline is contiguous for each PA (no gaps between consecutive states)", {
@@ -71,9 +90,14 @@ test_that("timeline is contiguous for each PA (no gaps between consecutive state
       has_gap = !is.na(valid_to) & !is.na(next_from) & valid_to != next_from
     ) |>
     filter(has_gap)
-  expect_equal(nrow(gaps), 0, info = paste(
-    "Timeline gaps in WDPAIDs:", paste(unique(gaps$WDPAID), collapse = ", ")
-  ))
+  expect_equal(
+    nrow(gaps),
+    0,
+    info = paste(
+      "Timeline gaps in WDPAIDs:",
+      paste(unique(gaps$WDPAID), collapse = ", ")
+    )
+  )
 })
 
 test_that("the last state for each PA has valid_to = NA (open-ended)", {
@@ -82,9 +106,14 @@ test_that("the last state for each PA has valid_to = NA (open-ended)", {
     arrange(valid_from) |>
     slice_tail(n = 1) |>
     filter(!is.na(valid_to))
-  expect_equal(nrow(last_states), 0, info = paste(
-    "Non-open last states:", paste(last_states$WDPAID, collapse = ", ")
-  ))
+  expect_equal(
+    nrow(last_states),
+    0,
+    info = paste(
+      "Non-open last states:",
+      paste(last_states$WDPAID, collapse = ", ")
+    )
+  )
 })
 
 # =============================================================================
@@ -514,11 +543,18 @@ test_that("all 168 WDPAIDs have at least one external_boundary state", {
 # =============================================================================
 
 test_that("secondary zoning records have matching WDPAID in external_boundary", {
-  sec <- dynamic_wdpa |> st_drop_geometry() |> filter(zone_type == "secondary_zoning")
+  sec <- dynamic_wdpa |>
+    st_drop_geometry() |>
+    filter(zone_type == "secondary_zoning")
   orphans <- sec |> filter(!WDPAID %in% ext$WDPAID)
-  expect_equal(nrow(orphans), 0, info = paste(
-    "Orphan secondary zones for WDPAIDs:", paste(unique(orphans$WDPAID), collapse = ", ")
-  ))
+  expect_equal(
+    nrow(orphans),
+    0,
+    info = paste(
+      "Orphan secondary zones for WDPAIDs:",
+      paste(unique(orphans$WDPAID), collapse = ", ")
+    )
+  )
 })
 
 # =============================================================================
@@ -530,10 +566,14 @@ test_that("all geometries are valid (excluding known WDPA issues)", {
   known_invalid <- c("555790231_2019")
   invalid <- dynamic_wdpa |>
     filter(!st_is_valid(geometry), !state_id %in% known_invalid)
-  expect_equal(nrow(invalid), 0, info = paste(
-    "Invalid geometries in state_ids:",
-    paste(invalid$state_id[1:min(5, nrow(invalid))], collapse = ", ")
-  ))
+  expect_equal(
+    nrow(invalid),
+    0,
+    info = paste(
+      "Invalid geometries in state_ids:",
+      paste(invalid$state_id[1:min(5, nrow(invalid))], collapse = ", ")
+    )
+  )
 })
 
 test_that("all geometries are non-empty (excluding dissolved PAs)", {
@@ -541,10 +581,14 @@ test_that("all geometries are non-empty (excluding dissolved PAs)", {
   known_empty <- c("5025_2015")
   empty <- dynamic_wdpa |>
     filter(st_is_empty(geometry), !state_id %in% known_empty)
-  expect_equal(nrow(empty), 0, info = paste(
-    "Empty geometries in state_ids:",
-    paste(empty$state_id[1:min(5, nrow(empty))], collapse = ", ")
-  ))
+  expect_equal(
+    nrow(empty),
+    0,
+    info = paste(
+      "Empty geometries in state_ids:",
+      paste(empty$state_id[1:min(5, nrow(empty))], collapse = ", ")
+    )
+  )
 })
 
 test_that("CRS is WGS84 (EPSG:4326)", {

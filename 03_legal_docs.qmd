@@ -170,7 +170,7 @@ class_results <- all_results %>%
     creation_definitive = str_detect(
       textes,
       regex(
-        "(?<!en )(creation|cretion de l'aire protegee)|instituant(?!.*autour)|classant",
+        "(?<!en )(cr\u00e9ation|cr\u00e9tion de l'aire prot\u00e9g\u00e9e)|instituant(?!.*autour)|classant",
         ignore_case = TRUE
       )
     ),
@@ -355,7 +355,14 @@ class_results <- class_results %>%
 
 class_results <- class_results %>%
   mutate(
-    # For 2008, we find the list of PA created then
+    # Decrees 18633/2008, 52005/2010, 9874/2013 are blanket arretes for
+    # temporary protection of new SAPM sites. Their annexes list PA names
+    # only as PDF maps, not digitized in text. We use the SAPM 2010 shapefile
+    # (YEAR_IMPLE == "X") as a proxy for the list of concerned PAs.
+    # NB: this list includes a few names (e.g. "Soatanimbary", "Beteny",
+    # "Ampanihy") that are distinct SAPM sites but get spuriously matched
+    # to pre-existing legacy PAs through the conversion table. These are
+    # filtered out downstream (see post-processing after decision_pa).
     pa = ifelse(
       num_texte == "18633/2008" |
         num_texte == "52005/2010" |
@@ -450,6 +457,27 @@ conversion_table_verif <- read_xlsx("data/conversion_table_verif.xlsx") %>%
   unique() %>%
   clean_pa_names_cols(name_cols = c("original_pa", "WDPA_NAME"))
 
+# Fix spurious conversion table mappings: several SAPM site names were
+# fuzzy-matched to unrelated legacy PAs. We correct them here so that the
+# blanket temporary-protection decrees are not attributed to legacy PAs.
+conversion_table_verif <- conversion_table_verif %>%
+  mutate(
+    # "soatanimbary" is a distinct SAPM site, not Zombitse Vohibasia (20273).
+    WDPA_NAME = ifelse(original_pa == "soatanimbary", NA_character_, WDPA_NAME),
+    WDPAID    = ifelse(original_pa == "soatanimbary", NA_real_,      WDPAID),
+    # "mangabe" is SAPM Mangabe-Ranomena-Sahasarotra, not the legacy RS Nosy Mangabe (5039).
+    WDPA_NAME = ifelse(original_pa == "mangabe",
+                       "Mangabe-Ranomena-Sahasarotra", WDPA_NAME),
+    WDPAID    = ifelse(original_pa == "mangabe", 555697885, WDPAID),
+    # "extension ala maiky ampamalora" is a distinct SAPM extension, not Andohahela (2303).
+    WDPA_NAME = ifelse(original_pa == "extension ala maiky ampamalora",
+                       NA_character_, WDPA_NAME),
+    WDPAID    = ifelse(original_pa == "extension ala maiky ampamalora",
+                       NA_real_,      WDPAID),
+    # "lokobe extension" is a distinct SAPM extension, not the legacy Lokobe RNI/PN (2311).
+    WDPA_NAME = ifelse(original_pa == "lokobe extension", NA_character_, WDPA_NAME),
+    WDPAID    = ifelse(original_pa == "lokobe extension", NA_real_,      WDPAID)
+  )
 
 # Merge with split_class_clean to integrate the verified closest matches
 decision_pa <- split_class_clean %>%
@@ -457,7 +485,8 @@ decision_pa <- split_class_clean %>%
     conversion_table_verif,
     by = c("single_cleaned_pa" = "original_pa")
   ) %>%
-  distinct(pa, num_texte, .keep_all = TRUE) %>%
+  # Use WDPAID (not pa) so multi-PA decrees keep one row per PA
+  distinct(WDPAID, num_texte, .keep_all = TRUE) %>%
   select(
     date_texte = date_txt,
     ap_nom_texte = pa,
@@ -479,6 +508,22 @@ decision_pa <- split_class_clean %>%
     html_mg,
     doc_pdf_fr,
     doc_pdf_mg
+  )
+
+# Filter out pre-existing PAs spuriously matched to the blanket temp-protection
+# decrees (18633/2008, 52005/2010, 9874/2013). These decrees only concern
+# *new* SAPM sites, not legacy parks/reserves that were already designated
+# before the SAPM process began (decree 17914/2006).
+blanket_decrees <- c("18633/2008", "52005/2010", "9874/2013")
+pre_existing_wdpaids <- wdpa_mdg_2025 %>%
+  as_tibble() %>%
+  filter(STATUS_YR > 0, STATUS_YR < 2006) %>%
+  pull(WDPAID) %>%
+  unique()
+
+decision_pa <- decision_pa %>%
+  filter(
+    !(num_texte %in% blanket_decrees & WDPAID %in% pre_existing_wdpaids)
   )
 
 write_rds(decision_pa, "data/id/legal_texts.rds")

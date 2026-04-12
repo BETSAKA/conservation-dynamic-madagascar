@@ -30,7 +30,7 @@ affiliations:
 date: today
 format:
   docx:
-    reference-doc: default
+    reference-doc: custom-reference.docx
     number-sections: true
   html:
     toc: true
@@ -64,7 +64,7 @@ This paper presents three contributions. First, a temporal data model that exten
 
 The dataset was constructed through a multi-step pipeline integrating four complementary data sources, cross-referencing them through spatial and textual matching, curating amendments through expert review, and consolidating them into temporal states using deterministic rules. The complete methodology is documented in a reproducible notebook accompanying this paper (see supplementary material). We summarize the key steps below and illustrate the overall workflow in @fig-workflow.
 
-[Workflow diagram of the data processing pipeline](../figures/Data_preparation_workflow.drawio.png){#fig-workflow width=100%}
+![Workflow diagram of the data processing pipeline](../figures/Data_preparation_workflow.drawio.png){#fig-workflow width=100%}
 
 ## Input data
 
@@ -96,46 +96,7 @@ Core zone shapefiles from five organizations (MEDD, MNP, MBG, GERP, WWF) were co
 
 For approximately 25 protected areas with complex histories, a detailed case-by-case review was conducted, cross-referencing legal decisions, historical boundaries from Goodman et al. [-@Goodman2018], and successive SAPM datasets. @fig-examples illustrates three such cases. Amendments were documented in Spatial Amendment Tables (SAT) for geometries and Feature Attribute Tables (FAT) for attributes, then exported to the canonical YAML format.
 
-```{r}
-#| label: fig-examples
-#| eval: !expr file.exists("../../data/dynamic_wdpa.rds")
-#| fig-cap: "Temporal reconstruction for three emblematic protected areas. (a) Ankarafantsika: transition from Réserve Naturelle Intégrale to Parc National with successive boundary extensions. (b) Ambatovaky: historical boundary corrections revealing discrepancies between WDPA and legal sources. (c) Kirindy Mite: complex status history with temporary protection decrees preceding formal designation."
-#| fig-width: 10
-#| fig-height: 12
-#| warning: false
-#| message: false
-
-library(sf)
-library(tmap)
-library(dplyr)
-
-# Load the temporal dataset produced by the CAR engine (Ch. 09)
-dynamic_wdpa <- readRDS("../../data/dynamic_wdpa.rds")
-
-# Select the three emblematic PAs
-example_names <- c("Ankarafantsika", "Ambatovaky", "Kirindy Mite")
-
-examples <- dynamic_wdpa |>
-  filter(grepl(paste(example_names, collapse = "|"), NAME, ignore.case = TRUE),
-         zone_type == "external_boundary")
-
-tmap_mode("plot")
-
-# Create one panel per PA, faceted by valid_from
-tm_shape(examples) +
-  tm_polygons(
-    fill = "valid_from",
-    fill.scale = tm_scale_continuous(values = "brewer.blues"),
-    fill_alpha = 0.5,
-    col = "darkblue",
-    lwd = 0.8
-  ) +
-  tm_facets(by = c("NAME", "valid_from"), free.coords = TRUE, ncol = 3) +
-  tm_layout(
-    panel.labels = NULL,
-    frame = TRUE
-  )
-```
+![Temporal reconstruction for three protected areas](../figures/fig_examples.png){#fig-examples width=100%}
 
 ## YAML amendment registry
 
@@ -178,178 +139,24 @@ Each row in the output dataset represents one zone in one temporal state. A prot
 
 The dataset covers 123 terrestrial protected areas in Madagascar with a temporal span from 2000 to 2025. Protected areas have between one and several temporal states depending on the documented amendments. Secondary zones are included for 73 protected areas where validated core zone shapefiles were available. @fig-map shows the spatial distribution of protected areas colored by the number of documented temporal states, illustrating where the dataset adds information relative to the static WDPA.
 
-```{r}
-#| label: fig-map
-#| eval: !expr file.exists("../../data/dynamic_wdpa.rds")
-#| fig-cap: "Map of Madagascar's 123 terrestrial protected areas, colored by the number of documented temporal states. Sites with a single state correspond to the WDPA baseline; sites with multiple states reflect boundary modifications, status changes, or zoning amendments documented through the YAML registry."
-#| fig-width: 7
-#| fig-height: 10
-#| warning: false
-#| message: false
-
-library(sf)
-library(tmap)
-library(dplyr)
-
-dynamic_wdpa <- readRDS("../../data/dynamic_wdpa.rds")
-
-# Count states per PA (external boundaries only)
-state_counts <- dynamic_wdpa |>
-  st_drop_geometry() |>
-  filter(zone_type == "external_boundary") |>
-  count(WDPAID, NAME, name = "n_states")
-
-# Get the most recent external boundary per PA for the map
-current_boundaries <- dynamic_wdpa |>
-  filter(zone_type == "external_boundary") |>
-  group_by(WDPAID) |>
-  filter(valid_to == max(valid_to)) |>
-  ungroup() |>
-  left_join(state_counts |> select(WDPAID, n_states), by = "WDPAID")
-
-tmap_mode("plot")
-
-tm_shape(current_boundaries) +
-  tm_polygons(
-    fill = "n_states",
-    fill.scale = tm_scale_intervals(
-      breaks = c(1, 2, 3, 5, 10, Inf),
-      values = "brewer.yl_or_rd",
-      labels = c("1", "2", "3–4", "5–9", "10+")
-    ),
-    fill.legend = tm_legend(title = "Temporal states"),
-    col = "grey40",
-    lwd = 0.3
-  ) +
-  tm_layout(
-    frame = FALSE,
-    legend.position = c("left", "bottom")
-  )
-```
+![Map of Madagascar's 123 terrestrial protected areas](../figures/fig_map.png){#fig-map width=70%}
 
 The data model and the associated infrastructure are designed to be generalizable to any country or region where complementary sources can supplement the WDPA baseline, and extensible to the full diversity of protected area modifications including boundary changes, status reclassifications, governance changes, temporary protections, and any form of internal zoning.
 
 
 # Technical Validation
 
-## Cross-source consistency checks
-
-Spatial overlap between the WDPA, successive SAPM versions, and the Vahatra dataset was quantified using mutual inclusion ratios. For each protected area present in multiple sources, the proportion of area shared between paired geometries was computed, flagging cases with less than 80% overlap for manual review. Date and status discrepancies between the WDPA and the Vahatra monograph were systematically catalogued and resolved through legal text verification.
-
-## Legal source verification
+Spatial overlap between the WDPA, successive SAPM versions, and the Vahatra dataset was quantified using mutual inclusion ratios. For each protected area present in multiple sources, the proportion of area shared between paired geometries was computed, flagging cases with less than 80% overlap for manual review. Date and status discrepancies between sources were systematically catalogued and resolved through legal text verification.
 
 Every amendment in the YAML registry is linked to a specific legal decision identified by its decree or order number, date, and URL in the CNLEGIS database. Domain experts reviewed all amendments through the interactive Shiny dashboard, verifying that recorded boundary changes and status modifications match the corresponding legal texts.
 
-## Temporal integrity
-
 Automated checks enforce three invariants across the dataset: no overlapping validity periods exist for the same zone of the same protected area; no temporal gaps exist in the coverage of external boundaries from the creation date to the reference date; and `valid_from` is strictly earlier than `valid_to` for every state.
-
-## Geometry validation
 
 All geometries were validated using `sf::st_make_valid()` in R. Core zones were verified to fall within their parent protected area's external boundaries using spatial containment checks. Coordinate reference system consistency was enforced across all source datasets.
 
-## Deforestation differential analysis
+@fig-amendments summarizes the types and counts of amendments documented in the registry. 
 
-To demonstrate the empirical consequences of boundary accuracy, we compared deforestation statistics computed from WDPA boundaries before and after the December 2024 correction. Using Global Forest Watch tree cover loss data [@hansen_high-resolution_2013] and the mapme.biodiversity R package, cumulative forest loss between 2001 and 2024 was calculated within protected area boundaries from both the November 2024 and January 2025 WDPA snapshots, applying a uniform 30% canopy cover threshold.
-
-@fig-amendments summarizes the types and counts of amendments documented in the registry. @fig-deforestation presents the results of the deforestation differential analysis: among the 49 protected areas with area changes exceeding 5% between versions, boundary errors in the pre-correction WDPA systematically inflated the apparent deforestation rate, because areas erroneously included in protected area perimeters exhibited higher forest loss than genuinely protected zones.
-
-```{r}
-#| label: fig-amendments
-#| eval: !expr dir.exists("../../data/amendments")
-#| fig-cap: "Types and counts of amendments documented in the YAML registry across the 123 protected areas, classified as boundary modifications, status changes, corrections, and secondary zoning additions."
-#| fig-width: 7
-#| fig-height: 4
-#| warning: false
-#| message: false
-
-library(tidyverse)
-library(yaml)
-
-# Read all YAML amendment files
-yaml_files <- list.files("../../data/amendments", pattern = "\\.yml$",
-                         full.names = TRUE)
-
-amendment_types <- map_dfr(yaml_files, function(f) {
-  a <- read_yaml(f)
-  tibble(amendment_type = a$amendment_type)
-})
-
-# Readable labels
-type_labels <- c(
-  boundary_modification = "Boundary\nmodification",
-  status_change = "Status\nchange",
-  correction = "Correction",
-  secondary_zoning = "Secondary\nzoning",
-  temporary_protection = "Temporary\nprotection"
-)
-
-amendment_summary <- amendment_types |>
-  count(amendment_type) |>
-  mutate(label = type_labels[amendment_type] %||% amendment_type)
-
-ggplot(amendment_summary, aes(x = reorder(label, -n), y = n)) +
-  geom_col(fill = "#2c7fb8", width = 0.6) +
-  geom_text(aes(label = n), vjust = -0.5, size = 3.5) +
-  labs(x = NULL, y = "Number of amendments") +
-  theme_minimal(base_size = 12) +
-  theme(panel.grid.major.x = element_blank())
-```
-
-```{r}
-#| label: fig-deforestation
-#| eval: !expr file.exists("../../data/wdpa_diff.parquet") || nzchar(Sys.getenv("AWS_ACCESS_KEY_ID"))
-#| fig-cap: "Deforestation differential analysis for the 49 protected areas with boundary area changes exceeding 5% between the WDPA November 2024 and January 2025 snapshots. The horizontal axis shows the relative change in protected area surface; the vertical axis shows the relative change in cumulative deforestation rate (2001–2024). Points in the lower-left quadrant indicate protected areas where both surface and measured deforestation decreased after correction, consistent with the removal of unprotected land that had experienced higher forest loss."
-#| fig-width: 7
-#| fig-height: 6
-#| warning: false
-#| message: false
-
-library(tidyverse)
-library(arrow)
-
-# Read the pre-computed WDPA diff data (produced by BETSAKA wdpa_update_incidence)
-# Try local cache first, then S3
-local_path <- "../../data/wdpa_diff.parquet"
-s3_path <- "s3://projet-betsaka/diffusion/wdpa_compare/wdpa_diff.parquet"
-
-wdpa_diff <- if (file.exists(local_path)) {
-  read_parquet(local_path)
-} else {
-  read_parquet(s3_path)
-}
-
-seuil <- 5
-
-ap_var <- wdpa_diff |>
-  filter(!is.na(area_ha_v2024), !is.na(area_ha_v2025),
-         !is.na(total_defor_pct_v2024), !is.na(total_defor_pct_v2025),
-         area_ha_v2024 > 1,
-         abs(area_ha_diff) > seuil,
-         MARINE_2025 == 0) |>
-  mutate(nom = coalesce(NAME_2025, NAME_2024))
-
-ggplot(ap_var, aes(x = area_ha_diff, y = defor_pct_diff)) +
-  geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +
-  geom_vline(xintercept = 0, linetype = "dashed", color = "grey50") +
-  geom_point(aes(color = area_ha_diff > 0), size = 3, alpha = 0.7) +
-  scale_color_manual(
-    values = c("TRUE" = "steelblue", "FALSE" = "tomato"),
-    labels = c("Area decreased", "Area increased"),
-    name = "Area change direction"
-  ) +
-  labs(
-    x = "Relative change in protected area surface (%)",
-    y = "Relative change in deforestation rate (%)"
-  ) +
-  theme_minimal(base_size = 12) +
-  theme(
-    legend.position = c(0.8, 0.9),
-    legend.background = element_rect(fill = "white", color = NA)
-  )
-```
-
-This analysis provides direct empirical evidence that boundary errors in protected area databases propagate into biased conservation effectiveness metrics.
+![Type and counts of amendments documented in the YAML registry](../figures/fig_amendments.png){#fig-amendments width=70%}
 
 
 # Usage Notes

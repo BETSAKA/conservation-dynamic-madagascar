@@ -9,7 +9,7 @@
 <meta name="author" content="Florent Bédécarrats">
 <meta name="author" content="Seheno Ramanantsoa">
 <meta name="author" content="Ollier D. Andrianambinina">
-<meta name="dcterms.date" content="2026-04-29">
+<meta name="dcterms.date" content="2026-04-30">
 
 <title>A replicable temporal extension of protected area geodata applied to 123 sites in Madagascar</title>
 <style>
@@ -2213,7 +2213,7 @@ vertical-align: -.125em;
   <li><a href="#funding" id="toc-funding" class="nav-link" data-scroll-target="#funding">Funding</a></li>
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
   </ul>
-<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="data_paper_scidata_03.docx"><i class="bi bi-file-word"></i>MS Word</a></li></ul></div></nav>
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="data_paper_scidata_03.docx"><i class="bi bi-file-word"></i>MS Word</a></li><li><a href="data_paper_scidata_03.pdf"><i class="bi bi-file-pdf"></i>Typst</a></li></ul></div></nav>
 </div>
 <main class="content" id="quarto-document-content">
 
@@ -2259,7 +2259,7 @@ vertical-align: -.125em;
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 29, 2026</p>
+      <p class="date">April 30, 2026</p>
     </div>
   </div>
   
@@ -2347,8 +2347,12 @@ Figure 2: Temporal reconstruction for three protected areas
 </section>
 <section id="data-records" class="level1">
 <h1>Data Records</h1>
-<p>The dataset is deposited on DataSuds, the institutional research data repository of the Institut de Recherche pour le Développement (IRD), which assigns a persistent DOI. The source code is hosted on GitHub at <a href="https://github.com/BETSAKA/conservation-dynamic-madagascar" class="uri">https://github.com/BETSAKA/conservation-dynamic-madagascar</a> and archived via Software Heritage for long-term preservation and persistent identification.</p>
-<p>The dataset is distributed in three complementary forms. The first is a GeoPackage file (<code>dynamic_wdpa_madagascar.gpkg</code>), an OGC standard format directly compatible with QGIS, ArcGIS, R, and Python. The second is a GeoParquet file (<code>dynamic_wdpa_madagascar.parquet</code>), a columnar geospatial format optimized for analytical workflows and now also supported by QGIS and ArcGIS in addition to Arrow-based tools in R and Python. The third is the YAML amendment registry (<code>amendments/</code>), containing per-protected-area YAML files documenting each amendment with its legal source, effective date, and type, accompanied by GeoJSON geometry files where boundaries differ from the WDPA baseline.</p>
+<p>The dataset is currently deposited on DataSuds, the institutional research data repository of the Institut de Recherche pour le Développement (IRD), which assigns a persistent DOI. The official reference is:</p>
+<blockquote class="blockquote">
+<p>Bedecarrats, Florent, Ramanantsoa, Seheno, Andrianambinina, Ollier D. , 2026, “Dynamic spatial conservation boundaries and internal zoning of Madagascar from 2000 to 2025”, https://doi.org/10.23708/VN2TWC, DataSuds, VERSION PROVISOIRE</p>
+</blockquote>
+<p>For the peer-review process, the consolidated dataset (<code>.gpkg</code> and <code>.parquet</code>) is currently available via a temporary secure cloud storage link or requires replicating via the source code, pending final permission from UNEP-WCMC for public redistribution of the derived WDPA geometries. The source code is hosted on GitHub at <a href="https://github.com/BETSAKA/conservation-dynamic-madagascar" class="uri">https://github.com/BETSAKA/conservation-dynamic-madagascar</a> and archived via Software Heritage for long-term preservation and persistent identification.</p>
+<p>The dataset is distributed in three complementary forms. The first is a GeoPackage file (<code>dynamic_wdpa_madagascar.gpkg</code>), an OGC standard format directly compatible with QGIS, ArcGIS, R, and Python. The second is a GeoParquet file (<code>dynamic_wdpa_madagascar.parquet</code>), a columnar geospatial format optimized for analytical workflows and now also supported by QGIS and ArcGIS in addition to Arrow-based tools in R and Python. The third is the YAML amendment registry (<code>amendments/</code>), containing per-protected-area YAML files documenting each amendment with its legal source, effective date, and type, accompanied by GeoJSON geometry files where boundaries differ from the WDPA baseline. YAML is a human-readable data serialization format used in this project to systematically document each protected area amendment in a text-based, version-controlled manner.</p>
 <p>Each row in the output dataset represents one zone in one temporal state. A protected area with boundary changes and internal zoning will have multiple rows across time periods. <a href="#tbl-schema" class="quarto-xref">Table 1</a> describes the fields.</p>
 <div id="tbl-schema" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
@@ -2484,6 +2488,7 @@ Figure 4: Type and counts of amendments documented in the YAML registry
 <section id="usage-notes" class="level1">
 <h1>Usage Notes</h1>
 <p>The GeoPackage and GeoParquet files can be opened directly in QGIS, ArcGIS, R (with the sf or arrow packages), or Python (with geopandas or pyarrow). The WDPAID field enables direct linkage with global WDPA analyses, allowing users to enrich the standard database with temporal information for Madagascar.</p>
+<p>In the event that pre-compiled datasets cannot be distributed publicly due to WDPA licensing restrictions, users can easily generate the consolidated dataset themselves. By downloading the WDPA baseline directly from Protected Planet (<a href="https://www.protectedplanet.net/" class="uri">https://www.protectedplanet.net/</a>) to their local environment, users can run the open-source Consolidation and Auditing Rules (CAR) R scripts provided in our repository. These automatically apply all YAML amendments to compile the exact same historical spatio-temporal dataset locally.</p>
 <p>For temporal queries, users can filter states by <code>valid_from</code> and <code>valid_to</code> to retrieve the configuration of any protected area at a given date. The <code>zone_type</code> field distinguishes external boundaries from internal zones, enabling analyses at different spatial scales.</p>
 <p>The YAML amendment registry is designed for collaborative extension. Researchers with access to complementary sources — additional legal texts, historical maps, field boundary surveys — can propose new amendments via GitHub pull requests. The CAR engine will automatically integrate validated amendments into subsequent dataset releases.</p>
 <p>Users should note that the WDPA baseline attributes are subject to UNEP-WCMC licensing terms regarding commercial use. The amendments and the temporal data model itself are released under a CC-BY 4.0 license. An interactive companion website provides visual exploration of the dataset, enabling users to browse individual protected areas, view their temporal trajectories, and compare boundaries across sources and time periods.</p>

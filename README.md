@@ -99,6 +99,10 @@ The dynamic dataset enables:
 
 If you use the methodology, code, or resulting dataset, please cite:
 
+> Bedecarrats, Florent, Ramanantsoa, Seheno, Andrianambinina, Ollier D., 2026, "Dynamic spatial conservation boundaries and internal zoning of Madagascar from 2000 to 2025", https://doi.org/10.23708/VN2TWC, DataSuds, VERSION PROVISOIRE
+
+And the codebase via:
+
 > Bédécarrats F., Ramanantsoa S., Andrianambinina O. D. (2026). *Conserving the History of Conservation: A Dynamic Temporal Dataset of Madagascar's Protected Areas (2000-2024)*. GitHub repository: https://github.com/BETSAKA/conservation-dynamic-madagascar
 
 ## Contributing
@@ -226,6 +230,10 @@ Le jeu de données dynamique permet de :
 ## Citation
 
 Si vous utilisez la méthodologie, le code ou le jeu de données résultant, veuillez citer :
+
+> Bedecarrats, Florent, Ramanantsoa, Seheno, Andrianambinina, Ollier D., 2026, "Dynamic spatial conservation boundaries and internal zoning of Madagascar from 2000 to 2025", https://doi.org/10.23708/VN2TWC, DataSuds, VERSION PROVISOIRE
+
+Et le code via :
 
 > Bédécarrats F., Ramanantsoa S., Andrianambinina O. D. (2026). *Conserving the History of Conservation: A Dynamic Temporal Dataset of Madagascar's Protected Areas (2000-2024)*. Dépôt GitHub : https://github.com/BETSAKA/conservation-dynamic-madagascar
 

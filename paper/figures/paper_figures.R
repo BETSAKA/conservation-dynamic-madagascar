@@ -1,4 +1,4 @@
-# Figure 1 ---------------------------------------------------------------
+# Figure 2 ---------------------------------------------------------------
 
 library(sf)
 library(tmap)
@@ -35,7 +35,7 @@ fig_examples <- tm_shape(examples) +
 # Save as ../figures/fig_examples.png
 tmap_save(fig_examples, "paper/figures/fig_examples.png")
 
-# Figure 2 ---------------------------------------------------------------
+# Figure 3 ---------------------------------------------------------------
 
 library(sf)
 library(tmap)
@@ -85,7 +85,7 @@ fig_map <- tm_shape(mdg_border) +
 tmap_save(fig_map, "paper/figures/fig_map.png")
 
 
-# Figure 3 ---------------------------------------------------------------
+# Figure 4 ---------------------------------------------------------------
 
 library(tidyverse)
 library(yaml)

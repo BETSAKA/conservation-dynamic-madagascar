@@ -5,7 +5,16 @@ library(tmap)
 library(dplyr)
 
 # Load the temporal dataset produced by the CAR engine (Ch. 09)
-dynamic_wdpa <- readRDS("data/dynamic_wdpa.rds")
+dynamic_wdpa <- readRDS("data/dynamic_wdpa.rds") |>
+  filter(
+    STATUS == "Designated",
+    !DESIG %in%
+      c(
+        "UNESCO-MAB Biosphere Reserve",
+        "Ramsar Site, Wetland of International Importance",
+        "World Heritage Site (natural or mixed)"
+      )
+  )
 
 # Select the three emblematic PAs
 example_names <- c("Ankarafantsika", "Ambatovaky", "Kirindy Mite")
@@ -19,35 +28,77 @@ examples <- dynamic_wdpa |>
 
 tmap_mode("plot")
 
-# One overlapping map per PA, faceted by NAME
-fig_examples <- tm_shape(examples) +
-  tm_polygons(
-    fill = "valid_from_label",
-    fill_alpha = 0.5,
-    fill.scale = tm_scale_categorical(values = "brewer.set2"),
-    fill.legend = tm_legend(title = "Boundary date"),
-    col = "grey30",
-    lwd = 0.6
-  ) +
-  tm_facets("NAME", free.coords = TRUE, ncol = 3) +
-  tm_layout(frame = TRUE)
+# One map per PA timeline, arranged in rows
+create_pa_map <- function(pa_name) {
+  pa_data <- examples |> filter(NAME == pa_name)
+  tm_shape(pa_data) +
+    tm_polygons(
+      fill = "valid_from_label",
+      fill.scale = tm_scale_categorical(values = "brewer.set2"),
+      fill.legend = tm_legend_hide(),
+      col = "grey30",
+      lwd = 0.6
+    ) +
+    tm_facets("valid_from_label", free.coords = FALSE, nrow = 1)
+}
+
+maps_col <- tmap_arrange(
+  create_pa_map("Ankarafantsika"),
+  create_pa_map("Ambatovaky"),
+  create_pa_map("Kirindy Mite"),
+  ncol = 1
+)
+
+create_label_map <- function(pa_name) {
+  null_geom <- st_sfc(st_point(c(0, 0))) |> st_sf(name = pa_name)
+  tm_shape(null_geom) +
+    tm_text("name", size = 1.2, fontface = "bold", just = "right") +
+    tm_layout(frame = FALSE, outer.margins = 0, inner.margins = 0)
+}
+
+text_col <- tmap_arrange(
+  create_label_map("Ankarafantsika"),
+  create_label_map("Ambatovaky"),
+  create_label_map("Kirindy Mite"),
+  ncol = 1
+)
+
+fig_examples <- tmap_arrange(
+  c(rbind(text_col, maps_col)),
+  ncol = 2,
+  widths = c(0.2, 0.8)
+)
 
 # Save as ../figures/fig_examples.png
-tmap_save(fig_examples, "paper/figures/fig_examples.png")
-
+tmap_save(
+  fig_examples,
+  "paper/figures/fig_examples.png",
+  width = 8,
+  height = 7,
+  dpi = 300
+)
 # Figure 3 ---------------------------------------------------------------
 
 library(sf)
 library(tmap)
 library(dplyr)
 
-dynamic_wdpa <- readRDS("data/dynamic_wdpa.rds")
+dynamic_wdpa <- readRDS("data/dynamic_wdpa.rds") |>
+  filter(
+    STATUS == "Designated",
+    !DESIG %in%
+      c(
+        "UNESCO-MAB Biosphere Reserve",
+        "Ramsar Site, Wetland of International Importance",
+        "World Heritage Site (natural or mixed)"
+      )
+  )
 
 # Count states per PA (external boundaries only)
 state_counts <- dynamic_wdpa |>
   st_drop_geometry() |>
   filter(zone_type == "external_boundary") |>
-  count(WDPAID, NAME, name = "n_states")
+  count(WDPAID, name = "n_states")
 
 # Get the most recent external boundary per PA for the map
 current_boundaries <- dynamic_wdpa |>
@@ -55,7 +106,7 @@ current_boundaries <- dynamic_wdpa |>
   group_by(WDPAID) |>
   slice_max(valid_from, n = 1) |>
   ungroup() |>
-  left_join(state_counts |> select(WDPAID, n_states), by = "WDPAID")
+  left_join(state_counts, by = "WDPAID")
 
 tmap_mode("plot")
 
@@ -78,7 +129,7 @@ fig_map <- tm_shape(mdg_border) +
   ) +
   tm_layout(
     frame = FALSE,
-    legend.position = c("left", "bottom")
+    legend.position = c("right", "bottom")
   )
 
 # save in paper/figures/map_temporal_states.png

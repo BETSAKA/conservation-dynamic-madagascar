@@ -9,7 +9,7 @@
 <meta name="author" content="Florent Bédécarrats">
 <meta name="author" content="Seheno Ramanantsoa">
 <meta name="author" content="Ollier D. Andrianambinina">
-<meta name="dcterms.date" content="2026-05-07">
+<meta name="dcterms.date" content="2026-05-14">
 
 <title>A replicable temporal extension of protected area geodata applied to 123 sites in Madagascar</title>
 <style>
@@ -2206,6 +2206,7 @@ vertical-align: -.125em;
   <li><a href="#data-records" id="toc-data-records" class="nav-link" data-scroll-target="#data-records">Data Records</a></li>
   <li><a href="#technical-validation" id="toc-technical-validation" class="nav-link" data-scroll-target="#technical-validation">Technical Validation</a></li>
   <li><a href="#usage-notes" id="toc-usage-notes" class="nav-link" data-scroll-target="#usage-notes">Usage Notes</a></li>
+  <li><a href="#data-availability-statement" id="toc-data-availability-statement" class="nav-link" data-scroll-target="#data-availability-statement">Data Availability Statement</a></li>
   <li><a href="#code-availability" id="toc-code-availability" class="nav-link" data-scroll-target="#code-availability">Code Availability</a></li>
   <li><a href="#acknowledgements" id="toc-acknowledgements" class="nav-link" data-scroll-target="#acknowledgements">Acknowledgements</a></li>
   <li><a href="#funding" id="toc-funding" class="nav-link" data-scroll-target="#funding">Funding</a></li>
@@ -2260,7 +2261,7 @@ vertical-align: -.125em;
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">May 7, 2026</p>
+      <p class="date">May 14, 2026</p>
     </div>
   </div>
   
@@ -2494,6 +2495,12 @@ Figure 4: Type and counts of amendments documented in the YAML registry
 <p>For temporal queries, users can filter states by <code>valid_from</code> and <code>valid_to</code> to retrieve the configuration of any protected area at a given date. The <code>zone_type</code> field distinguishes external boundaries from internal zones, enabling analyses at different spatial scales.</p>
 <p>The YAML amendment registry is designed for collaborative extension. Researchers with access to complementary sources — additional legal texts, historical maps, field boundary surveys — can propose new amendments via GitHub pull requests. The CAR engine will automatically integrate validated amendments into subsequent dataset releases.</p>
 <p>Users should note that the WDPA baseline attributes are subject to UNEP-WCMC licensing terms regarding commercial use. The amendments and the temporal data model itself are released under a CC-BY 4.0 license. An interactive companion website provides visual exploration of the dataset, enabling users to browse individual protected areas, view their temporal trajectories, and compare boundaries across sources and time periods.</p>
+</section>
+<section id="data-availability-statement" class="level1">
+<h1>Data Availability Statement</h1>
+<p>The amendment registry (YAML and GeoJSON files) along with the source metadata is deposited on DataSuds, the institutional research data repository of the Institut de Recherche pour le Développement (IRD), under the provisional DOI: <a href="https://doi.org/10.23708/VN2TWC" class="uri">https://doi.org/10.23708/VN2TWC</a>.</p>
+<p>For the purpose of peer review, the fully consolidated datasets (<code>dynamic_wdpa.gpkg</code> and <code>dynamic_wdpa.parquet</code>) and the source amendment registry are provided via a secure, anonymous institutional drive. Reviewers can instantly and anonymously download the data without any login or password requirements at the following temporary link: <a href="https://drive.ird.fr/s/cqo3bZr8RSA2LAM" class="uri">https://drive.ird.fr/s/cqo3bZr8RSA2LAM</a></p>
+<p>This dual-hosting arrangement is maintained pending final permission from UNEP-WCMC to publicly redistribute geometries derived from the WDPA baseline. Once permission is secured, the compiled geodata will be integrated directly into the DataSuds repository.</p>
 </section>
 <section id="code-availability" class="level1">
 <h1>Code Availability</h1>

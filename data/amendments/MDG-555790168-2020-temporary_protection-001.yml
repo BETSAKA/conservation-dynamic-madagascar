@@ -1,0 +1,24 @@
+amendment_id: MDG-555790168-2020-temporary_protection-001
+iso3: MDG
+wdpaid: 555790168
+wdpa_name: Tsinjoarivo Ambalaomby
+amendment_kind: attribute
+amendment_type: temporary_protection
+valid_from: '2020-01-29'
+legal_instrument:
+  source: manual
+  type: arrêté
+  number: 2644/2020
+  date: '2020-01-29'
+  id: ~
+  url: ~
+temporal_description: Protection temporaire depuis le 2020-01-29 selon arrêté n. 2644/2020
+  du 2020-01-29.
+notes: Temporary protection via Arrêté 2644/2020 (2020-01-29). Legal designation with
+  binding protections pending permanent status via décret. Still in temporary protection
+  status.
+attributes:
+  DESIG: Protection Temporaire
+  DESIG_ENG: Temporary Protection
+  STATUS: Designated
+  STATUS_YR: '2020'

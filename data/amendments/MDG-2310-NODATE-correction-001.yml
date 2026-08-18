@@ -1,0 +1,21 @@
+amendment_id: MDG-2310-NODATE-correction-001
+iso3: MDG
+wdpaid: 2310
+wdpa_name: Betampona
+amendment_kind: attribute
+amendment_type: correction
+valid_from: '1927-12-31'
+legal_instrument:
+  source: manual
+  type: décret
+  number: '1927-12-31'
+  date: '1927-12-31'
+  id: ~
+  url: ~
+temporal_description: Correction de donnees depuis le 1927-12-31 selon décret n. 1927-12-31
+  du 1927-12-31.
+notes: 'WDPA incorrectly shows STATUS_YR=1997. RNI Betampona was created in 1927 as
+  RNI #1 (Décret du 31 décembre 1927, complemented by Décret 66-242 of 1966). No status
+  change occurred in 1997.'
+attributes:
+  STATUS_YR: '1927'

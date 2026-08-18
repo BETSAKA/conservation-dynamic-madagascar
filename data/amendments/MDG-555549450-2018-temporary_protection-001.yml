@@ -1,0 +1,24 @@
+amendment_id: MDG-555549450-2018-temporary_protection-001
+iso3: MDG
+wdpaid: 555549450
+wdpa_name: Angavo
+amendment_kind: attribute
+amendment_type: temporary_protection
+valid_from: '2018-09-24'
+legal_instrument:
+  source: manual
+  type: arrêté
+  number: 23548/2018
+  date: '2018-09-24'
+  id: ~
+  url: ~
+temporal_description: Protection temporaire depuis le 2018-09-24 selon arrêté n. 23548/2018
+  du 2018-09-24.
+notes: Temporary protection via Arrêté 23548/2018 (2018-09-24). Legal designation
+  with binding protections pending permanent status via décret. Permanent designation
+  obtained on 2017-05-05 via 2015-808.
+attributes:
+  DESIG: Protection Temporaire
+  DESIG_ENG: Temporary Protection
+  STATUS: Designated
+  STATUS_YR: '2018'

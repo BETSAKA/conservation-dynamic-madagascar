@@ -1,0 +1,20 @@
+amendment_id: MDG-2306-NODATE-correction-002
+iso3: MDG
+wdpaid: 2306
+wdpa_name: Tsaratanana
+amendment_kind: attribute
+amendment_type: correction
+valid_from: '2015-04-28'
+legal_instrument:
+  source: manual
+  type: décret
+  number: 2015-782
+  date: '2015-04-28'
+  id: ~
+  url: ~
+temporal_description: Correction de donnees depuis le 2015-04-28 selon décret n. 2015-782
+  du 2015-04-28.
+notes: WDPA 2025 shows STATUS_YR=1997 with no supporting decree. Setting to 2015 (date
+  of extensions via Decree 2015-782). Original RNI creation was 1927-12-31.
+attributes:
+  STATUS_YR: '2015'

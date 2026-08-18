@@ -1,0 +1,23 @@
+amendment_id: MDG-2314-2015-boundary_modification-001
+iso3: MDG
+wdpaid: 2314
+wdpa_name: Montagne d'Ambre
+amendment_kind: spatial
+amendment_type: boundary_modification
+valid_from: '1958-10-28'
+valid_to: '2015-04-28'
+legal_instrument:
+  source: CNLEGIS
+  type: décret
+  number: 2015-776
+  date: ~
+  id: ~
+  url: https://cnlegis.gov.mg/page_num_find_direct/?2015-776
+temporal_description: Modification des limites du 1958-10-28 au 2015-04-28 selon décret
+  n. 2015-776.
+notes: Pre-merger geometry of PN Montagne d'Ambre (polygon 1 from MNP_2010, 232.47
+  km²). In 2015, absorbed RS Forêt d'Ambre (WDPAID 5025, 45.60 km²) to create enlarged
+  PN (278.08 km²).
+geometry_ref: geoms/MDG-2314-2015-boundary_modification-001.geojson
+geometry_crs_epsg: 4326
+geometry_source_dataset_id: MNP_2010_split

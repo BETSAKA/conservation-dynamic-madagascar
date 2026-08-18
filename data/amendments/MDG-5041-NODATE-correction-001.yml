@@ -1,0 +1,20 @@
+amendment_id: MDG-5041-NODATE-correction-001
+iso3: MDG
+wdpaid: 5041
+wdpa_name: Cap Sainte Marie
+amendment_kind: attribute
+amendment_type: correction
+valid_from: '1962-10-24'
+legal_instrument:
+  source: CNLEGIS
+  type: décret
+  number: 2015-734
+  date: '2015-04-21'
+  id: '44678'
+  url: https://cnlegis.gov.mg/page_num_find_direct/?2015-734
+temporal_description: Correction de donnees depuis le 1962-10-24 selon décret n. 2015-734
+  du 2015-04-21.
+notes: WDPA incorrectly shows STATUS_YR=2015 (date of boundary modification). Actual
+  creation was 1962 as Réserve Spéciale (Décret 62-527 du 24 octobre 1962).
+attributes:
+  STATUS_YR: '1962'

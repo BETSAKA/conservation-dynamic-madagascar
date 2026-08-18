@@ -1,0 +1,25 @@
+amendment_id: MDG-555697900-2010-temporary_protection-001
+iso3: MDG
+wdpaid: 555697900
+wdpa_name: Ankarabolava
+amendment_kind: attribute
+amendment_type: temporary_protection
+valid_from: '2010-12-20'
+valid_to: '2013-05-06'
+legal_instrument:
+  source: manual
+  type: arrêté
+  number: 52005/2010
+  date: '2010-12-20'
+  id: ~
+  url: ~
+temporal_description: Protection temporaire du 2010-12-20 au 2013-05-06 selon arrêté
+  n. 52005/2010 du 2010-12-20.
+notes: Temporary protection via Arrêté 52005/2010 (2010-12-20). Legal designation
+  with binding protections pending permanent status via décret. Permanent designation
+  obtained on 2015-04-28 via 2015-793.
+attributes:
+  DESIG: Protection Temporaire
+  DESIG_ENG: Temporary Protection
+  STATUS: Designated
+  STATUS_YR: '2010'

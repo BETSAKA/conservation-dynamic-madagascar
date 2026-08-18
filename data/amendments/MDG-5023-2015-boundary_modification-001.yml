@@ -1,0 +1,22 @@
+amendment_id: MDG-5023-2015-boundary_modification-001
+iso3: MDG
+wdpaid: 5023
+wdpa_name: Anjanaharibe_sud
+amendment_kind: spatial
+amendment_type: boundary_modification
+valid_from: '1958-10-28'
+valid_to: '2015-04-21'
+legal_instrument:
+  source: CNLEGIS
+  type: décret
+  number: 2015-729
+  date: ~
+  id: ~
+  url: https://cnlegis.gov.mg/page_num_find_direct/?2015-729
+temporal_description: Modification des limites du 1958-10-28 au 2015-04-21 selon décret
+  n. 2015-729.
+notes: Périmètre antérieur au décret modifiant (géométrie MNP_2010 retenue après vérification
+  visuelle).
+geometry_ref: geoms/MDG-5023-2015-boundary_modification-001.geojson
+geometry_crs_epsg: 4326
+geometry_source_dataset_id: MNP_2010

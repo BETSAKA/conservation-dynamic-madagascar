@@ -1,0 +1,25 @@
+amendment_id: MDG-352242-2005-temporary_protection-001
+iso3: MDG
+wdpaid: 352242
+wdpa_name: Complexe Anjozorobe Angavo
+amendment_kind: attribute
+amendment_type: temporary_protection
+valid_from: '2005-12-30'
+valid_to: '2007-01-08'
+legal_instrument:
+  source: manual
+  type: arrêté
+  number: 20023/2005
+  date: '2005-12-30'
+  id: ~
+  url: ~
+temporal_description: Protection temporaire du 2005-12-30 au 2007-01-08 selon arrêté
+  n. 20023/2005 du 2005-12-30.
+notes: Temporary protection via Arrêté 20023/2005 (2005-12-30). Legal designation
+  with binding protections pending permanent status via décret. Permanent designation
+  obtained on 2015-04-28 via 2015-763.
+attributes:
+  DESIG: Protection Temporaire
+  DESIG_ENG: Temporary Protection
+  STATUS: Designated
+  STATUS_YR: '2005'

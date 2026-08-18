@@ -1,0 +1,20 @@
+amendment_id: MDG-555697898-NODATE-secondary_zoning-001
+iso3: MDG
+wdpaid: 555697898
+wdpa_name: Réserve spéciale Pointe à Larrée
+amendment_kind: spatial
+amendment_type: secondary_zoning
+legal_instrument:
+  source: CNLEGIS
+  type: décret
+  number: MEDD-2024
+  date: ~
+  id: ~
+  url: ~
+temporal_description: Zonage secondaire selon décret n. MEDD-2024.
+notes: 'Core zone (noyau dur) validated from MEDD subdivision data. Source: shapefile
+  transmitted to MEDD, analyzed in 06_subdivisions.qmd. PA label: Pointe a Larree.
+  This represents current management zoning without temporal validity.'
+geometry_ref: geoms/MDG-555697898-NODATE-secondary_zoning-001.geojson
+geometry_crs_epsg: 4326
+geometry_source_dataset_id: MEDD_subdivisions_2024

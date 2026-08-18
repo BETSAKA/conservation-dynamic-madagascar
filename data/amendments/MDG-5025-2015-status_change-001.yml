@@ -1,0 +1,25 @@
+amendment_id: MDG-5025-2015-status_change-001
+iso3: MDG
+wdpaid: 5025
+wdpa_name: '5025'
+amendment_kind: attribute
+amendment_type: status_change
+valid_from: '1958-10-28'
+valid_to: '2015-04-28'
+legal_instrument:
+  source: manual
+  type: décret
+  number: 2015-776
+  date: '2015-04-28'
+  id: ~
+  url: ~
+temporal_description: Changement de statut du 1958-10-28 au 2015-04-28 selon décret
+  n. 2015-776 du 2015-04-28.
+notes: Created as RS on 1958-10-28 via Décret 58-15. Dissolved and merged into WDPAID
+  2314 in 2015.
+attributes:
+  DESIG: Réserve Spéciale
+  DESIG_ENG: Special Reserve
+  IUCN_CAT: IV
+  STATUS: Designated
+  STATUS_YR: '1958'

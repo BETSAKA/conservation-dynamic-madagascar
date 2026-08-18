@@ -1,0 +1,23 @@
+amendment_id: MDG-5025-2015-boundary_modification-001
+iso3: MDG
+wdpaid: 5025
+wdpa_name: '5025'
+amendment_kind: spatial
+amendment_type: boundary_modification
+valid_from: '1958-10-28'
+valid_to: '2015-04-28'
+legal_instrument:
+  source: CNLEGIS
+  type: décret
+  number: 2015-776
+  date: ~
+  id: ~
+  url: ~
+temporal_description: Modification des limites du 1958-10-28 au 2015-04-28 selon décret
+  n. 2015-776.
+notes: Geometry of RS Forêt d'Ambre (polygons 2+3 from MNP_2010, 45.60 km²). This
+  PA was absorbed into WDPAID 2314 in 2015 and received STATUS='Dissolved'. SAT documents
+  the historical geometry before dissolution.
+geometry_ref: geoms/MDG-5025-2015-boundary_modification-001.geojson
+geometry_crs_epsg: 4326
+geometry_source_dataset_id: MNP_2010_split

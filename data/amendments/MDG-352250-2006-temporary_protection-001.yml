@@ -1,0 +1,25 @@
+amendment_id: MDG-352250-2006-temporary_protection-001
+iso3: MDG
+wdpaid: 352250
+wdpa_name: Mandena
+amendment_kind: attribute
+amendment_type: temporary_protection
+valid_from: '2006-05-15'
+valid_to: '2007-08-20'
+legal_instrument:
+  source: manual
+  type: arrêté
+  number: 7878/2006
+  date: '2006-05-15'
+  id: ~
+  url: ~
+temporal_description: Protection temporaire du 2006-05-15 au 2007-08-20 selon arrêté
+  n. 7878/2006 du 2006-05-15.
+notes: Temporary protection via Arrêté 7878/2006 (2006-05-15). Legal designation with
+  binding protections pending permanent status via décret. Permanent designation obtained
+  on 2015-04-28 via 2015-779.
+attributes:
+  DESIG: Protection Temporaire
+  DESIG_ENG: Temporary Protection
+  STATUS: Designated
+  STATUS_YR: '2006'

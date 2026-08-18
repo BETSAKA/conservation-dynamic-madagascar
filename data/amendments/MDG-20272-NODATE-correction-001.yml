@@ -1,0 +1,21 @@
+amendment_id: MDG-20272-NODATE-correction-001
+iso3: MDG
+wdpaid: 20272
+wdpa_name: Befotaka Midongy
+amendment_kind: attribute
+amendment_type: correction
+valid_from: '1997-12-18'
+legal_instrument:
+  source: manual
+  type: decret
+  number: 97-1451
+  date: '1997-12-18'
+  id: ~
+  url: ~
+temporal_description: Correction de donnees depuis le 1997-12-18 selon decret n. 97-1451
+  du 1997-12-18.
+notes: WDPA incorrectly shows STATUS_YR=1953 (date of classified forests that were
+  not protected areas). PN Befotaka-Midongy du Sud was created in 1997 (Decret 97-1451),
+  incorporating parts of the Soarano and Befotaka classified forests from 1953.
+attributes:
+  STATUS_YR: '1997'

@@ -1,0 +1,20 @@
+amendment_id: MDG-303702-NODATE-correction-001
+iso3: MDG
+wdpaid: 303702
+wdpa_name: Bemaraha
+amendment_kind: attribute
+amendment_type: correction
+valid_from: '2011-09-06'
+legal_instrument:
+  source: CNLEGIS
+  type: décret
+  number: 2011-498
+  date: '2011-09-06'
+  id: '41311'
+  url: https://cnlegis.gov.mg/page_num_find_direct/?2011-498
+temporal_description: Correction de donnees depuis le 2011-09-06 selon décret n. 2011-498
+  du 2011-09-06.
+notes: WDPA STATUS_YR=1997 conflates boundary change with status change. Current status
+  (PN) dates from Décret 2011-498 du 6 septembre 2011. Idempotent once WDPA corrects.
+attributes:
+  STATUS_YR: '2011'

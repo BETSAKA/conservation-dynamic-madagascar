@@ -1,0 +1,24 @@
+amendment_id: MDG-5039-2015-status_change-001
+iso3: MDG
+wdpaid: 5039
+wdpa_name: Nosy Mangabe
+amendment_kind: attribute
+amendment_type: status_change
+valid_from: '1965-12-14'
+valid_to: '2015-04-28'
+legal_instrument:
+  source: CNLEGIS
+  type: décret
+  number: 2015-775
+  date: '2015-04-28'
+  id: '46592'
+  url: https://cnlegis.gov.mg/page_num_find_direct/?2015-775
+temporal_description: Changement de statut du 1965-12-14 au 2015-04-28 selon décret
+  n. 2015-775 du 2015-04-28.
+notes: Created as RS (Réserve Spéciale) on 1965-12-14 via Décret 65-795. Status changed
+  to PN via Décret 2015-775 du 28 avril 2015, with boundary expansion (added 4 small
+  islets).
+attributes:
+  DESIG: Réserve Spéciale
+  DESIG_ENG: Special Reserve
+  IUCN_CAT: IV

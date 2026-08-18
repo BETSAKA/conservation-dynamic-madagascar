@@ -1,0 +1,22 @@
+amendment_id: MDG-2303-2015-boundary_modification-001
+iso3: MDG
+wdpaid: 2303
+wdpa_name: Andohahela
+amendment_kind: spatial
+amendment_type: boundary_modification
+valid_from: '1939-06-11'
+valid_to: '2015-04-28'
+legal_instrument:
+  source: CNLEGIS
+  type: décret
+  number: 2015-785
+  date: ~
+  id: ~
+  url: https://cnlegis.gov.mg/page_num_find_direct/?2015-785
+temporal_description: Modification des limites du 1939-06-11 au 2015-04-28 selon décret
+  n. 2015-785.
+notes: 'Périmètre antérieur au décret modifiant (géométrie SAPM_2010 retenue après
+  vérification visuelle). Création comme RNI #11 le 11 juin 1939.'
+geometry_ref: geoms/MDG-2303-2015-boundary_modification-001.geojson
+geometry_crs_epsg: 4326
+geometry_source_dataset_id: SAPM_evol_2001-2011

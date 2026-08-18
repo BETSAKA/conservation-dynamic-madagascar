@@ -1,0 +1,25 @@
+amendment_id: MDG-5022-NODATE-correction-001
+iso3: MDG
+wdpaid: 5022
+wdpa_name: Analamerana
+amendment_kind: attribute
+amendment_type: correction
+valid_from: '1956-02-20'
+legal_instrument:
+  source: manual
+  type: décret
+  number: 56-208
+  date: '1956-02-20'
+  id: ~
+  url: ~
+temporal_description: Correction de donnees depuis le 1956-02-20 selon décret n. 56-208
+  du 1956-02-20.
+notes: WDPA incorrectly shows DESIG='Parc National', IUCN_CAT=II, and STATUS_YR=2015.
+  Analamerana is a Special Reserve (RS) created in 1956 (Décret 56-208), IUCN category
+  IV. No status change has occurred according to Goodman et al. 2018.
+attributes:
+  DESIG: Reserve Speciale
+  DESIG_ENG: Special Reserve
+  DESIG_TYPE: National
+  IUCN_CAT: IV
+  STATUS_YR: '1956'

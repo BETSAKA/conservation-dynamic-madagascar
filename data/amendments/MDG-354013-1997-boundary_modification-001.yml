@@ -1,0 +1,23 @@
+amendment_id: MDG-354013-1997-boundary_modification-001
+iso3: MDG
+wdpaid: 354013
+wdpa_name: Zahamena
+amendment_kind: spatial
+amendment_type: boundary_modification
+valid_from: '1927-12-31'
+valid_to: '1997-08-07'
+legal_instrument:
+  source: CNLEGIS
+  type: décret
+  number: 97-1044
+  date: ~
+  id: ~
+  url: ~
+temporal_description: Modification des limites du 1927-12-31 au 1997-08-07 selon décret
+  n. 97-1044.
+notes: 'Pre-1997 geometry from SAPM_2010: RNI unique status, approximately 73,160
+  ha. In 1997, Décret 97-1044 reduced area to 64,378 ha, created Antenina enclave
+  (350 ha), and established mixed PN+RNI zoning.'
+geometry_ref: geoms/MDG-354013-1997-boundary_modification-001.geojson
+geometry_crs_epsg: 4326
+geometry_source_dataset_id: SAPM_2010

@@ -1,0 +1,26 @@
+amendment_id: MDG-2303-1997-status_change-001
+iso3: MDG
+wdpaid: 2303
+wdpa_name: Andohahela
+amendment_kind: attribute
+amendment_type: status_change
+valid_from: '1939-06-11'
+valid_to: '1997-08-07'
+legal_instrument:
+  source: manual
+  type: décret
+  number: 97-1043
+  date: '1997-08-07'
+  id: ~
+  url: ~
+temporal_description: Changement de statut du 1939-06-11 au 1997-08-07 selon décret
+  n. 97-1043 du 1997-08-07.
+notes: 'Created as RNI #11 on 1939-06-11 (Décret du 11 juin 1939), boundaries clarified
+  1966-06-01 (Décret 66-242). Changed from RNI to PN via Décret 97-1043 du 7 août
+  1997. Three-parcel structure maintained. Decree not in CNLEGIS but archived independently.
+  Reference: https://archive.org/details/decret-n-97-1043-du-07-aout-1997-pn-andoahahela.'
+attributes:
+  DESIG: Réserve Naturelle Intégrale
+  DESIG_ENG: Strict Nature Reserve
+  DESIG_TYPE: National
+  IUCN_CAT: Ia

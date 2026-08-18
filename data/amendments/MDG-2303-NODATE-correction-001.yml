@@ -1,0 +1,20 @@
+amendment_id: MDG-2303-NODATE-correction-001
+iso3: MDG
+wdpaid: 2303
+wdpa_name: Andohahela
+amendment_kind: attribute
+amendment_type: correction
+valid_from: '1997-08-07'
+legal_instrument:
+  source: manual
+  type: décret
+  number: 97-1043
+  date: '1997-08-07'
+  id: ~
+  url: ~
+temporal_description: Correction de donnees depuis le 1997-08-07 selon décret n. 97-1043
+  du 1997-08-07.
+notes: WDPA STATUS_YR=2015 conflates boundary change with status change. Current status
+  (PN) dates from Décret 97-1043 du 7 août 1997. Idempotent once WDPA corrects.
+attributes:
+  STATUS_YR: '1997'

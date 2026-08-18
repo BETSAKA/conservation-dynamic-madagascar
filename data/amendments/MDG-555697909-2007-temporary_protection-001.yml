@@ -1,0 +1,25 @@
+amendment_id: MDG-555697909-2007-temporary_protection-001
+iso3: MDG
+wdpaid: 555697909
+wdpa_name: Allées des Baobabs
+amendment_kind: attribute
+amendment_type: temporary_protection
+valid_from: '2007-09-25'
+valid_to: '2015-04-28'
+legal_instrument:
+  source: manual
+  type: arrêté
+  number: 16231/2007
+  date: '2007-09-25'
+  id: ~
+  url: ~
+temporal_description: Protection temporaire du 2007-09-25 au 2015-04-28 selon arrêté
+  n. 16231/2007 du 2007-09-25.
+notes: Temporary protection via Arrêté 16231/2007 (2007-09-25). Legal designation
+  with binding protections pending permanent status via décret. Permanent designation
+  obtained on 2015-04-28 via 2015-760.
+attributes:
+  DESIG: Protection Temporaire
+  DESIG_ENG: Temporary Protection
+  STATUS: Designated
+  STATUS_YR: '2007'

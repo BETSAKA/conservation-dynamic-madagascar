@@ -1,0 +1,23 @@
+amendment_id: MDG-354013-1997-status_change-001
+iso3: MDG
+wdpaid: 354013
+wdpa_name: Zahamena
+amendment_kind: attribute
+amendment_type: status_change
+valid_from: '1927-12-31'
+valid_to: '1997-08-07'
+legal_instrument:
+  source: manual
+  type: décret
+  number: 97-1044
+  date: '1997-08-07'
+  id: ~
+  url: ~
+temporal_description: Changement de statut du 1927-12-31 au 1997-08-07 selon décret
+  n. 97-1044 du 1997-08-07.
+notes: 'Created as RNI #3 in 1927 (Décret du 31 décembre 1927). Status changed to
+  composite PN+RNI in 1997.'
+attributes:
+  DESIG: Réserve Naturelle Intégrale
+  DESIG_ENG: Strict Nature Reserve
+  IUCN_CAT: Ia

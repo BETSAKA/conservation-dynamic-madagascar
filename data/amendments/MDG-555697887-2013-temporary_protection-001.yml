@@ -1,0 +1,25 @@
+amendment_id: MDG-555697887-2013-temporary_protection-001
+iso3: MDG
+wdpaid: 555697887
+wdpa_name: Mahialambo
+amendment_kind: attribute
+amendment_type: temporary_protection
+valid_from: '2013-05-06'
+valid_to: '2015-04-28'
+legal_instrument:
+  source: manual
+  type: arrêté
+  number: 9874/2013
+  date: '2013-05-06'
+  id: ~
+  url: ~
+temporal_description: Protection temporaire du 2013-05-06 au 2015-04-28 selon arrêté
+  n. 9874/2013 du 2013-05-06.
+notes: Temporary protection via Arrêté 9874/2013 (2013-05-06). Legal designation with
+  binding protections pending permanent status via décret. Permanent designation obtained
+  on 2015-04-28 via 2015-748.
+attributes:
+  DESIG: Protection Temporaire
+  DESIG_ENG: Temporary Protection
+  STATUS: Designated
+  STATUS_YR: '2013'

@@ -1,0 +1,25 @@
+amendment_id: MDG-166880-2008-temporary_protection-001
+iso3: MDG
+wdpaid: 166880
+wdpa_name: Complexe Tsimembo Manambolomaty
+amendment_kind: attribute
+amendment_type: temporary_protection
+valid_from: '2008-12-02'
+valid_to: '2015-04-21'
+legal_instrument:
+  source: manual
+  type: arrêté
+  number: 21478/2008
+  date: '2008-12-02'
+  id: ~
+  url: ~
+temporal_description: Protection temporaire du 2008-12-02 au 2015-04-21 selon arrêté
+  n. 21478/2008 du 2008-12-02.
+notes: Temporary protection via Arrêté 21478/2008 (2008-12-02). Legal designation
+  with binding protections pending permanent status via décret. Permanent designation
+  obtained on 2015-04-21 via 2015-715.
+attributes:
+  DESIG: Protection Temporaire
+  DESIG_ENG: Temporary Protection
+  STATUS: Designated
+  STATUS_YR: '2008'

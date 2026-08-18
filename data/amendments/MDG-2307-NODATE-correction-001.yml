@@ -1,0 +1,21 @@
+amendment_id: MDG-2307-NODATE-correction-001
+iso3: MDG
+wdpaid: 2307
+wdpa_name: Tsimanampesotse
+amendment_kind: attribute
+amendment_type: correction
+valid_from: '2002-08-07'
+legal_instrument:
+  source: CNLEGIS
+  type: décret
+  number: 2002-797
+  date: '2002-08-07'
+  id: '36563'
+  url: https://cnlegis.gov.mg/page_num_find_direct/?2002-797
+temporal_description: Correction de donnees depuis le 2002-08-07 selon décret n. 2002-797
+  du 2002-08-07.
+notes: WDPA STATUS_YR=1927 is the RNI creation year, not the current status year.
+  Current status (PN) dates from Décret 2002-797 du 7 août 2002. Idempotent once WDPA
+  corrects.
+attributes:
+  STATUS_YR: '2002'

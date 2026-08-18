@@ -1,0 +1,25 @@
+amendment_id: MDG-555697916-2008-temporary_protection-001
+iso3: MDG
+wdpaid: 555697916
+wdpa_name: Ambararata Londa
+amendment_kind: attribute
+amendment_type: temporary_protection
+valid_from: '2008-10-17'
+valid_to: '2010-12-20'
+legal_instrument:
+  source: manual
+  type: arrêté
+  number: 18633/2008
+  date: '2008-10-17'
+  id: ~
+  url: ~
+temporal_description: Protection temporaire du 2008-10-17 au 2010-12-20 selon arrêté
+  n. 18633/2008 du 2008-10-17.
+notes: Temporary protection via Arrêté 18633/2008 (2008-10-17). Legal designation
+  with binding protections pending permanent status via décret. Permanent designation
+  obtained on 2017-05-05 via 2015-808.
+attributes:
+  DESIG: Protection Temporaire
+  DESIG_ENG: Temporary Protection
+  STATUS: Designated
+  STATUS_YR: '2008'

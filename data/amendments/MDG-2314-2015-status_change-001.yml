@@ -1,0 +1,24 @@
+amendment_id: MDG-2314-2015-status_change-001
+iso3: MDG
+wdpaid: 2314
+wdpa_name: Montagne d'Ambre
+amendment_kind: attribute
+amendment_type: status_change
+valid_from: '1958-10-28'
+valid_to: '2015-04-28'
+legal_instrument:
+  source: CNLEGIS
+  type: décret
+  number: 2015-776
+  date: '2015-04-28'
+  id: '46593'
+  url: https://cnlegis.gov.mg/page_num_find_direct/?2015-776
+temporal_description: Changement de statut du 1958-10-28 au 2015-04-28 selon décret
+  n. 2015-776 du 2015-04-28.
+notes: Created as PN on 1958-10-28 via Décret 58-07. Enlarged via Décret 2015-776
+  through merger with RS Forêt d'Ambre (WDPAID 5025) and inclusion of Station Forestière
+  des Roussettes.
+attributes:
+  DESIG: Parc National
+  DESIG_ENG: National Park
+  IUCN_CAT: II

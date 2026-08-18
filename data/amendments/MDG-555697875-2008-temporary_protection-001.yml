@@ -1,0 +1,25 @@
+amendment_id: MDG-555697875-2008-temporary_protection-001
+iso3: MDG
+wdpaid: 555697875
+wdpa_name: Complexe Lac Forêt Ambondrobe
+amendment_kind: attribute
+amendment_type: temporary_protection
+valid_from: '2008-10-17'
+valid_to: '2010-12-20'
+legal_instrument:
+  source: manual
+  type: arrêté
+  number: 18633/2008
+  date: '2008-10-17'
+  id: ~
+  url: ~
+temporal_description: Protection temporaire du 2008-10-17 au 2010-12-20 selon arrêté
+  n. 18633/2008 du 2008-10-17.
+notes: Temporary protection via Arrêté 18633/2008 (2008-10-17). Legal designation
+  with binding protections pending permanent status via décret. Still in temporary
+  protection status.
+attributes:
+  DESIG: Protection Temporaire
+  DESIG_ENG: Temporary Protection
+  STATUS: Designated
+  STATUS_YR: '2008'

@@ -1,0 +1,20 @@
+amendment_id: MDG-5024-NODATE-correction-001
+iso3: MDG
+wdpaid: 5024
+wdpa_name: Ankarana
+amendment_kind: attribute
+amendment_type: correction
+valid_from: '1956-02-20'
+legal_instrument:
+  source: manual
+  type: décret
+  number: 56-208
+  date: '1956-02-20'
+  id: ~
+  url: ~
+temporal_description: Correction de donnees depuis le 1956-02-20 selon décret n. 56-208
+  du 1956-02-20.
+notes: WDPA incorrectly shows STATUS_YR=2015. RS Ankarana was created in 1956 (Décret
+  56-208). No status change has occurred according to Goodman et al. 2018.
+attributes:
+  STATUS_YR: '1956'

@@ -1,0 +1,26 @@
+amendment_id: MDG-354013-2015-status_change-001
+iso3: MDG
+wdpaid: 354013
+wdpa_name: Zahamena
+amendment_kind: attribute
+amendment_type: status_change
+valid_from: '1997-08-07'
+valid_to: '2015-04-28'
+legal_instrument:
+  source: manual
+  type: décret
+  number: 97-1044
+  date: '1997-08-07'
+  id: ~
+  url: ~
+temporal_description: Changement de statut du 1997-08-07 au 2015-04-28 selon décret
+  n. 97-1044 du 1997-08-07.
+notes: 'Décret 97-1044 established mixed status: PN (42,300 ha, IUCN II) + RNI (22,100
+  ha, IUCN Ia) with Antenina enclave (350 ha). Boundaries reduced from ~73,160 ha
+  to 64,378 ha. Unified to PN only via Décret 2015-737 (CNLEGIS date 2015-04-28),
+  eliminating previous composite PN+RNI zoning. Boundaries expanded from 64,378 ha
+  to 64,935 ha.'
+attributes:
+  DESIG: Parc National + Réserve Naturelle Intégrale
+  DESIG_ENG: National Park + Strict Nature Reserve
+  IUCN_CAT: II+Ia

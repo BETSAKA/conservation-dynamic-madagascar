@@ -1,0 +1,22 @@
+amendment_id: MDG-5026-2015-boundary_modification-001
+iso3: MDG
+wdpaid: 5026
+wdpa_name: Manongarivo
+amendment_kind: spatial
+amendment_type: boundary_modification
+valid_from: '1956-02-20'
+valid_to: '2015-04-28'
+legal_instrument:
+  source: CNLEGIS
+  type: décret
+  number: 2015-784
+  date: ~
+  id: ~
+  url: https://cnlegis.gov.mg/page_num_find_direct/?2015-784
+temporal_description: Modification des limites du 1956-02-20 au 2015-04-28 selon décret
+  n. 2015-784.
+notes: Périmètre 1956-2015 avant modification des limites (géométrie MNP_2010 retenue
+  après vérification visuelle).
+geometry_ref: geoms/MDG-5026-2015-boundary_modification-001.geojson
+geometry_crs_epsg: 4326
+geometry_source_dataset_id: MNP_2010

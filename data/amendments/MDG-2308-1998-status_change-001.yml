@@ -1,0 +1,25 @@
+amendment_id: MDG-2308-1998-status_change-001
+iso3: MDG
+wdpaid: 2308
+wdpa_name: Andringitra
+amendment_kind: attribute
+amendment_type: status_change
+valid_from: '1927-12-31'
+valid_to: '1998-08-19'
+legal_instrument:
+  source: CNLEGIS
+  type: décret
+  number: 98-376
+  date: '1998-05-19'
+  id: '34798'
+  url: https://cnlegis.gov.mg/page_num_find_direct/?98-376
+temporal_description: Changement de statut du 1927-12-31 au 1998-08-19 selon décret
+  n. 98-376 du 1998-05-19.
+notes: 'Created as RNI #5 on 1927-12-31 (Décret du 31 décembre 1927), boundaries fixed
+  1966-06-01 (Décret 66-242). Changed from RNI to PN via Décret 98-376 du 19 août
+  1998. Boundaries remained unchanged from 1966 delimitation. '
+attributes:
+  DESIG: Réserve Naturelle Intégrale
+  DESIG_ENG: Strict Nature Reserve
+  DESIG_TYPE: National
+  IUCN_CAT: Ia

@@ -1,0 +1,25 @@
+amendment_id: MDG-555790175-2017-temporary_protection-001
+iso3: MDG
+wdpaid: 555790175
+wdpa_name: Anjajavy
+amendment_kind: attribute
+amendment_type: temporary_protection
+valid_from: '2017-07-28'
+valid_to: '2018-04-17'
+legal_instrument:
+  source: manual
+  type: arrêté
+  number: 18176/2017
+  date: '2017-07-28'
+  id: ~
+  url: ~
+temporal_description: Protection temporaire du 2017-07-28 au 2018-04-17 selon arrêté
+  n. 18176/2017 du 2017-07-28.
+notes: Temporary protection via Arrêté 18176/2017 (2017-07-28). Legal designation
+  with binding protections pending permanent status via décret. Permanent designation
+  obtained on 2018-04-17 via 2018-367.
+attributes:
+  DESIG: Protection Temporaire
+  DESIG_ENG: Temporary Protection
+  STATUS: Designated
+  STATUS_YR: '2017'

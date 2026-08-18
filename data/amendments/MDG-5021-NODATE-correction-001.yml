@@ -1,0 +1,20 @@
+amendment_id: MDG-5021-NODATE-correction-001
+iso3: MDG
+wdpaid: 5021
+wdpa_name: Analamazaotra
+amendment_kind: attribute
+amendment_type: correction
+valid_from: '1970-07-21'
+legal_instrument:
+  source: CNLEGIS
+  type: arrêté
+  number: 2778/70
+  date: '1970-07-21'
+  id: '27854'
+  url: https://cnlegis.gov.mg/page_num_find_direct/?2778%2F70
+temporal_description: Correction de donnees depuis le 1970-07-21 selon arrêté n. 2778/70
+  du 1970-07-21.
+notes: WDPA incorrectly shows STATUS_YR=2015 (date of upgrade to PN). Actual creation
+  was 1970 as wildlife reserve for Indris.
+attributes:
+  STATUS_YR: '1970'

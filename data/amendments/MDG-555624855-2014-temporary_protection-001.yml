@@ -1,0 +1,24 @@
+amendment_id: MDG-555624855-2014-temporary_protection-001
+iso3: MDG
+wdpaid: 555624855
+wdpa_name: Iles Barren
+amendment_kind: attribute
+amendment_type: temporary_protection
+valid_from: '2014-10-10'
+legal_instrument:
+  source: manual
+  type: arrêté
+  number: 30441/2014
+  date: '2014-10-10'
+  id: ~
+  url: ~
+temporal_description: Protection temporaire depuis le 2014-10-10 selon arrêté n. 30441/2014
+  du 2014-10-10.
+notes: Temporary protection via Arrêté 30441/2014 (2014-10-10). Legal designation
+  with binding protections pending permanent status via décret. Still in temporary
+  protection status.
+attributes:
+  DESIG: Protection Temporaire
+  DESIG_ENG: Temporary Protection
+  STATUS: Designated
+  STATUS_YR: '2014'

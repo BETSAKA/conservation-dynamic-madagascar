@@ -1,0 +1,22 @@
+amendment_id: MDG-10634-2015-boundary_modification-001
+iso3: MDG
+wdpaid: 10634
+wdpa_name: Beza Mahafaly
+amendment_kind: spatial
+amendment_type: boundary_modification
+valid_from: '1986-06-04'
+valid_to: '2015-04-21'
+legal_instrument:
+  source: CNLEGIS
+  type: décret
+  number: 2015-733
+  date: ~
+  id: ~
+  url: https://cnlegis.gov.mg/page_num_find_direct/?2015-733
+temporal_description: Modification des limites du 1986-06-04 au 2015-04-21 selon décret
+  n. 2015-733.
+notes: Géométrie MNP_2010 retenue après vérification visuelle et croisement avec Sussman
+  et al. 2012, https://doi.org/10.1007/978-3-642-22514-7_3).
+geometry_ref: geoms/MDG-10634-2015-boundary_modification-001.geojson
+geometry_crs_epsg: 4326
+geometry_source_dataset_id: MNP_2010

@@ -2875,6 +2875,30 @@ Pour l'instant, nous documentons les erreurs d'attributs (statut PN/II incorrect
 
  
 
+### Tampoketsa Analamaitso
+
+```{r tampoketsa-cnlegis}
+show_cnlegis_for_pa(5036, pa_decisions)
+```
+
+WDPA 2025 montre `STATUS_YR=1959` pour Tampoketsa Analamaitso. Cependant, CNLEGIS associe cette aire protégée au Décret 58-14 du 28 octobre 1958, intitulé "Instituant la réserve spéciale de la forêt Tampoketsa d'Analamaitso". Nous retenons donc 1958 comme année de création à documenter dans FAT.
+
+```{r tampoketsa-fat}
+# FAT: Correction du STATUS_YR
+fat <- add_modif_fat(
+  fat = fat,
+  decisions = pa_decisions,
+  wdpa_name_or_id = 5036,
+  decision_filter = list(num_texte = "58-14"),
+  attributes = list(
+    STATUS_YR = 1958
+  ),
+  amendment_type = "correction",
+  valid_from = "1958-10-28",
+  notes = "WDPA incorrectly shows STATUS_YR=1959. CNLEGIS links Tampoketsa Analamaitso to Décret 58-14 du 28 octobre 1958 instituting the special reserve, so the creation year retained here is 1958."
+)
+```
+
 ### Tsimanampesotse
 
 @goodman2018 indique pour cette AP: 

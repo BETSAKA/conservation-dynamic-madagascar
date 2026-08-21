@@ -2774,6 +2774,20 @@ fat <- add_modif_fat(
 )
 ```
 
+### Petriky
+
+Les données WDPA pour le `WDPAID 555697902` documentent des protections temporaires successives en 2008, 2010 et 2013, puis une création définitive en 2015. Or le décret de création définitive `2015-777` cite explicitement un arrêté initial de protection temporaire en 2006, absent de la base structurée `pa_decisions`.
+
+```{r petriky-cnlegis}
+show_cnlegis_for_pa(555697902, pa_decisions)
+```
+
+Le fragment pertinent du décret CNLEGIS est le suivant :
+
+> "Vu l'arrêté Interministériel n°7880/2006-MINENVEF du 15 mai 2006 portant protection temporaire de l'Aire Protégée en création Forêt de Petriky ;"
+
+Nous retenons donc une première période de protection temporaire à partir du `15 mai 2006`, puis les actes de 2008, 2010 et 2013 jusqu'au décret de création définitive `2015-777` du `28 avril 2015`. Comme pour les autres cas analogues, le traitement correspondant est centralisé dans la section @sec-temp-identification.
+
 ### Ranomafana
 
 @goodman2018 indique pour cette AP: 
@@ -3243,9 +3257,10 @@ permanent_designations <- permanent_designations |>
 # Supplement with temporary decrees absent from CNLEGIS but explicitly cited
 # in a later prorogation decision.
 temporary_designations_missing <- tibble::tribble(
-  ~WDPAID , ~WDPA_NAME            , ~temp_date            , ~temp_texte           , ~type_texte ,
-   352239 , "Ambatotsirongorongo" , as.Date("2006-03-15") , "3750/2006-MINENVEF"  , "Arrêté"    ,
-   354011 , "Réserve de Tampolo"  , as.Date("2006-07-04") , "11475/2006-MINENVEF" , "Arrêté"
+  ~WDPAID   , ~WDPA_NAME             , ~temp_date            , ~temp_texte           , ~type_texte ,
+     352239 , "Ambatotsirongorongo" , as.Date("2006-03-15") , "3750/2006-MINENVEF"  , "Arrêté"    ,
+     354011 , "Réserve de Tampolo"  , as.Date("2006-07-04") , "11475/2006-MINENVEF" , "Arrêté"    ,
+  555697902 , "Forêt Naturel de Petriky", as.Date("2006-05-15"), "7880/2006-MINENVEF"  , "Arrêté"
 )
 
 # Join temporary with permanent info

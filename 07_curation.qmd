@@ -3257,10 +3257,10 @@ permanent_designations <- permanent_designations |>
 # Supplement with temporary decrees absent from CNLEGIS but explicitly cited
 # in a later prorogation decision.
 temporary_designations_missing <- tibble::tribble(
-  ~WDPAID   , ~WDPA_NAME             , ~temp_date            , ~temp_texte           , ~type_texte ,
-     352239 , "Ambatotsirongorongo" , as.Date("2006-03-15") , "3750/2006-MINENVEF"  , "Arrêté"    ,
-     354011 , "Réserve de Tampolo"  , as.Date("2006-07-04") , "11475/2006-MINENVEF" , "Arrêté"    ,
-  555697902 , "Forêt Naturel de Petriky", as.Date("2006-05-15"), "7880/2006-MINENVEF"  , "Arrêté"
+  ~WDPAID   , ~WDPA_NAME                 , ~temp_date            , ~temp_texte           , ~type_texte ,
+     352239 , "Ambatotsirongorongo"      , as.Date("2006-03-15") , "3750/2006-MINENVEF"  , "Arrêté"    ,
+     354011 , "Réserve de Tampolo"       , as.Date("2006-07-04") , "11475/2006-MINENVEF" , "Arrêté"    ,
+  555697902 , "Forêt Naturel de Petriky" , as.Date("2006-05-15") , "7880/2006-MINENVEF"  , "Arrêté"
 )
 
 # Join temporary with permanent info

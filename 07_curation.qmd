@@ -3131,6 +3131,34 @@ fat <- add_modif_fat(
 )
 ```
 
+### Zombitse Vohibasia
+
+@goodman2018 indique pour cette AP:
+
+> Aspects légaux : Gestionnaire actuel : Madagascar National Parks (MNP) ; Gestion antérieure : Direction des Eaux et Forêts (Service de la Protection de la Nature d'Antananarivo et le Cantonnement Forestier de Sakaraha) ; Création : selon le Décret n° 97-1454 du 18 décembre 1997 ; Modification de statut : la Forêt Classée de Zombitse, localisée dans le Fivondronana de Sakaraha et gérée par le Cantonnement Forestier de Sakaraha à l'époque, existait déjà depuis 1962 (Arrêté n° 1902-MAP/FOR du 31 août 1962, 21 000 ha). Considéré comme Site d'Intérêt Biologique, cette forêt fait partie intégrante du parc national créé en 1998, selon le Décret n° 97-1454 du 18 décembre 1998 ; Dernière modification de statut : aucune ; Surface actuelle : 36 803 ha (selon le décret en vigueur).
+
+```{r zombitse-cnlegis}
+show_cnlegis_for_pa(20273, pa_decisions)
+```
+
+Le Décret 97-1454 du 18 décembre 1997 portant création du Parc National de Zombitse-Vohibasia apparaît bien dans la base CNLEGIS. WDPA 2025 montre pourtant `STATUS_YR=2015`, ce qui est incorrect. Cette date ne correspond pas au décret de création du parc national. La divergence provient vraisemblablement d'un décalage de nommage entre `Zombitse Vohibasia` dans la WDPA et `Zombitse-Vohibasia` dans les sources SAPM et juridiques.
+
+```{r zombitse-fat}
+# FAT: Correction du STATUS_YR
+fat <- add_modif_fat(
+  fat = fat,
+  decisions = pa_decisions,
+  wdpa_name_or_id = 20273,
+  decision_filter = list(num_texte = "97-1454"),
+  attributes = list(
+    STATUS_YR = 1997
+  ),
+  amendment_type = "correction",
+  valid_from = "1997-12-18",
+  notes = "WDPA incorrectly shows STATUS_YR=2015. CNLEGIS links Zombitse Vohibasia to Décret 97-1454 du 18 décembre 1997 creating the national park. The mismatch is reinforced by naming differences between 'Zombitse Vohibasia' (WDPA) and 'Zombitse-Vohibasia' (SAPM/legal sources)."
+)
+```
+
 ## Protections temporaires
 
 ### Contexte juridique

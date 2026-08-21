@@ -465,6 +465,10 @@ conversion_table_verif <- conversion_table_verif %>%
     # "soatanimbary" is a distinct SAPM site, not Zombitse Vohibasia (20273).
     WDPA_NAME = ifelse(original_pa == "soatanimbary", NA_character_, WDPA_NAME),
     WDPAID    = ifelse(original_pa == "soatanimbary", NA_real_,      WDPAID),
+    # Normalize the non-hyphenated legal-text variant to the WDPA entry.
+    WDPA_NAME = ifelse(original_pa == "zombitse vohibasia",
+                       "Zombitse Vohibasia", WDPA_NAME),
+    WDPAID    = ifelse(original_pa == "zombitse vohibasia", 20273, WDPAID),
     # "mangabe" is SAPM Mangabe-Ranomena-Sahasarotra, not the legacy RS Nosy Mangabe (5039).
     WDPA_NAME = ifelse(original_pa == "mangabe",
                        "Mangabe-Ranomena-Sahasarotra", WDPA_NAME),

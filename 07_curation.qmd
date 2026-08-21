@@ -289,7 +289,8 @@ add_modif_sat <- function(
   # generate_timeline() cannot create the pre-modification temporal state.
   if (amendment_type == "boundary_modification" && is.null(valid_from)) {
     warning(
-      "add_modif_sat(): boundary_modification for WDPAID=", wdpaid,
+      "add_modif_sat(): boundary_modification for WDPAID=",
+      wdpaid,
       " has no valid_from. The pre-modification period will not be ",
       "represented in the timeline unless STATUS_YR provides a fallback."
     )
@@ -575,7 +576,13 @@ export_amendments_to_yaml <- function(
       if (tolower(instr_type) == tolower(label)) {
         parts <- paste0(parts, " (n. ", legal_instrument$number, ")")
       } else {
-        parts <- paste0(parts, " selon ", instr_type, " n. ", legal_instrument$number)
+        parts <- paste0(
+          parts,
+          " selon ",
+          instr_type,
+          " n. ",
+          legal_instrument$number
+        )
       }
       if (!is.null(legal_instrument$date)) {
         parts <- paste0(parts, " du ", legal_instrument$date)
@@ -1048,7 +1055,6 @@ add_modif_fat <- function(
 
   fat_new
 }
-
 ```
 
 ## Schéma des amendements {#sec-amendment-schema}
@@ -1193,7 +1199,6 @@ sat <- NULL |>
     valid_from = "1958-10-28",
     notes = "Périmètre antérieur au décret modifiant (géométrie MNP_2010 retenue après vérification visuelle). Création par Décret 58-10 du 28 octobre 1958."
   )
-
 ```
 
 
@@ -2571,7 +2576,6 @@ fat <- add_modif_fat(
   valid_to = "2015-04-28",
   notes = "Created as RS on 1958-10-28 via Décret 58-15. Dissolved and merged into WDPAID 2314 in 2015."
 )
-
 ```
 
 ### Namoroka
@@ -2615,7 +2619,6 @@ fat <- add_modif_fat(
   valid_to = "2002-08-07",
   notes = "Created as RNI #8 on 1927-12-31 (Décret du 31 décembre 1927). Status changed from RNI to PN via Décret 2002-796 du 7 août 2002. No boundary change."
 )
-
 ```
 
 La WDPA 2025 indique STATUS_YR=2004 pour Namoroka, ce qui est inexplicable. Le statut actuel (PN) date de 2002. On crée une correction d'attribut.
@@ -2724,7 +2727,6 @@ fat <- add_modif_fat(
   valid_to = "2015-04-28",
   notes = "Created as RS (Réserve Spéciale) on 1965-12-14 via Décret 65-795. Status changed to PN via Décret 2015-775 du 28 avril 2015, with boundary expansion (added 4 small islets)."
 )
-
 ```
 
 ### Ranomafana
@@ -2919,7 +2921,6 @@ fat <- add_modif_fat(
   valid_to = "2002-08-07",
   notes = "Created as RNI #10 on 1927-12-31 (Décret du 31 décembre 1927). Status changed from RNI to PN via Décret 2002-797 du 7 août 2002. Boundary later expanded in 2015 to include Hatokaliotsy extension."
 )
-
 ```
 
 La WDPA 2025 indique STATUS_YR=1927 pour Tsimanampesotse, ce qui correspond à la date de création de la RNI et non au statut actuel (PN depuis 2002). On crée une correction d'attribut.
@@ -3119,11 +3120,11 @@ permanent_designations <- pa_decisions |>
 # - Tsitongambarika (555697878): Decret 2015-720 absent de CNLEGIS
 permanent_designations <- permanent_designations |>
   bind_rows(tibble::tribble(
-    ~WDPAID,    ~perm_date,               ~perm_texte,
-    352244,     as.Date("2015-04-28"),    "2015-790",
-    555697911,  as.Date("2015-04-21"),    "2015-711",
-    354011,     as.Date("2015-04-28"),    "2015-789",
-    555697878,  as.Date("2015-04-21"),    "2015-720"
+    ~WDPAID   , ~perm_date            , ~perm_texte ,
+       352244 , as.Date("2015-04-28") , "2015-790"  ,
+    555697911 , as.Date("2015-04-21") , "2015-711"  ,
+       354011 , as.Date("2015-04-28") , "2015-789"  ,
+    555697878 , as.Date("2015-04-21") , "2015-720"
   ))
 
 # Join temporary with permanent info
@@ -3390,7 +3391,9 @@ fat <- fat |>
   group_by(WDPAID, amendment_type) |>
   arrange(valid_from, .by_group = TRUE) |>
   mutate(
-    valid_to = if (cur_group()$amendment_type == "temporary_protection" && n() > 1) {
+    valid_to = if (
+      cur_group()$amendment_type == "temporary_protection" && n() > 1
+    ) {
       c(lead(valid_from)[-n()], valid_to[n()])
     } else {
       valid_to
@@ -3407,11 +3410,13 @@ n_inversions <- sum(
   !is.na(fat$valid_to) & !is.na(fat$valid_from) & fat$valid_to < fat$valid_from
 )
 fat <- fat |>
-  mutate(valid_to = if_else(
-    !is.na(valid_to) & !is.na(valid_from) & valid_to < valid_from,
-    as.Date(NA),
-    valid_to
-  ))
+  mutate(
+    valid_to = if_else(
+      !is.na(valid_to) & !is.na(valid_from) & valid_to < valid_from,
+      as.Date(NA),
+      valid_to
+    )
+  )
 
 # 3. For corrections/status_changes that overlap with later temp_protections,
 #    end the correction when the first temp protection starts.
@@ -3424,7 +3429,8 @@ fat <- fat |>
   left_join(first_temp, by = "WDPAID") |>
   mutate(
     valid_to = case_when(
-      amendment_type %in% c("correction", "status_change") &
+      amendment_type %in%
+        c("correction", "status_change") &
         !is.na(first_temp_from) &
         (is.na(valid_to) | valid_to > first_temp_from) &
         !is.na(valid_from) &
@@ -3471,8 +3477,15 @@ sat <- sat |>
 cat("Post-processing complete:\n")
 cat("  FAT rows:", n_before, "(unchanged)\n")
 cat("  Temporal inversions fixed:", n_inversions, "\n")
-cat("  SAT rows:", n_sat_before, "->", nrow(sat),
-    "(", n_sat_before - nrow(sat), "duplicates merged)\n")
+cat(
+  "  SAT rows:",
+  n_sat_before,
+  "->",
+  nrow(sat),
+  "(",
+  n_sat_before - nrow(sat),
+  "duplicates merged)\n"
+)
 ```
 
 ## Export des amendements {#sec-export-amendments}

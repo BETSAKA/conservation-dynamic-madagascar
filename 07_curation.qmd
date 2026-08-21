@@ -2823,30 +2823,12 @@ fat <- add_modif_fat(
   attributes = list(
     DESIG = "Réserve Naturelle Intégrale",
     DESIG_ENG = "Strict Nature Reserve",
-    IUCN_CAT = "Ia"
+    IUCN_CAT = "Ia",
+    STATUS_YR = 1927
   ),
   amendment_type = "correction",
   valid_from = "1927-12-31",
-  notes = "WDPA 2025 incorrectly classifies Tsaratanàna as PN/II. Decree 2015-782 confirms it remains RNI/Ia (Strict Nature Reserve). The RNI has never changed status since creation in 1927. The 2015 decree created the CAPAM complex and added 59,279 ha extensions (also Ia), bringing total to 108,610 ha."
-)
-
-# FAT: Correction du STATUS_YR (devrait être 2015 pour les extensions, ou 1927 pour la création)
-fat <- add_modif_fat(
-  fat = fat,
-  decisions = pa_decisions,
-  wdpa_name_or_id = 2306,
-  manual_decision = list(
-    date_texte = as.Date("2015-04-28"),
-    type_texte = "Décret",
-    num_texte = "2015-782",
-    objet_texte = "Portant création du Complexe des Aires Protégées Ambohimirahavavy-Marivorahona (CAPAM)"
-  ),
-  attributes = list(
-    STATUS_YR = 2015
-  ),
-  amendment_type = "correction",
-  valid_from = "2015-04-28",
-  notes = "WDPA 2025 shows STATUS_YR=1997 with no supporting decree. Setting to 2015 (date of extensions via Decree 2015-782). Original RNI creation was 1927-12-31."
+  notes = "WDPA 2025 incorrectly classifies Tsaratanàna as PN/II and shows STATUS_YR=1997. Decree 2015-782 confirms it remains RNI/Ia (Strict Nature Reserve). The RNI has never changed status since creation in 1927, so STATUS_YR should remain 1927. The 2015 decree created the CAPAM complex and added 59,279 ha extensions (also Ia), bringing total to 108,610 ha."
 )
 ```
 

@@ -2360,6 +2360,35 @@ fat <- fat |>
   )
 ```
 
+### Marotandrano
+
+@goodman2018 indique pour cette AP:
+
+> Aspects légaux : Aspect	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	; Gestion	antérieure	:	aucune	;	Création	:	selon	le	Décret	n°	56-208	du	20 février	1956	(Création	de	la	Réserve	Spéciale)	;	Modification	de	statut	: aucune	;	Dernière	modification	de	statut	:	aucune	;	Surface	actuelle	:	42 200	ha	(selon	le	décret	en	vigueur).
+
+Dans la WDPA 2025, Marotandrano apparaît avec `STATUS_YR=2015`. Or cette AP est toujours une Réserve Spéciale de catégorie IV, et Goodman et al. 2018 n'indiquent aucun changement de statut. 
+
+```{r marotandrano-fat}
+# FAT: Correction du STATUS_YR
+fat <- fat |>
+  add_modif_fat(
+    decisions = pa_decisions,
+    wdpa_name_or_id = 5035,
+    manual_decision = list(
+      date_texte = as.Date("1956-02-20"),
+      type_texte = "Décret",
+      num_texte = "56-208",
+      objet_texte = "Création de la Réserve Spéciale de Marotandrano"
+    ),
+    attributes = list(
+      STATUS_YR = "1956"
+    ),
+    amendment_type = "correction",
+    valid_from = "1956-02-20",
+    notes = "WDPA incorrectly shows STATUS_YR=2015. Goodman et al. 2018 report Marotandrano as a Special Reserve created in 1956 (Décret 56-208) with no subsequent status change."
+  )
+```
+
 ### Masoala
 
 @goodman2018 indique pour cette AP:

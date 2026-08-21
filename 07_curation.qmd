@@ -1156,6 +1156,22 @@ Pour chaque AP, nous :
 3. Vérifions les limites en utilisant l'outil de vérification visuelle (@sec-visual-verif)
 4. Documentons les amendements lorsque des divergences sont trouvées
 
+### Ambatotsirongorongo
+
+Les données WDPA pour le `WDPAID 352239` documentent une protection temporaire en 2007 puis une création définitive en 2015. Le cas est particulier, car la décision CNLEGIS disponible pour 2007 est une prorogation qui cite explicitement un arrêté initial de 2006 absent de la base CNLEGIS.
+
+```{r ambatotsirongorongo-cnlegis}
+show_cnlegis_for_pa(352239, pa_decisions)
+```
+
+Le fragment pertinent de la décision CNLEGIS est le suivant :
+
+> "Vu l'arrêté n° 3750 / 2006-MINENVEF du 15 mars 2006 portant protection temporaire de l'aire protégée en création dénommée \"Ambatotsirongorongo\","
+>
+> "En application de l'article 2 de l'arrêté n° 3750/2006 du 15 mars 2006 portant protection temporaire de l'Aire Protégée en création dénommée \"Ambatotsirongorongo\", la durée de la mise en protection temporaire de l'Aire Protégée en création \"Ambatotsirongorongo\" est prorogée de douze (12) mois."
+
+Même si l'arrêté n° 3750/2006-MINENVEF du 15 mars 2006 n'est pas retrouvé directement dans CNLEGIS, l'arrêté de prorogation n° 13613/2007 du 20 août 2007 atteste clairement l'existence d'une première mise en protection temporaire en 2006. Nous retenons donc deux périodes temporaires successives dans l'historique juridique : une période initiale à partir du 15 mars 2006, puis une prorogation à partir du 20 août 2007, avant le décret de création définitive n° 2015-792 du 28 avril 2015. Comme il ne s'agit pas ici d'un amendement sur une protection temporaire, le traitement correspondant est centralisé dans la section @sec-temp-identification.
+
 ### Ambatovaky
 
 @goodman2018 indique pour cette AP:
@@ -3169,7 +3185,7 @@ Les protections temporaires sont établies par **Arrêté interministériel** et
 
 Dans la base de données WDPA, nous attribuons à ces aires protégées le statut `STATUS = "Designated"`, car elles bénéficient d'une reconnaissance juridique formelle avec engagement contraignant de conservation à long terme, conformément à la définition du manuel WDPA.
 
-### Identification et traitement
+### Identification et traitement {#sec-temp-identification}
 
 Nous identifions les décisions CNLEGIS relatives aux protections temporaires, puis créons des entrées FAT documentant :
 
@@ -3208,6 +3224,13 @@ permanent_designations <- permanent_designations |>
     555697878 , as.Date("2015-04-21") , "2015-720"
   ))
 
+# Supplement with temporary decrees absent from CNLEGIS but explicitly cited
+# in a later prorogation decision.
+temporary_designations_missing <- tibble::tribble(
+  ~WDPAID , ~WDPA_NAME            , ~temp_date            , ~temp_texte          , ~type_texte ,
+   352239 , "Ambatotsirongorongo" , as.Date("2006-03-15") , "3750/2006-MINENVEF" , "Arrêté"
+)
+
 # Join temporary with permanent info
 temp_full <- temporary_protections |>
   select(
@@ -3217,6 +3240,7 @@ temp_full <- temporary_protections |>
     temp_texte = num_texte,
     type_texte
   ) |>
+  bind_rows(temporary_designations_missing) |>
   left_join(
     permanent_designations,
     by = "WDPAID",

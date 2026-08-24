@@ -4,9 +4,13 @@
 
 ## Overview
 
-This repository documents the transparent and reproducible methodology used to produce a **dynamic temporal dataset** of Madagascar's protected areas covering the period 2000-2024. Unlike conventional static datasets that capture only current boundaries, this work reconstructs the complete legal and spatial history of each protected area, including boundary modifications, status changes, internal zoning, and temporary protections.
+This repository documents the transparent and reproducible methodology used to produce a **dynamic temporal dataset** of Madagascar's protected areas covering the period 2000-2025. Unlike conventional static datasets that capture only current boundaries, this work reconstructs the complete legal and spatial history of each protected area, including boundary modifications, status changes, internal zoning, and temporary protections.
 
-The dataset itself is not directly hosted here but can be fully reproduced by following the documented procedures. The repository provides all code, documentation, and validation tools necessary to reconstruct the data from publicly available sources.
+The repository now includes the main derived outputs together with the full code, documentation, and validation tools required to reproduce them from the original sources. Redistribution of the WDPA-derived outputs in this repository is done with UNEP-WCMC authorization.
+
+Warning: the downloadable WDPA-derived files in this repository are a Madagascar-only historical snapshot based on the November 2025 WDPA release and may therefore become outdated. For the latest official protected and conserved area data, consult Protected Planet: https://www.protectedplanet.net.
+
+Baseline source citation for the WDPA-derived outputs: UNEP-WCMC and IUCN (2025). Protected Planet: The World Database on Protected Areas (WDPA), November 2025 release. Cambridge, UK and Gland, Switzerland. Available at https://www.protectedplanet.net.
 
 ## Objectives
 
@@ -35,6 +39,12 @@ The final dataset provides:
 - **Zone model**: Multiple zones per state (external boundary, core zones, buffer zones)
 - **WDPA compatibility**: Maintains all WDPA identifiers and attributes while adding temporal dimension
 - **Multiple formats**: RDS (R native), GeoPackage (GIS standard), and Parquet with WKT geometry (analytics)
+
+### Download Outputs
+- [GeoPackage](https://github.com/BETSAKA/conservation-dynamic-madagascar/blob/main/data/dynamic_wdpa.gpkg?raw=1)
+- [GeoParquet](https://github.com/BETSAKA/conservation-dynamic-madagascar/blob/main/data/dynamic_wdpa.parquet?raw=1)
+- [RDS](https://github.com/BETSAKA/conservation-dynamic-madagascar/blob/main/data/dynamic_wdpa.rds?raw=1)
+- [YAML amendment registry](https://github.com/BETSAKA/conservation-dynamic-madagascar/tree/main/data/amendments)
 
 ## Repository Structure
 
@@ -136,9 +146,13 @@ This work is licensed under [Creative Commons Attribution 4.0 International (CC 
 
 ## Vue d'ensemble
 
-Ce dépôt documente la méthodologie transparente et reproductible utilisée pour produire un **jeu de données temporel dynamique** des aires protégées de Madagascar couvrant la période 2000-2024. Contrairement aux bases de données statiques conventionnelles qui ne capturent que les limites actuelles, ce travail reconstruit l'historique légal et spatial complet de chaque aire protégée, incluant les modifications de limites, les changements de statut, les zonages internes et les protections temporaires.
+Ce dépôt documente la méthodologie transparente et reproductible utilisée pour produire un **jeu de données temporel dynamique** des aires protégées de Madagascar couvrant la période 2000-2025. Contrairement aux bases de données statiques conventionnelles qui ne capturent que les limites actuelles, ce travail reconstruit l'historique légal et spatial complet de chaque aire protégée, incluant les modifications de limites, les changements de statut, les zonages internes et les protections temporaires.
 
-Le jeu de données lui-même n'est pas directement hébergé ici mais peut être entièrement reproduit en suivant les procédures documentées. Le dépôt fournit tout le code, la documentation et les outils de validation nécessaires pour reconstruire les données à partir de sources publiques.
+Le dépôt inclut les principales sorties dérivées ainsi que tout le code, la documentation et les outils de validation nécessaires pour les reproduire à partir des sources d'origine. La redistribution des sorties dérivées de la WDPA dans ce dépôt est effectuée avec l'autorisation de l'UNEP-WCMC.
+
+Attention : les fichiers dérivés de la WDPA téléchargeables dans ce dépôt correspondent a un instantané historique limité a Madagascar, fondé sur la version de novembre 2025 de la WDPA, et peuvent donc devenir obsolètes. Pour accéder aux données officielles les plus récentes sur les aires protégées et conservées, consulter Protected Planet : https://www.protectedplanet.net.
+
+Citation de la source de base des sorties dérivées de la WDPA : UNEP-WCMC and IUCN (2025). Protected Planet: The World Database on Protected Areas (WDPA), version de novembre 2025. Cambridge, UK et Gland, Suisse. Disponible sur https://www.protectedplanet.net.
 
 ## Objectifs
 
@@ -167,6 +181,12 @@ Le jeu de données final fournit :
 - **Modèle de zones** : Multiples zones par état (limite externe, zones noyaux, zones tampons)
 - **Compatibilité WDPA** : Maintien de tous les identifiants et attributs WDPA tout en ajoutant la dimension temporelle
 - **Formats multiples** : RDS (natif R), GeoPackage (standard SIG), et Parquet avec géométrie WKT (analytique)
+
+### Télécharger les sorties
+- [GeoPackage](https://github.com/BETSAKA/conservation-dynamic-madagascar/blob/main/data/dynamic_wdpa.gpkg?raw=1)
+- [GeoParquet](https://github.com/BETSAKA/conservation-dynamic-madagascar/blob/main/data/dynamic_wdpa.parquet?raw=1)
+- [RDS](https://github.com/BETSAKA/conservation-dynamic-madagascar/blob/main/data/dynamic_wdpa.rds?raw=1)
+- [Registre YAML des amendements](https://github.com/BETSAKA/conservation-dynamic-madagascar/tree/main/data/amendments)
 
 ## Structure du dépôt
 

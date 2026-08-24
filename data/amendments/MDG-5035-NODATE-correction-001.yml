@@ -15,7 +15,6 @@ legal_instrument:
 temporal_description: Correction de donnees depuis le 1956-02-20 selon décret n. 56-208
   du 1956-02-20.
 notes: WDPA incorrectly shows STATUS_YR=2015. Goodman et al. 2018 report Marotandrano
-  as a Special Reserve created in 1956 (Décret 56-208) with no subsequent status
-  change.
+  as a Special Reserve created in 1956 (Décret 56-208) with no subsequent status change.
 attributes:
   STATUS_YR: '1956'

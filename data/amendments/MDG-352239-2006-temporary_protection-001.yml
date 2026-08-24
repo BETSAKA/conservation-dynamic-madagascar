@@ -1,0 +1,25 @@
+amendment_id: MDG-352239-2006-temporary_protection-001
+iso3: MDG
+wdpaid: 352239
+wdpa_name: Ambatotsirongorongo
+amendment_kind: attribute
+amendment_type: temporary_protection
+valid_from: '2006-03-15'
+valid_to: '2007-08-20'
+legal_instrument:
+  source: manual
+  type: arrêté
+  number: 3750/2006-MINENVEF
+  date: '2006-03-15'
+  id: ~
+  url: ~
+temporal_description: Protection temporaire du 2006-03-15 au 2007-08-20 selon arrêté
+  n. 3750/2006-MINENVEF du 2006-03-15.
+notes: Temporary protection via Arrêté 3750/2006-MINENVEF (2006-03-15). Legal designation
+  with binding protections pending permanent status via décret. Permanent designation
+  obtained on 2015-04-28 via 2015-792.
+attributes:
+  DESIG: Protection Temporaire
+  DESIG_ENG: Temporary Protection
+  STATUS: Designated
+  STATUS_YR: '2006'

@@ -1,0 +1,21 @@
+amendment_id: MDG-5036-NODATE-correction-001
+iso3: MDG
+wdpaid: 5036
+wdpa_name: Tampoketsa Analamaitso
+amendment_kind: attribute
+amendment_type: correction
+valid_from: '1958-10-28'
+legal_instrument:
+  source: CNLEGIS
+  type: décret
+  number: 58-14
+  date: '1958-10-28'
+  id: '21573'
+  url: https://cnlegis.gov.mg/page_num_find_direct/?58-14
+temporal_description: Correction de donnees depuis le 1958-10-28 selon décret n. 58-14
+  du 1958-10-28.
+notes: WDPA incorrectly shows STATUS_YR=1959. CNLEGIS links Tampoketsa Analamaitso
+  to Décret 58-14 du 28 octobre 1958 instituting the special reserve, so the creation
+  year retained here is 1958.
+attributes:
+  STATUS_YR: '1958'

@@ -2182,6 +2182,109 @@ fat <- fat |>
 ```
 
 
+### Loky Manambato
+
+Les données WDPA pour le `WDPAID 555697908` indiquent un `STATUS_YR=2015`, correspondant au décret de création définitive `2015-758`. Les textes CNLEGIS actuellement appariés documentent directement ce décret ainsi qu'un arrêté de délégation de gestion temporaire `15862/2013`.
+
+```{r loky-manambato-cnlegis}
+show_cnlegis_for_pa(555697908, pa_decisions)
+```
+
+Des sources complémentaires suggèrent une antériorité plus ancienne. Le PGES finalisé en 2010 indique que le territoire de Loky-Manambato bénéficiait auparavant d'une protection temporaire puis d'un statut de Station Forestière à Usage Multiple (SFUM) par l'arrêté `5862/05-MINENVEF` du `31 mai 2005`. En cohérence avec la logique retenue dans ce travail, ce statut de SFUM n'est pas considéré ici comme un statut d'aire protégée en lui-même. Nous ne retenons donc pas `2005` comme début de conservation.
+
+L'arrêté `15862/2013` précise qu'il est pris en application de l'article 4 de l'arrêté `52005/2010`, et le décret `2015-758` cite également la chaîne `18633/2008`, `52005/2010` et `9874/2013`. Après analyse visuelle, nous identifions sur la carte de l'arrêté `18633/2008` 4 zones de protection temporaire correspondante à Loky Manambato (en bas à droite de la carte) :
+
+[Extrait de la carte annexée au décret de protection globale temporaire 18633/2008](sources\map_temp_prot_2008_loky_manambato.png)
+
+Elles correspondent aux 4 parties de la station forestière créée en 2005 et représentées dans le PGES de 2010 :
+
+[Carte incluse dans le PGES de 2010 pour Loky Manambato](sources\pges_map_2010_loky_manambato.png)
+
+Sur la base de ces éléments, nous retenons donc une période de protection temporaire à partir du `18 octobre 2008`, suivie de la création définitive du Paysage Harmonieux Protégé le `28 avril 2015`. 
+
+On extrait des données de subdivision les zones correspondantes à l'AP en 2008.
+
+```{r}
+loky_sub <- read_sf(
+  "data/subdivisions/Manambato/Bloc Forestier Loky Manambato.shp"
+)
+
+tm_shape(loky_sub) +
+  tm_polygons(fill = "darkgreen", fill_alpha = 0.5, col = "darkgreen") +
+  tm_layout(main.title = "Bloc Forestier Loky Manambato (2008)")
+```
+
+```{r loky-manambato-subdivision}
+loky_current <- all_PAs_conso |>
+  filter(WDPAID == 555697908, dataset_id == "WDPA_2025")
+
+loky_noyau_dur <- st_read(
+  "data/subdivisions/Manambato/Noyau dur Loky Manambato.shp",
+  quiet = TRUE
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(loky_current)) |>
+  mutate(
+    WDPAID = 555697908,
+    NAME = "Loky Manambato",
+    dataset_id = "MEDD_subdivisions_2024",
+    pa_label = "Manambato"
+  )
+
+tm_shape(loky_current) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(loky_noyau_dur) +
+  tm_polygons(fill = "darkgreen", fill_alpha = 0.5, col = "darkgreen")
+```
+
+**Modifications FAT et SAT** : Nous documentons dans FAT une période de protection temporaire `2008-2015`, sans retenir `2005` comme date de création de l'aire protégée. Nous documentons dans SAT le noyau dur actuel comme zonage secondaire distinct de la limite principale de l'AP.
+
+```{r loky-manambato-fat-sat}
+# FAT: période de protection temporaire retenue à partir de l'arrêté 52005/2010
+fat <- add_modif_fat(
+  fat = fat,
+  decisions = pa_decisions,
+  wdpa_name_or_id = 555697908,
+  manual_decision = list(
+    date_texte = as.Date("2010-12-20"),
+    type_texte = "Arrêté interministériel",
+    num_texte = "52005/2010",
+    id_texte = NA,
+    objet_texte = "Mise en protection temporaire globale des sites visés par l'arrêté n°17914 du 18 octobre 2006, incluant Loky Manambato"
+  ),
+  attributes = list(
+    STATUS = "Designated",
+    STATUS_YR = "2010",
+    DESIG = "Protection Temporaire",
+    DESIG_ENG = "Temporary Protection"
+  ),
+  amendment_type = "temporary_protection",
+  valid_from = "2010-12-20",
+  valid_to = "2015-04-28",
+  notes = "Temporary protection retained from Arrêté 52005/2010, cited by Arrêté 15862/2013 and Décret 2015-758. The 2005 SFUM arrêté is not treated here as a protected-area status."
+)
+
+# SAT: noyau dur actuel validé dans les données de subdivision
+sat <- add_modif_sat(
+  sat = sat,
+  data = loky_noyau_dur,
+  decisions = pa_decisions,
+  wdpa_name_or_id = 555697908,
+  manual_decision = list(
+    date_texte = NA,
+    type_texte = "Zonage secondaire",
+    num_texte = "MEDD-2024",
+    id_texte = NA,
+    objet_texte = "Noyau dur validé pour Loky Manambato"
+  ),
+  source_dataset_id = "MEDD_subdivisions_2024",
+  amendment_type = "secondary_zoning",
+  valid_from = NULL,
+  notes = "Current core zone (noyau dur) from validated subdivision data for Loky Manambato, analyzed in 06_subdivisions.qmd. This zoning is documented separately from the legal PA boundary."
+)
+```
+
+
 ### Mangerivola
 
 @goodman2018 indique pour cette AP:  
@@ -3442,6 +3545,7 @@ Chaque noyau dur validé est ajouté à la table SAT avec le type d'amendement `
 # Miarinarivo II) that could not be linked to a WDPA record.
 nd_geoms <- noyaux_durs |>
   filter(!is.na(WDPAID)) |>
+  filter(WDPAID != 555697908) |>
   select(geometry, WDPAID, NAME, pa_label) |>
   mutate(dataset_id = "MEDD_subdivisions_2024")
 

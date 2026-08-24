@@ -289,7 +289,8 @@ add_modif_sat <- function(
   # generate_timeline() cannot create the pre-modification temporal state.
   if (amendment_type == "boundary_modification" && is.null(valid_from)) {
     warning(
-      "add_modif_sat(): boundary_modification for WDPAID=", wdpaid,
+      "add_modif_sat(): boundary_modification for WDPAID=",
+      wdpaid,
       " has no valid_from. The pre-modification period will not be ",
       "represented in the timeline unless STATUS_YR provides a fallback."
     )
@@ -575,7 +576,13 @@ export_amendments_to_yaml <- function(
       if (tolower(instr_type) == tolower(label)) {
         parts <- paste0(parts, " (n. ", legal_instrument$number, ")")
       } else {
-        parts <- paste0(parts, " selon ", instr_type, " n. ", legal_instrument$number)
+        parts <- paste0(
+          parts,
+          " selon ",
+          instr_type,
+          " n. ",
+          legal_instrument$number
+        )
       }
       if (!is.null(legal_instrument$date)) {
         parts <- paste0(parts, " du ", legal_instrument$date)
@@ -1048,7 +1055,6 @@ add_modif_fat <- function(
 
   fat_new
 }
-
 ```
 
 ## Schéma des amendements {#sec-amendment-schema}
@@ -1150,6 +1156,22 @@ Pour chaque AP, nous :
 3. Vérifions les limites en utilisant l'outil de vérification visuelle (@sec-visual-verif)
 4. Documentons les amendements lorsque des divergences sont trouvées
 
+### Ambatotsirongorongo
+
+Les données WDPA pour le `WDPAID 352239` documentent une protection temporaire en 2007 puis une création définitive en 2015. Le cas est particulier, car la décision CNLEGIS disponible pour 2007 est une prorogation qui cite explicitement un arrêté initial de 2006 absent de la base CNLEGIS.
+
+```{r ambatotsirongorongo-cnlegis}
+show_cnlegis_for_pa(352239, pa_decisions)
+```
+
+Le fragment pertinent de la décision CNLEGIS est le suivant :
+
+> "Vu l'arrêté n° 3750 / 2006-MINENVEF du 15 mars 2006 portant protection temporaire de l'aire protégée en création dénommée \"Ambatotsirongorongo\","
+>
+> "En application de l'article 2 de l'arrêté n° 3750/2006 du 15 mars 2006 portant protection temporaire de l'Aire Protégée en création dénommée \"Ambatotsirongorongo\", la durée de la mise en protection temporaire de l'Aire Protégée en création \"Ambatotsirongorongo\" est prorogée de douze (12) mois."
+
+Même si l'arrêté n° 3750/2006-MINENVEF du 15 mars 2006 n'est pas retrouvé directement dans CNLEGIS, l'arrêté de prorogation n° 13613/2007 du 20 août 2007 atteste clairement l'existence d'une première mise en protection temporaire en 2006. Nous retenons donc deux périodes temporaires successives dans l'historique juridique : une période initiale à partir du 15 mars 2006, puis une prorogation à partir du 20 août 2007, avant le décret de création définitive n° 2015-792 du 28 avril 2015. Comme il ne s'agit pas ici d'un amendement sur une protection temporaire, le traitement correspondant est centralisé dans la section @sec-temp-identification.
+
 ### Ambatovaky
 
 @goodman2018 indique pour cette AP:
@@ -1193,7 +1215,6 @@ sat <- NULL |>
     valid_from = "1958-10-28",
     notes = "Périmètre antérieur au décret modifiant (géométrie MNP_2010 retenue après vérification visuelle). Création par Décret 58-10 du 28 octobre 1958."
   )
-
 ```
 
 
@@ -2161,6 +2182,100 @@ fat <- fat |>
 ```
 
 
+### Loky Manambato
+
+Les données WDPA pour le `WDPAID 555697908` indiquent un `STATUS_YR=2015`, correspondant au décret de création définitive `2015-758`. Les textes CNLEGIS actuellement appariés documentent directement ce décret ainsi qu'un arrêté de délégation de gestion temporaire `15862/2013`.
+
+```{r loky-manambato-cnlegis}
+show_cnlegis_for_pa(555697908, pa_decisions)
+```
+
+Des sources complémentaires suggèrent une antériorité plus ancienne. Le PGES finalisé en 2010 indique que le territoire de Loky-Manambato bénéficiait auparavant d'une protection temporaire puis d'un statut de Station Forestière à Usage Multiple (SFUM) par l'arrêté `5862/05-MINENVEF` du `31 mai 2005`. En cohérence avec la logique retenue dans ce travail, ce statut de SFUM n'est pas considéré ici comme un statut d'aire protégée en lui-même. Nous ne retenons donc pas `2005` comme début de conservation.
+
+L'arrêté `15862/2013` précise qu'il est pris en application de l'article 4 de l'arrêté `52005/2010`, et le décret `2015-758` cite également la chaîne `18633/2008`, `52005/2010` et `9874/2013`. Après analyse visuelle, nous identifions sur la carte annexée à l'arrêté `18633/2008` quatre zones de protection temporaire correspondant à Loky Manambato :
+
+[Extrait de la carte annexée au décret de protection globale temporaire 18633/2008](sources/map_temp_prot_2008_loky_manambato.png)
+
+Elles correspondent aux 4 parties de la station forestière créée en 2005 et représentées dans le PGES de 2010 :
+
+[Carte incluse dans le PGES de 2010 pour Loky Manambato](sources/pges_map_2010_loky_manambato.png)
+
+Sur la base de ces éléments, nous retenons donc une période de protection temporaire à partir du `17 octobre 2008`, suivie de la création définitive du Paysage Harmonieux Protégé le `28 avril 2015`.
+
+On extrait des données de subdivision la géométrie correspondant au périmètre antérieur à 2015. Le fichier `Bloc Forestier Loky Manambato.shp` contient plusieurs polygones, qui sont fusionnés en une seule géométrie avant intégration dans SAT, conformément aux autres cas analogues du chapitre.
+
+```{r loky-manambato-geom-prep}
+loky_current <- all_PAs_conso |>
+  filter(WDPAID == 555697908, dataset_id == "WDPA_2025")
+
+loky_sub <- read_sf(
+  "data/subdivisions/Manambato/Bloc Forestier Loky Manambato.shp"
+) |>
+  st_make_valid() |>
+  st_transform(st_crs(loky_current)) |>
+  st_union() |>
+  st_sf() |>
+  st_set_geometry("geometry") |>
+  mutate(
+    WDPAID = 555697908,
+    NAME = "Loky Manambato",
+    dataset_id = "MEDD_subdivisions_2008"
+  )
+
+tm_shape(loky_sub) +
+  tm_polygons(fill = "darkgreen", fill_alpha = 0.5, col = "darkgreen") +
+  tm_title("Bloc Forestier Loky Manambato (pré-2015)")
+```
+
+```{r loky-manambato-sources}
+tm_shape(loky_current) +
+  tm_borders(col = "red", lwd = 2) +
+  tm_shape(loky_sub) +
+  tm_polygons(fill = "darkgreen", fill_alpha = 0.5, col = "darkgreen")
+```
+
+**Modifications FAT et SAT** : Nous documentons dans FAT une période de protection temporaire `2008-2015`, sans retenir `2005` comme date de création de l'aire protégée. Nous documentons dans SAT la géométrie pré-2015 obtenue à partir du bloc forestier, les polygones ayant été fusionnés en une seule géométrie. Le noyau dur actuel reste quant à lui intégré dans le traitement générique du zonage secondaire plus bas dans le chapitre.
+
+```{r loky-manambato-fat-sat}
+# FAT: période de protection temporaire retenue à partir de l'arrêté 18633/2008
+fat <- add_modif_fat(
+  fat = fat,
+  decisions = pa_decisions,
+  wdpa_name_or_id = 555697908,
+  manual_decision = list(
+    date_texte = as.Date("2008-10-17"),
+    type_texte = "Arrêté interministériel",
+    num_texte = "18633/2008",
+    id_texte = NA,
+    objet_texte = "Mise en protection temporaire globale des sites visés par l'arrêté n°17914 du 18 octobre 2006, incluant Loky Manambato"
+  ),
+  attributes = list(
+    STATUS = "Designated",
+    STATUS_YR = "2008",
+    DESIG = "Protection Temporaire",
+    DESIG_ENG = "Temporary Protection"
+  ),
+  amendment_type = "temporary_protection",
+  valid_from = "2008-10-17",
+  valid_to = "2015-04-28",
+  notes = "Temporary protection retained from Arrêté 18633/2008, supported by the annex map, by the PGES 2010 map, and by later references in Arrêté 15862/2013 and Décret 2015-758. The 2005 SFUM arrêté is not treated here as a protected-area status."
+)
+
+# SAT: géométrie pré-2015 issue du bloc forestier, fusionnée en une seule entité
+sat <- add_modif_sat(
+  sat = sat,
+  data = loky_sub,
+  decisions = pa_decisions,
+  wdpa_name_or_id = 555697908,
+  decision_filter = list(num_texte = "2015-758"),
+  source_dataset_id = "MEDD_subdivisions_2008",
+  amendment_type = "boundary_modification",
+  valid_from = "2008-10-17",
+  notes = "Pre-2015 boundary from the Loky Manambato forest block subdivision layer. The original shapefile contains four polygons; they are merged with st_union() into a single geometry before insertion in SAT. This geometry matches the temporary protection footprint visible on the annex map to Arrêté 18633/2008 and on the PGES 2010 map."
+)
+```
+
+
 ### Mangerivola
 
 @goodman2018 indique pour cette AP:  
@@ -2352,6 +2467,35 @@ fat <- fat |>
     valid_from = "1952-01-03",
     valid_to = "1998-05-19",
     notes = "Created as RNI #12 on 1952-01-03 (Décret du 3 janvier 1952), boundaries clarified 1966-06-01 (Décret 66-242). Changed from RNI to PN via Décret 98-375 du 19 mai 1998. No boundary change."
+  )
+```
+
+### Marotandrano
+
+@goodman2018 indique pour cette AP:
+
+> Aspects légaux : Aspect	légaux	:	Gestionnaire	actuel	:	Madagascar	National	Parks	(MNP)	; Gestion	antérieure	:	aucune	;	Création	:	selon	le	Décret	n°	56-208	du	20 février	1956	(Création	de	la	Réserve	Spéciale)	;	Modification	de	statut	: aucune	;	Dernière	modification	de	statut	:	aucune	;	Surface	actuelle	:	42 200	ha	(selon	le	décret	en	vigueur).
+
+Dans la WDPA 2025, Marotandrano apparaît avec `STATUS_YR=2015`. Or cette AP est toujours une Réserve Spéciale de catégorie IV, et Goodman et al. 2018 n'indiquent aucun changement de statut. 
+
+```{r marotandrano-fat}
+# FAT: Correction du STATUS_YR
+fat <- fat |>
+  add_modif_fat(
+    decisions = pa_decisions,
+    wdpa_name_or_id = 5035,
+    manual_decision = list(
+      date_texte = as.Date("1956-02-20"),
+      type_texte = "Décret",
+      num_texte = "56-208",
+      objet_texte = "Création de la Réserve Spéciale de Marotandrano"
+    ),
+    attributes = list(
+      STATUS_YR = "1956"
+    ),
+    amendment_type = "correction",
+    valid_from = "1956-02-20",
+    notes = "WDPA incorrectly shows STATUS_YR=2015. Goodman et al. 2018 report Marotandrano as a Special Reserve created in 1956 (Décret 56-208) with no subsequent status change."
   )
 ```
 
@@ -2571,7 +2715,6 @@ fat <- add_modif_fat(
   valid_to = "2015-04-28",
   notes = "Created as RS on 1958-10-28 via Décret 58-15. Dissolved and merged into WDPAID 2314 in 2015."
 )
-
 ```
 
 ### Namoroka
@@ -2615,7 +2758,6 @@ fat <- add_modif_fat(
   valid_to = "2002-08-07",
   notes = "Created as RNI #8 on 1927-12-31 (Décret du 31 décembre 1927). Status changed from RNI to PN via Décret 2002-796 du 7 août 2002. No boundary change."
 )
-
 ```
 
 La WDPA 2025 indique STATUS_YR=2004 pour Namoroka, ce qui est inexplicable. Le statut actuel (PN) date de 2002. On crée une correction d'attribut.
@@ -2724,8 +2866,21 @@ fat <- add_modif_fat(
   valid_to = "2015-04-28",
   notes = "Created as RS (Réserve Spéciale) on 1965-12-14 via Décret 65-795. Status changed to PN via Décret 2015-775 du 28 avril 2015, with boundary expansion (added 4 small islets)."
 )
-
 ```
+
+### Petriky
+
+Les données WDPA pour le `WDPAID 555697902` documentent des protections temporaires successives en 2008, 2010 et 2013, puis une création définitive en 2015. Or le décret de création définitive `2015-777` cite explicitement un arrêté initial de protection temporaire en 2006, absent de la base structurée `pa_decisions`.
+
+```{r petriky-cnlegis}
+show_cnlegis_for_pa(555697902, pa_decisions)
+```
+
+Le fragment pertinent du décret CNLEGIS est le suivant :
+
+> "Vu l'arrêté Interministériel n°7880/2006-MINENVEF du 15 mai 2006 portant protection temporaire de l'Aire Protégée en création Forêt de Petriky ;"
+
+Nous retenons donc une première période de protection temporaire à partir du `15 mai 2006`, puis les actes de 2008, 2010 et 2013 jusqu'au décret de création définitive `2015-777` du `28 avril 2015`. Comme pour les autres cas analogues, le traitement correspondant est centralisé dans la section @sec-temp-identification.
 
 ### Ranomafana
 
@@ -2823,30 +2978,12 @@ fat <- add_modif_fat(
   attributes = list(
     DESIG = "Réserve Naturelle Intégrale",
     DESIG_ENG = "Strict Nature Reserve",
-    IUCN_CAT = "Ia"
+    IUCN_CAT = "Ia",
+    STATUS_YR = 1927
   ),
   amendment_type = "correction",
   valid_from = "1927-12-31",
-  notes = "WDPA 2025 incorrectly classifies Tsaratanàna as PN/II. Decree 2015-782 confirms it remains RNI/Ia (Strict Nature Reserve). The RNI has never changed status since creation in 1927. The 2015 decree created the CAPAM complex and added 59,279 ha extensions (also Ia), bringing total to 108,610 ha."
-)
-
-# FAT: Correction du STATUS_YR (devrait être 2015 pour les extensions, ou 1927 pour la création)
-fat <- add_modif_fat(
-  fat = fat,
-  decisions = pa_decisions,
-  wdpa_name_or_id = 2306,
-  manual_decision = list(
-    date_texte = as.Date("2015-04-28"),
-    type_texte = "Décret",
-    num_texte = "2015-782",
-    objet_texte = "Portant création du Complexe des Aires Protégées Ambohimirahavavy-Marivorahona (CAPAM)"
-  ),
-  attributes = list(
-    STATUS_YR = 2015
-  ),
-  amendment_type = "correction",
-  valid_from = "2015-04-28",
-  notes = "WDPA 2025 shows STATUS_YR=1997 with no supporting decree. Setting to 2015 (date of extensions via Decree 2015-782). Original RNI creation was 1927-12-31."
+  notes = "WDPA 2025 incorrectly classifies Tsaratanàna as PN/II and shows STATUS_YR=1997. Decree 2015-782 confirms it remains RNI/Ia (Strict Nature Reserve). The RNI has never changed status since creation in 1927, so STATUS_YR should remain 1927. The 2015 decree created the CAPAM complex and added 59,279 ha extensions (also Ia), bringing total to 108,610 ha."
 )
 ```
 
@@ -2861,6 +2998,46 @@ Pour l'instant, nous documentons les erreurs d'attributs (statut PN/II incorrect
 :::
 
  
+
+### Tampoketsa Analamaitso
+
+```{r tampoketsa-cnlegis}
+show_cnlegis_for_pa(5036, pa_decisions)
+```
+
+WDPA 2025 montre `STATUS_YR=1959` pour Tampoketsa Analamaitso. Cependant, CNLEGIS associe cette aire protégée au Décret 58-14 du 28 octobre 1958, intitulé "Instituant la réserve spéciale de la forêt Tampoketsa d'Analamaitso". Nous retenons donc 1958 comme année de création à documenter dans FAT.
+
+```{r tampoketsa-fat}
+# FAT: Correction du STATUS_YR
+fat <- add_modif_fat(
+  fat = fat,
+  decisions = pa_decisions,
+  wdpa_name_or_id = 5036,
+  decision_filter = list(num_texte = "58-14"),
+  attributes = list(
+    STATUS_YR = 1958
+  ),
+  amendment_type = "correction",
+  valid_from = "1958-10-28",
+  notes = "WDPA incorrectly shows STATUS_YR=1959. CNLEGIS links Tampoketsa Analamaitso to Décret 58-14 du 28 octobre 1958 instituting the special reserve, so the creation year retained here is 1958."
+)
+```
+
+### Tampolo
+
+Les données CNLEGIS pour le `WDPAID 354011` documentent une série de protections temporaires entre 2007 et 2013, puis une création définitive en 2015. Comme pour Ambatotsirongorongo, la première décision CNLEGIS actuellement appariée est une prorogation qui cite explicitement un arrêté initial de 2006 absent de la base structurée.
+
+```{r tampolo-cnlegis}
+show_cnlegis_for_pa(354011, pa_decisions)
+```
+
+Le fragment pertinent de la décision CNLEGIS est le suivant :
+
+> "Prorogeant l'arrêté n° 11475/2006-MINENVEF du 4 juillet 2006 portant protection temporaire de l'Aire protégée en création dénommée \"Tampolo\", District de Fénérive-Est, Région d'Analanjirofo."
+>
+> "En application de l'article 2 de l'arrêté n°11475/ 2006 du 04 juillet 2006 portant protection temporaire de l'Aire Protégée en création dénommée \"Tampolo\", la durée de la mise en protection temporaire de l'Aire Protégée en création \"Tampolo\" est prorogée de douze (12) mois."
+
+Même si l'arrêté n° 11475/2006-MINENVEF du 4 juillet 2006 n'est pas retrouvé directement dans la base structurée CNLEGIS, l'arrêté de prorogation n° 13612/2007 du 20 août 2007 en atteste explicitement l'existence et maintient ses dispositions applicables. Nous retenons donc une première période de protection temporaire à partir du 4 juillet 2006, puis les actes de prorogation ou modification ultérieurs jusqu'au décret de création définitive n° 2015-789 du 28 avril 2015. Comme il s'agit ici d'un amendement sur une protection temporaire, le traitement correspondant est centralisé dans la section @sec-temp-identification.
 
 ### Tsimanampesotse
 
@@ -2937,7 +3114,6 @@ fat <- add_modif_fat(
   valid_to = "2002-08-07",
   notes = "Created as RNI #10 on 1927-12-31 (Décret du 31 décembre 1927). Status changed from RNI to PN via Décret 2002-797 du 7 août 2002. Boundary later expanded in 2015 to include Hatokaliotsy extension."
 )
-
 ```
 
 La WDPA 2025 indique STATUS_YR=1927 pour Tsimanampesotse, ce qui correspond à la date de création de la RNI et non au statut actuel (PN depuis 2002). On crée une correction d'attribut.
@@ -3095,6 +3271,34 @@ fat <- add_modif_fat(
 )
 ```
 
+### Zombitse Vohibasia
+
+@goodman2018 indique pour cette AP:
+
+> Aspects légaux : Gestionnaire actuel : Madagascar National Parks (MNP) ; Gestion antérieure : Direction des Eaux et Forêts (Service de la Protection de la Nature d'Antananarivo et le Cantonnement Forestier de Sakaraha) ; Création : selon le Décret n° 97-1454 du 18 décembre 1997 ; Modification de statut : la Forêt Classée de Zombitse, localisée dans le Fivondronana de Sakaraha et gérée par le Cantonnement Forestier de Sakaraha à l'époque, existait déjà depuis 1962 (Arrêté n° 1902-MAP/FOR du 31 août 1962, 21 000 ha). Considéré comme Site d'Intérêt Biologique, cette forêt fait partie intégrante du parc national créé en 1998, selon le Décret n° 97-1454 du 18 décembre 1998 ; Dernière modification de statut : aucune ; Surface actuelle : 36 803 ha (selon le décret en vigueur).
+
+```{r zombitse-cnlegis}
+show_cnlegis_for_pa(20273, pa_decisions)
+```
+
+Le Décret 97-1454 du 18 décembre 1997 portant création du Parc National de Zombitse-Vohibasia apparaît bien dans la base CNLEGIS. WDPA 2025 montre pourtant `STATUS_YR=2015`, ce qui est incorrect. Cette date ne correspond pas au décret de création du parc national. La divergence provient vraisemblablement d'un décalage de nommage entre `Zombitse Vohibasia` dans la WDPA et `Zombitse-Vohibasia` dans les sources SAPM et juridiques.
+
+```{r zombitse-fat}
+# FAT: Correction du STATUS_YR
+fat <- add_modif_fat(
+  fat = fat,
+  decisions = pa_decisions,
+  wdpa_name_or_id = 20273,
+  decision_filter = list(num_texte = "97-1454"),
+  attributes = list(
+    STATUS_YR = 1997
+  ),
+  amendment_type = "correction",
+  valid_from = "1997-12-18",
+  notes = "WDPA incorrectly shows STATUS_YR=2015. CNLEGIS links Zombitse Vohibasia to Décret 97-1454 du 18 décembre 1997 creating the national park. The mismatch is reinforced by naming differences between 'Zombitse Vohibasia' (WDPA) and 'Zombitse-Vohibasia' (SAPM/legal sources)."
+)
+```
+
 ## Protections temporaires
 
 ### Contexte juridique
@@ -3105,7 +3309,7 @@ Les protections temporaires sont établies par **Arrêté interministériel** et
 
 Dans la base de données WDPA, nous attribuons à ces aires protégées le statut `STATUS = "Designated"`, car elles bénéficient d'une reconnaissance juridique formelle avec engagement contraignant de conservation à long terme, conformément à la définition du manuel WDPA.
 
-### Identification et traitement
+### Identification et traitement {#sec-temp-identification}
 
 Nous identifions les décisions CNLEGIS relatives aux protections temporaires, puis créons des entrées FAT documentant :
 
@@ -3137,12 +3341,21 @@ permanent_designations <- pa_decisions |>
 # - Tsitongambarika (555697878): Decret 2015-720 absent de CNLEGIS
 permanent_designations <- permanent_designations |>
   bind_rows(tibble::tribble(
-    ~WDPAID,    ~perm_date,               ~perm_texte,
-    352244,     as.Date("2015-04-28"),    "2015-790",
-    555697911,  as.Date("2015-04-21"),    "2015-711",
-    354011,     as.Date("2015-04-28"),    "2015-789",
-    555697878,  as.Date("2015-04-21"),    "2015-720"
+    ~WDPAID   , ~perm_date            , ~perm_texte ,
+       352244 , as.Date("2015-04-28") , "2015-790"  ,
+    555697911 , as.Date("2015-04-21") , "2015-711"  ,
+       354011 , as.Date("2015-04-28") , "2015-789"  ,
+    555697878 , as.Date("2015-04-21") , "2015-720"
   ))
+
+# Supplement with temporary decrees absent from CNLEGIS but explicitly cited
+# in a later prorogation decision.
+temporary_designations_missing <- tibble::tribble(
+  ~WDPAID   , ~WDPA_NAME                 , ~temp_date            , ~temp_texte           , ~type_texte ,
+     352239 , "Ambatotsirongorongo"      , as.Date("2006-03-15") , "3750/2006-MINENVEF"  , "Arrêté"    ,
+     354011 , "Réserve de Tampolo"       , as.Date("2006-07-04") , "11475/2006-MINENVEF" , "Arrêté"    ,
+  555697902 , "Forêt Naturel de Petriky" , as.Date("2006-05-15") , "7880/2006-MINENVEF"  , "Arrêté"
+)
 
 # Join temporary with permanent info
 temp_full <- temporary_protections |>
@@ -3153,6 +3366,7 @@ temp_full <- temporary_protections |>
     temp_texte = num_texte,
     type_texte
   ) |>
+  bind_rows(temporary_designations_missing) |>
   left_join(
     permanent_designations,
     by = "WDPAID",
@@ -3408,7 +3622,9 @@ fat <- fat |>
   group_by(WDPAID, amendment_type) |>
   arrange(valid_from, .by_group = TRUE) |>
   mutate(
-    valid_to = if (cur_group()$amendment_type == "temporary_protection" && n() > 1) {
+    valid_to = if (
+      cur_group()$amendment_type == "temporary_protection" && n() > 1
+    ) {
       c(lead(valid_from)[-n()], valid_to[n()])
     } else {
       valid_to
@@ -3425,11 +3641,13 @@ n_inversions <- sum(
   !is.na(fat$valid_to) & !is.na(fat$valid_from) & fat$valid_to < fat$valid_from
 )
 fat <- fat |>
-  mutate(valid_to = if_else(
-    !is.na(valid_to) & !is.na(valid_from) & valid_to < valid_from,
-    as.Date(NA),
-    valid_to
-  ))
+  mutate(
+    valid_to = if_else(
+      !is.na(valid_to) & !is.na(valid_from) & valid_to < valid_from,
+      as.Date(NA),
+      valid_to
+    )
+  )
 
 # 3. For corrections/status_changes that overlap with later temp_protections,
 #    end the correction when the first temp protection starts.
@@ -3442,7 +3660,8 @@ fat <- fat |>
   left_join(first_temp, by = "WDPAID") |>
   mutate(
     valid_to = case_when(
-      amendment_type %in% c("correction", "status_change") &
+      amendment_type %in%
+        c("correction", "status_change") &
         !is.na(first_temp_from) &
         (is.na(valid_to) | valid_to > first_temp_from) &
         !is.na(valid_from) &
@@ -3489,8 +3708,15 @@ sat <- sat |>
 cat("Post-processing complete:\n")
 cat("  FAT rows:", n_before, "(unchanged)\n")
 cat("  Temporal inversions fixed:", n_inversions, "\n")
-cat("  SAT rows:", n_sat_before, "->", nrow(sat),
-    "(", n_sat_before - nrow(sat), "duplicates merged)\n")
+cat(
+  "  SAT rows:",
+  n_sat_before,
+  "->",
+  nrow(sat),
+  "(",
+  n_sat_before - nrow(sat),
+  "duplicates merged)\n"
+)
 ```
 
 ## Export des amendements {#sec-export-amendments}

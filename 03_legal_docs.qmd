@@ -141,6 +141,15 @@ all_results <- map_dfr(html_files, extract_table) |>
     # Parse dates
     date_txt = dmy(date_textes),
     date_jo = dmy(date_jo),
+    # Correct a CNLEGIS metadata error: Décret 2015-713 (Massif d'Itremo)
+    # is incorrectly exposed with the date 21 Avril 1951 in the scraped table.
+    # The decree number, JO metadata, and linked application text confirm
+    # the correct decree date is 21 Avril 2015.
+    date_txt = if_else(
+      num_texte == "2015-713" & date_txt == as.Date("1951-04-21"),
+      as.Date("2015-04-21"),
+      date_txt
+    ),
     # Use date_txt as fallback if date_jo is missing
     date_jo = coalesce(date_jo, date_txt)
   ) |>
@@ -465,6 +474,10 @@ conversion_table_verif <- conversion_table_verif %>%
     # "soatanimbary" is a distinct SAPM site, not Zombitse Vohibasia (20273).
     WDPA_NAME = ifelse(original_pa == "soatanimbary", NA_character_, WDPA_NAME),
     WDPAID    = ifelse(original_pa == "soatanimbary", NA_real_,      WDPAID),
+    # Normalize the non-hyphenated legal-text variant to the WDPA entry.
+    WDPA_NAME = ifelse(original_pa == "zombitse vohibasia",
+                       "Zombitse Vohibasia", WDPA_NAME),
+    WDPAID    = ifelse(original_pa == "zombitse vohibasia", 20273, WDPAID),
     # "mangabe" is SAPM Mangabe-Ranomena-Sahasarotra, not the legacy RS Nosy Mangabe (5039).
     WDPA_NAME = ifelse(original_pa == "mangabe",
                        "Mangabe-Ranomena-Sahasarotra", WDPA_NAME),

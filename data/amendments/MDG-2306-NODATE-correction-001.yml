@@ -14,11 +14,13 @@ legal_instrument:
   url: ~
 temporal_description: Correction de donnees depuis le 1927-12-31 selon décret n. 2015-782
   du 2015-04-28.
-notes: WDPA 2025 incorrectly classifies Tsaratanàna as PN/II. Decree 2015-782 confirms
-  it remains RNI/Ia (Strict Nature Reserve). The RNI has never changed status since
-  creation in 1927. The 2015 decree created the CAPAM complex and added 59,279 ha
-  extensions (also Ia), bringing total to 108,610 ha.
+notes: WDPA 2025 incorrectly classifies Tsaratanàna as PN/II and shows STATUS_YR=1997.
+  Decree 2015-782 confirms it remains RNI/Ia (Strict Nature Reserve). The RNI has
+  never changed status since creation in 1927, so STATUS_YR should remain 1927. The
+  2015 decree created the CAPAM complex and added 59,279 ha extensions (also Ia),
+  bringing total to 108,610 ha.
 attributes:
   DESIG: Réserve Naturelle Intégrale
   DESIG_ENG: Strict Nature Reserve
   IUCN_CAT: Ia
+  STATUS_YR: '1927'

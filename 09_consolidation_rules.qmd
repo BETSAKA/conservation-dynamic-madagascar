@@ -29,6 +29,17 @@ state_id | WDPAID | valid_from | valid_to | zone_type | zone_name | geometry | [
 
 Chaque ligne représente une zone dans un état temporel. Une AP avec des modifications de limites et un zonage secondaire aura plusieurs lignes par période.
 
+## Téléchargement des sorties publiées
+
+Les sorties dérivées de la WDPA produites par le CAR sont maintenant incluses dans ce dépôt et diffusées avec l'autorisation de l'UNEP-WCMC.
+
+- [Télécharger le GeoPackage](https://github.com/BETSAKA/conservation-dynamic-madagascar/blob/main/data/dynamic_wdpa.gpkg?raw=1)
+- [Télécharger le GeoParquet](https://github.com/BETSAKA/conservation-dynamic-madagascar/blob/main/data/dynamic_wdpa.parquet?raw=1)
+- [Télécharger l'objet RDS](https://github.com/BETSAKA/conservation-dynamic-madagascar/blob/main/data/dynamic_wdpa.rds?raw=1)
+- [Consulter le registre YAML des amendements](https://github.com/BETSAKA/conservation-dynamic-madagascar/tree/main/data/amendments)
+
+Les données sources brutes (WDPA, SAPM, CNLEGIS) restent documentées dans ce dépôt mais continuent d'etre obtenues depuis leurs canaux d'origine.
+
 ```{r setup}
 #| message: false
 #| warning: false

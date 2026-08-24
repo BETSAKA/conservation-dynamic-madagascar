@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Florent Bédécarrats, Seheno Ramanantsoa, Ollier D. Andrianambinina">
-<meta name="dcterms.date" content="2026-04-13">
+<meta name="dcterms.date" content="2026-08-24">
 
 <title>Aires protégées de Madagascar : modèle de données dynamique</title>
 <style>
@@ -274,7 +274,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Dernière mise à jour</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 13, 2026</p>
+      <p class="date">August 24, 2026</p>
     </div>
   </div>
   
@@ -360,7 +360,17 @@ Pour faciliter la curation dans R, deux tables de travail sont utilisées durant
 </section>
 <section id="données-et-reproductibilité" class="level2">
 <h2 class="anchored" data-anchor-id="données-et-reproductibilité">Données et reproductibilité</h2>
-<p>Les données sources (SAPM, WDPA, CNLEGIS) et les données produites (registre YAML d’amendements, états temporels) ne sont pas hébergées dans ce dépôt GitHub mais peuvent être intégralement reproduites en suivant les procédures décrites dans chaque chapitre. Le code R est entièrement documenté et exécutable.</p>
+<p>Les données sources (SAPM, WDPA, CNLEGIS) restent externes au dépôt, mais les principales sorties dérivées et le registre d’amendements sont maintenant versionnés ici. Cette redistribution des sorties dérivées de la WDPA est effectuée avec l’autorisation de l’UNEP-WCMC.</p>
+<p>Attention : les fichiers dérivés de la WDPA diffusés dans ce dépôt correspondent a un instantané historique limité a Madagascar, fondé sur la version de novembre 2025 de la WDPA. Ils peuvent donc devenir obsolètes. Pour accéder aux données officielles les plus récentes sur les aires protégées et conservées, consulter <a href="https://www.protectedplanet.net">Protected Planet</a>.</p>
+<p>Source de base a citer pour les sorties dérivées de la WDPA : <strong>UNEP-WCMC and IUCN (2025). Protected Planet: The World Database on Protected Areas (WDPA), version de novembre 2025. Cambridge, UK et Gland, Suisse. Disponible sur <a href="https://www.protectedplanet.net">Protected Planet</a>.</strong></p>
+<p>Téléchargements directs :</p>
+<ul>
+<li><a href="https://github.com/BETSAKA/conservation-dynamic-madagascar/blob/main/data/dynamic_wdpa.gpkg?raw=1">GeoPackage dynamique</a></li>
+<li><a href="https://github.com/BETSAKA/conservation-dynamic-madagascar/blob/main/data/dynamic_wdpa.parquet?raw=1">GeoParquet dynamique</a></li>
+<li><a href="https://github.com/BETSAKA/conservation-dynamic-madagascar/blob/main/data/dynamic_wdpa.rds?raw=1">Objet R natif (.rds)</a></li>
+<li><a href="https://github.com/BETSAKA/conservation-dynamic-madagascar/tree/main/data/amendments">Registre des amendements YAML</a></li>
+</ul>
+<p>Le code R est entièrement documenté et exécutable.</p>
 <p>Le registre YAML d’amendements est versionné avec Git, permettant de tracer l’historique complet de chaque correction et de revenir à tout état antérieur. Les règles CAR étant codées explicitement, toute modification de la logique de consolidation est également tracée.</p>
 <p>Pour toute question sur l’accès aux données ou la reproduction des résultats, consulter le <a href="https://github.com/BETSAKA/conservation-dynamic-madagascar">README</a>.</p>
 </section>

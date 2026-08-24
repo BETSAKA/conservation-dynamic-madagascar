@@ -1,0 +1,25 @@
+amendment_id: MDG-555697902-2006-temporary_protection-001
+iso3: MDG
+wdpaid: 555697902
+wdpa_name: Forêt Naturel de Petriky
+amendment_kind: attribute
+amendment_type: temporary_protection
+valid_from: '2006-05-15'
+valid_to: '2008-10-17'
+legal_instrument:
+  source: manual
+  type: arrêté
+  number: 7880/2006-MINENVEF
+  date: '2006-05-15'
+  id: ~
+  url: ~
+temporal_description: Protection temporaire du 2006-05-15 au 2008-10-17 selon arrêté
+  n. 7880/2006-MINENVEF du 2006-05-15.
+notes: Temporary protection via Arrêté 7880/2006-MINENVEF (2006-05-15). Legal designation
+  with binding protections pending permanent status via décret. Permanent designation
+  obtained on 2015-04-28 via 2015-777.
+attributes:
+  DESIG: Protection Temporaire
+  DESIG_ENG: Temporary Protection
+  STATUS: Designated
+  STATUS_YR: '2006'

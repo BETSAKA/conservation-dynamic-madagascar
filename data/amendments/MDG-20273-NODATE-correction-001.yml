@@ -1,0 +1,22 @@
+amendment_id: MDG-20273-NODATE-correction-001
+iso3: MDG
+wdpaid: 20273
+wdpa_name: Zombitse Vohibasia
+amendment_kind: attribute
+amendment_type: correction
+valid_from: '1997-12-18'
+legal_instrument:
+  source: CNLEGIS
+  type: décret
+  number: 97-1454
+  date: '1997-12-18'
+  id: '34597'
+  url: https://cnlegis.gov.mg/page_num_find_direct/?97-1454
+temporal_description: Correction de donnees depuis le 1997-12-18 selon décret n. 97-1454
+  du 1997-12-18.
+notes: WDPA incorrectly shows STATUS_YR=2015. CNLEGIS links Zombitse Vohibasia to
+  Décret 97-1454 du 18 décembre 1997 creating the national park. The mismatch is reinforced
+  by naming differences between 'Zombitse Vohibasia' (WDPA) and 'Zombitse-Vohibasia'
+  (SAPM/legal sources).
+attributes:
+  STATUS_YR: '1997'

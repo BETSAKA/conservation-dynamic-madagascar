@@ -8,7 +8,7 @@ This repository documents the transparent and reproducible methodology used to p
 
 The repository now includes the main derived outputs together with the full code, documentation, and validation tools required to reproduce them from the original sources. Redistribution of the WDPA-derived outputs in this repository is done with UNEP-WCMC authorization.
 
-Warning: the downloadable WDPA-derived files in this repository are a Madagascar-only historical snapshot based on the November 2025 WDPA release and may therefore become outdated. For the latest official protected and conserved area data, consult Protected Planet: https://www.protectedplanet.net.
+Warning: the downloadable WDPA-derived files in this repository are a Madagascar-only historical snapshot based on the November 2025 WDPA release and may therefore become outdated. For the latest official protected and conserved area data, consult Protected Planet: https://www.protectedplanet.net. It is also possible, and recommended, to reproduce an up-to-date version of this dataset by downloading the latest WDPA release and re-running the consolidation workflow documented in this repository.
 
 Baseline source citation for the WDPA-derived outputs: UNEP-WCMC and IUCN (2025). Protected Planet: The World Database on Protected Areas (WDPA), November 2025 release. Cambridge, UK and Gland, Switzerland. Available at https://www.protectedplanet.net.
 
@@ -150,7 +150,7 @@ Ce dépôt documente la méthodologie transparente et reproductible utilisée po
 
 Le dépôt inclut les principales sorties dérivées ainsi que tout le code, la documentation et les outils de validation nécessaires pour les reproduire à partir des sources d'origine. La redistribution des sorties dérivées de la WDPA dans ce dépôt est effectuée avec l'autorisation de l'UNEP-WCMC.
 
-Attention : les fichiers dérivés de la WDPA téléchargeables dans ce dépôt correspondent a un instantané historique limité a Madagascar, fondé sur la version de novembre 2025 de la WDPA, et peuvent donc devenir obsolètes. Pour accéder aux données officielles les plus récentes sur les aires protégées et conservées, consulter Protected Planet : https://www.protectedplanet.net.
+Attention : les fichiers dérivés de la WDPA téléchargeables dans ce dépôt correspondent a un instantané historique limité a Madagascar, fondé sur la version de novembre 2025 de la WDPA, et peuvent donc devenir obsolètes. Pour accéder aux données officielles les plus récentes sur les aires protégées et conservées, consulter Protected Planet : https://www.protectedplanet.net. Il est également possible, et recommandé, de reproduire une version à jour de ce jeu de données en téléchargeant la dernière version de laWDPA puis en réexecutant le protocole de consolidation documenté dans ce dépot.
 
 Citation de la source de base des sorties dérivées de la WDPA : UNEP-WCMC and IUCN (2025). Protected Planet: The World Database on Protected Areas (WDPA), version de novembre 2025. Cambridge, UK et Gland, Suisse. Disponible sur https://www.protectedplanet.net.
 

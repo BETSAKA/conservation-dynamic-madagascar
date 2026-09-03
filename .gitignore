@@ -6,6 +6,7 @@
 sources/*
 data/*
 !data/dynamic_wdpa.gpkg
+!data/dynamic_wdpa.rds
 !data/dynamic_wdpa.parquet
 !data/amendments/
 !data/amendments/**

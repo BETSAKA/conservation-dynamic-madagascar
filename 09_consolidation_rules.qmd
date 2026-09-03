@@ -33,6 +33,10 @@ Chaque ligne représente une zone dans un état temporel. Une AP avec des modifi
 
 Les sorties dérivées de la WDPA produites par le CAR sont maintenant incluses dans ce dépôt et diffusées avec l'autorisation de l'UNEP-WCMC.
 
+Attention : ces sorties dérivées de la WDPA, correspondent a un instantané historique limité a Madagascar, fondé sur la version de novembre 2025 de la WDPA. Elles peuvent donc devenir obsolètes. Pour accéder aux données officielles les plus récentes sur les aires protégées et conservées, consulter [Protected Planet](https://www.protectedplanet.net). Il est également possible, et recommandé, de reproduire une version à jour de ce jeu de données en téléchargeant la dernière version de la WDPA puis en réexecutant le protocole de consolidation documenté dans ce dépôt.
+
+Source de base a citer pour les sorties dérivées de la WDPA : **UNEP-WCMC and IUCN (2025). Protected Planet: The World Database on Protected Areas (WDPA), version de novembre 2025. Cambridge, UK et Gland, Suisse. Disponible sur [Protected Planet](https://www.protectedplanet.net).**
+
 - [Télécharger le GeoPackage](https://github.com/BETSAKA/conservation-dynamic-madagascar/blob/main/data/dynamic_wdpa.gpkg?raw=1)
 - [Télécharger le GeoParquet](https://github.com/BETSAKA/conservation-dynamic-madagascar/blob/main/data/dynamic_wdpa.parquet?raw=1)
 - [Télécharger l'objet RDS](https://github.com/BETSAKA/conservation-dynamic-madagascar/blob/main/data/dynamic_wdpa.rds?raw=1)

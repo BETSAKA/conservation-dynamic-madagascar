@@ -24,7 +24,7 @@ Le CAR (Consolidation and Auditing Rules) transforme les données de base WDPA e
 **Structure de sortie :**
 
 ```
-state_id | WDPAID | valid_from | valid_to | zone_type | zone_name | geometry | [WDPA attributes] | amendment_source
+state_id | WDPAID | valid_from | valid_to | zone_type | zone_name | geometry | [WDPA attributes] | amendment_source | geometry_source_dataset_id
 ```
 
 Chaque ligne représente une zone dans un état temporel. Une AP avec des modifications de limites et un zonage secondaire aura plusieurs lignes par période.
@@ -526,6 +526,7 @@ consolidate_pa_states <- function(wdpaid, wdpa, amendments) {
           zone_type = "external_boundary",
           zone_name = NA_character_,
           amendment_source = boundary_mod$amendment_id[1],
+          geometry_source_dataset_id = boundary_mod$geometry_source_dataset[1],
           geometry = st_geometry(geom)[1]
         ) |>
         st_as_sf()
@@ -539,7 +540,8 @@ consolidate_pa_states <- function(wdpaid, wdpa, amendments) {
           valid_to = interval_end,
           zone_type = "external_boundary",
           zone_name = NA_character_,
-          amendment_source = "WDPA"
+          amendment_source = "WDPA",
+          geometry_source_dataset_id = "WDPA"
         )
     } else {
       # Dissolved PA without boundary amendment for this period: skip zone
@@ -561,6 +563,7 @@ consolidate_pa_states <- function(wdpaid, wdpa, amendments) {
           zone_type = "external_boundary",
           zone_name = NA_character_,
           amendment_source = "amendments_only",
+          geometry_source_dataset_id = NA_character_,
           geometry = st_sfc(st_polygon(), crs = 4326)
         ) |>
         st_as_sf()
@@ -599,6 +602,7 @@ consolidate_pa_states <- function(wdpaid, wdpa, amendments) {
               zone_type = "secondary_zoning",
               zone_name = zone_name_val,
               amendment_source = secondary_zones$amendment_id[j],
+              geometry_source_dataset_id = secondary_zones$geometry_source_dataset[j],
               geometry = st_geometry(geom)[k]
             ) |>
             st_as_sf()
@@ -821,7 +825,8 @@ baseline_states <- wdpa_mdg |>
     valid_to = as.Date(NA),
     zone_type = "external_boundary",
     zone_name = NA_character_,
-    amendment_source = "WDPA"
+    amendment_source = "WDPA",
+    geometry_source_dataset_id = "WDPA"
   )
 
 # Combine

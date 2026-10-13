@@ -347,7 +347,7 @@
     "href": "05_visual_verif.html#accès-en-ligne",
     "title": "5  Visualisation interactive",
     "section": "5.2 Accès en ligne",
-    "text": "5.2 Accès en ligne\nL’application est déployée sur shinyapps.io et accessible à l’adresse suivante :",
+    "text": "5.2 Accès en ligne\nL’application est déployée sur connect.posit.cloud, consultable ci-dessous et accessible à l’adresse suivante : https://fbedecarrats-conservation-madascar-dashboard.share.connect.posit.cloud/",
     "crumbs": [
       "Consolidation et validation",
       "<span class='chapter-number'>5</span>  <span class='chapter-title'>Visualisation interactive</span>"

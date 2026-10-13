@@ -18,7 +18,7 @@ L'application permet :
 
 ## Accès en ligne
 
-L'application est déployée sur shinyapps.io et accessible à l'adresse suivante :
+L'application est déployée sur connect.posit.cloud, consultable ci-dessous et accessible à l'adresse suivante : https://fbedecarrats-conservation-madascar-dashboard.share.connect.posit.cloud/
 
 ::: {.iframe-container}
 <iframe src="https://fbedecarrats-conservation-madascar-dashboard.share.connect.posit.cloud/"

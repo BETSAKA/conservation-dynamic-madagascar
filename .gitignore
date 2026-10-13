@@ -14,6 +14,7 @@ data/*
 *.Rproj
 Backlog*
 .vscode*
+.posit/
 **/*.quarto_ipynb
 *.md
 !README.md
@@ -22,4 +23,5 @@ paper/drafts/data_paper_scidata_02*
 paper/journal/*
 treatment_assignation_fire/
 Backlog.txt
-Backlog.txt
+.gitignore
+read_source_list.R

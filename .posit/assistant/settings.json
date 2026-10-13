@@ -1,7 +1,0 @@
-{
-  "permission": {
-    "webfetch": {
-      "https://api.github.com/*": "allow"
-    }
-  }
-}

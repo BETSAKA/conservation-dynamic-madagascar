@@ -289,5 +289,5 @@ Remerciements particuliers à l'UNEP-WCMC pour la maintenance de WDPA, à Madaga
 
 Les sorties consolidées incorporent des éléments dérivés de la World Database on Protected and Conserved Areas (WDPCA, anciennement WDPA). L’UNEP-WCMC a fourni une autorisation écrite pour redistribuer les sorties dérivées concernant Madagascar dans le cadre de cet usage scientifique non commercial. L’utilisation commerciale des données WDPCA ou des œuvres dérivées nécessite une autorisation écrite préalable de l’UNEP-WCMC.
 
-Les fichiers consolidés téléchargeables correspondent à un instantané historique fondé sur la version de novembre 2025 de la WDPCA. Les utilisateurs ayant besoin des informations officielles les plus récentes doivent consulter [Protected Planet(https://www.protectedplanet.net/)].
+Les fichiers consolidés téléchargeables correspondent à un instantané historique fondé sur la version de novembre 2025 de la WDPCA. Les utilisateurs ayant besoin des informations officielles les plus récentes doivent consulter [Protected Planet](https://www.protectedplanet.net/).
 Les conditions détaillées de réutilisation du jeu de données déposé sont indiquées dans la notice DataSuds : https://doi.org/10.23708/VN2TWC.

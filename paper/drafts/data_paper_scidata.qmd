@@ -74,7 +74,7 @@ The complete methodology is documented in a reproducible notebook accompanying t
 
 ## Input data
 
-Four categories of source material were assembled during data reconstruction and validation process: spatial datasets produced or maintained by Malagasy institutions responsible for protected areas; current and historical versions of the World Database on Protected Areas; official legal records from the national legislative database and public gazette (Journal Officel); and expert sources used to reconstruct or verify protected-area histories. These materials played different roles in the workflow: some were used only to identify or validate potential changes, whereas a more restricted set provides geometries or attribute amendments to the released dataset.
+Four categories of source material were assembled during the data reconstruction and validation process: spatial datasets produced or maintained by Malagasy institutions responsible for protected areas; current and historical versions of the World Database on Protected Areas; official legal records from the national legislative database and public gazette (Journal Officiel); and expert sources used to reconstruct or verify protected-area histories. These materials played different roles in the workflow: some were used only to identify or validate potential changes, whereas a more restricted set provides geometries or attribute amendments to the released dataset.
 
 The current WDPA provides the baseline geometry and attributes to which documented historical amendments are applied. The consolidated release presented here uses the November 2025 WDPA for Madagascar. Historical WDPA snapshots were additionally examined during data preparation and validation. In one documented case, a historical geometry was reconstructed by separating polygons from the November 2025 WDPA geometry (labelled WDPA_2025_split in the metadata). WDPA-derived material is identified explicitly in the provenance metadata.
 
@@ -163,30 +163,27 @@ All geometries were validated using `sf::st_make_valid()` in R. Core zones were 
 
 # Usage Notes
 
-The GeoPackage and GeoParquet files can be opened directly in QGIS, ArcGIS, R (with the sf or arrow packages), or Python (with geopandas or pyarrow). The WDPAID field enables direct linkage with global WDPA analyses, allowing users to enrich the standard database with temporal information for Madagascar.
+The published dataset can be used directly without reproducing the data-preparation pipeline. The GeoPackage can be opened in standard GIS software including QGIS and ArcGIS and in R or Python through geospatial libraries. The Parquet representation is intended for efficient analytical workflows, while the RDS file preserves the R spatial object directly. The `WDPAID` field enables linkage with other WDPCA-based datasets.
 
-In the event that pre-compiled datasets cannot be distributed publicly due to WDPA licensing restrictions, users can easily generate the consolidated dataset themselves. By downloading the WDPA baseline directly from Protected Planet (<https://www.protectedplanet.net/>) to their local environment, users can run the open-source Consolidation and Auditing Rules (CAR) R scripts provided in our repository. These automatically apply all YAML amendments to compile the exact same historical spatio-temporal dataset locally.
+Temporal configurations can be selected using `valid_from` and `valid_to`. Validity intervals follow a start-inclusive and end-exclusive convention. An `NA` value in `valid_to` indicates that no later state is recorded and therefore normally identifies the configuration valid at the reference date. The `zone_type`field distinguishes external protected-area boundaries from secondary zoning geometries.
+Researchers wishing to update the dataset beyond the November 2025 baseline can download a more recent WDPCA release from Protected Planet and apply the published amendment registry using the Consolidation and Auditing Rules provided in the GitHub repository. This reconstruction route uses the curated YAML and GeoJSON amendment registry as input and does not require repeating the complete historical source-curation process.
 
-For temporal queries, users can filter states by `valid_from` and `valid_to` to retrieve the configuration of any protected area at a given date. The `zone_type` field distinguishes external boundaries from internal zones, enabling analyses at different spatial scales.
+Users must observe the reuse conditions associated with the underlying source data. In particular, commercial use of WDPCA material or works derived from it requires prior written permission from UNEP-WCMC [@unepwcmcWDPCAlicense]. UNEP-WCMC has separately provided written authorization for public redistribution of the Madagascar-specific derived outputs included in this dataset for the non-commercial use case described here.
 
-The YAML amendment registry is designed for collaborative extension. Researchers with access to complementary sources — additional legal texts, historical maps, field boundary surveys — can propose new amendments via GitHub pull requests. The CAR engine will automatically integrate validated amendments into subsequent dataset releases.
-
-Users should note that the WDPA baseline attributes are subject to UNEP-WCMC licensing terms regarding commercial use. The amendments and the temporal data model itself are released under a CC-BY 4.0 license. An interactive companion website provides visual exploration of the dataset, enabling users to browse individual protected areas, view their temporal trajectories, and compare boundaries across sources and time periods.
+The YAML amendment registry is designed for collaborative extension. Researchers who identify additional legal texts, historical maps, or field-validated boundaries can propose corrections or new amendments through the associated GitHub repository, where changes remain auditable through version control. The interactive companion application allows users to explore individual protected areas and compare boundaries from different sources.
 
 
 # Data Availability Statement
 
-The amendment registry (YAML and GeoJSON files) along with the source metadata is deposited on DataSuds, the institutional research data repository of the Institut de Recherche pour le Développement (IRD), under the DOI: <https://doi.org/10.23708/VN2TWC>.
+The complete research dataset is publicly available from DataSuds, the institutional research data repository of the Institut de Recherche pour le Développment, at https://doi.org/10.23708/VN2TWC [@bedecarrats2026dataset]. Version 2.0 includes the consolidated files `dynamic_wdpa.gpkg`, `dynamic_wdpa.parquet`, and `dynamic_wdpa.rds`, together with the archived amendment registry `amendments.zip`. The version-controlled amendment registry and associated processing code are also maintained in the GitHub repository at https://github.com/BETSAKA/conservation-dynamic-madagascar.
 
-For the purpose of peer review, the fully consolidated datasets (`dynamic_wdpa.gpkg` and `dynamic_wdpa.parquet`) and the source amendment registry are provided via a secure, anonymous institutional drive. Reviewers can instantly and anonymously download the data without any login or password requirements at the following temporary link:
-<https://drive.ird.fr/s/cqo3bZr8RSA2LAM>
+The consolidated files incorporate information derived from the November 2025 WDPCA release. UNEP-WCMC has provided written authorization for redistribution of these Madagascar-specific derived outputs for this non-commercial use case. Commercial use of WDPCA material or derivative works requires prior written permission from UNEP-WCMC [@unepwcmcWDPCAlicense]. The deposited files constitute a historical research snapshot; users requiring the latest official protected and conserved area data should obtain the current release directly from Protected Planet.
 
-This dual-hosting arrangement is maintained pending final permission from UNEP-WCMC to publicly redistribute geometries derived from the WDPA baseline. Once permission is secured, the compiled geodata will be integrated directly into the DataSuds repository.
-
+Geometry-level provenance is recorded in `geometry_source_dataset_id`, while amendment-level provenance and corresponding legal sources are documented in the YAML registry. Source datasets that are not themselves redistributed can therefore be identified from the published metadata.
 
 # Code Availability
 
-All source code is available at <https://github.com/BETSAKA/conservation-dynamic-madagascar> under a CC-BY 4.0 license. The repository contains the complete Quarto book documenting all processing steps across nine chapters, the Shiny verification application, and the CAR consolidation engine. The code is archived via Software Heritage for long-term preservation, providing a persistent software identifier (SWHID).
+All source code is available at https://github.com/BETSAKA/conservation-dynamic-madagascar under the MIT License. The repository contains the Quarto documentation, interactive verification application, amendment registry, and CAR consolidation engine. Data files contained in or linked from the repository remain subject to the source-specific reuse conditions described in the Data Availability Statement.
 
 
 # Acknowledgements

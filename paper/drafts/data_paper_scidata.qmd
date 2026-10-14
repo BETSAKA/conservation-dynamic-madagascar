@@ -84,7 +84,7 @@ A second national stream consists of official spatial information produced or co
 
 Attribute amendments were derived from official legal instruments, principally decrees and ministerial or interministerial orders published through the Journal Officiel and made accessible through the Centre National de Légistique (CNLEGIS). Approximately 200 protected-area-related legal decisions were compiled and linked to WDPA identifiers using textual and spatial matching followed by manual verification. These legal records provide the authoritative basis for dates of creation, temporary protection, status changes, boundary modifications, and other dated amendments. WDPA attributes that are not explicitly amended are inherited from the baseline.
 
-Additional sources, including the @Goodman2018 monograph and the associated Vahatra dataset, were used for historical interpretation, cross-checking and validation. Their geometries are not redistributed in the released dataset. Each geometry in the final files carries a "geometry_source_dataset_id" field, enabling to identify the source actually used from sources that were consulted only during curation.
+Additional sources, including the @Goodman2018 monograph and the associated Vahatra dataset, were used for historical interpretation, cross-checking and validation. Their geometries are not redistributed in the released dataset. Each geometry in the final files carries a "geometry_source_dataset_id" field, making possible to identify the source actually used from sources that were consulted only during curation.
 Additional historical context was drawn from @Waeber2020.
 
 ## Consolidation and verification
@@ -122,7 +122,7 @@ Each row in the output dataset represents one zone in one temporal state. A prot
 | Field | Type | Description |
 |---|---|---|
 | `state_id` | Character | Unique identifier for each temporal state |
-| `WDPAID` | Integer | WDPA identifier, enabling cross-reference with the global database |
+| `WDPAID` | Character | WDPA identifier, enabling cross-reference with the global database |
 | `valid_from` | Date | Start date of the temporal state's validity period, inclusive |
 | `valid_to` | Date | End date of the validity period, exclusive; `NA` indicates an open-ended state, normally the configuration valid at the reference date |
 | `zone_type` | Character | Geometry role: `external_boundary` or `secondary_zoning` |

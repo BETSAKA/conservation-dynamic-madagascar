@@ -6,9 +6,9 @@
 
 This repository documents the transparent and reproducible methodology used to produce a **dynamic temporal dataset** of Madagascar's protected areas covering the period 2000-2025. Unlike conventional static datasets that capture only current boundaries, this work reconstructs the complete legal and spatial history of each protected area, including boundary modifications, status changes, internal zoning, and temporary protections.
 
-The repository now includes the main derived outputs together with the full code, documentation, and validation tools required to reproduce them from the original sources. Redistribution of the WDPA-derived outputs in this repository is done with UNEP-WCMC authorization.
+The repository now includes the main derived outputs together with the code, documentation, amendment registry, and validation tools used to produce them. The consolidated outputs incorporate material derived from the World Database on Protected and Conserved Areas (WDPCA, formerly WDPA). UNEP-WCMC has provided written authorization to redistribute the Madagascar-specific derived outputs for this non-commercial research use case. Commercial use of WDPCA material or works derived from it requires prior written permission from UNEP-WCMC.
 
-Warning: the downloadable WDPA-derived files in this repository are a Madagascar-only historical snapshot based on the November 2025 WDPA release and may therefore become outdated. For the latest official protected and conserved area data, consult Protected Planet: https://www.protectedplanet.net. It is also possible, and recommended, to reproduce an up-to-date version of this dataset by downloading the latest WDPA release and re-running the consolidation workflow documented in this repository.
+**Warning:** the downloadable WDPCA-derived files in this repository are a Madagascar-only historical snapshot based on the November 2025 release and may therefore become outdated. For the latest official protected and conserved area data, consult Protected Planet: https://www.protectedplanet.net. It is also possible to produce an updated version of this dataset by downloading a more recent WDPCA release and applying the published amendment registry and consolidation workflow.
 
 Baseline source citation for the WDPA-derived outputs: UNEP-WCMC and IUCN (2025). Protected Planet: The World Database on Protected Areas (WDPA), November 2025 release. Cambridge, UK and Gland, Switzerland. Available at https://www.protectedplanet.net.
 
@@ -134,9 +134,14 @@ The project is coordinated by IRD/UMI-SOURCE and the University of Antananarivo/
 
 Special thanks to the UNEP-WCMC for maintaining the WDPA, to Madagascar National Parks (MNP) for providing SAPM data, and to CNLEGIS for making legal texts publicly accessible.
 
-## License
+## License and reuse conditions
 
-This work is licensed under [Creative Commons Attribution 4.0 International (CC BY 4.0)](LICENSE).
+**Software:** The source code in this repository is distributed under the MIT License.
+
+**Data:** The consolidated dataset combines information from several institutional sources and is subject to source-specific reuse conditions. Geometry provenance is recorded in the `geometry_source_dataset_id` field and amendment-level provenance is documented in the YAML registry.
+The consolidated outputs incorporate material derived from the World Database on Protected and Conserved Areas (WDPCA, formerly WDPA). UNEP-WCMC has provided written authorization to redistribute the Madagascar-specific derived outputs for this non-commercial research use case. Commercial use of WDPCA material or derivative works requires prior written permission from UNEP-WCMC.
+The downloadable consolidated files correspond to a historical research snapshot based on the November 2025 WDPCA release. Users requiring the latest official protected and conserved area information should consult [Protected Planet](https://www.protectedplanet.net/).
+Detailed reuse conditions for the deposited dataset are provided in the DataSuds record: https://doi.org/10.23708/VN2TWC.
 
 ---
 
@@ -148,9 +153,9 @@ This work is licensed under [Creative Commons Attribution 4.0 International (CC 
 
 Ce dépôt documente la méthodologie transparente et reproductible utilisée pour produire un **jeu de données temporel dynamique** des aires protégées de Madagascar couvrant la période 2000-2025. Contrairement aux bases de données statiques conventionnelles qui ne capturent que les limites actuelles, ce travail reconstruit l'historique légal et spatial complet de chaque aire protégée, incluant les modifications de limites, les changements de statut, les zonages internes et les protections temporaires.
 
-Le dépôt inclut les principales sorties dérivées ainsi que tout le code, la documentation et les outils de validation nécessaires pour les reproduire à partir des sources d'origine. La redistribution des sorties dérivées de la WDPA dans ce dépôt est effectuée avec l'autorisation de l'UNEP-WCMC.
+Le dépôt inclut les principales sorties dérivées ainsi que le code, la documentation, le registre d’amendements et les outils de validation utilisés pour les produire. Les sorties consolidées incorporent des éléments dérivés de la World Database on Protected and Conserved Areas (WDPCA, anciennement WDPA). L’UNEP-WCMC a fourni une autorisation écrite pour redistribuer les sorties dérivées concernant Madagascar dans le cadre de cet usage scientifique non commercial. L’utilisation commerciale des données WDPCA ou des œuvres qui en dérivent nécessite une autorisation écrite préalable de l’UNEP-WCMC.
 
-Attention : les fichiers dérivés de la WDPA téléchargeables dans ce dépôt correspondent a un instantané historique limité a Madagascar, fondé sur la version de novembre 2025 de la WDPA, et peuvent donc devenir obsolètes. Pour accéder aux données officielles les plus récentes sur les aires protégées et conservées, consulter Protected Planet : https://www.protectedplanet.net. Il est également possible, et recommandé, de reproduire une version à jour de ce jeu de données en téléchargeant la dernière version de laWDPA puis en réexecutant le protocole de consolidation documenté dans ce dépot.
+**Attention :** les fichiers dérivés de la WDPCA téléchargeables dans ce dépôt correspondent à un état arrêté à une date déterminée et limité à Madagascar, fondé sur la version de novembre 2025, et peuvent donc devenir obsolètes. Pour accéder aux données officielles les plus récentes sur les aires protégées et conservées, consulter Protected Planet : https://www.protectedplanet.net. Il est également possible de produire une version mise à jour de ce jeu de données en téléchargeant une version plus récente de la WDPCA et en appliquant le registre d’amendements et le protocole de consolidation publiés.
 
 Citation de la source de base des sorties dérivées de la WDPA : UNEP-WCMC and IUCN (2025). Protected Planet: The World Database on Protected Areas (WDPA), version de novembre 2025. Cambridge, UK et Gland, Suisse. Disponible sur https://www.protectedplanet.net.
 
@@ -276,6 +281,13 @@ Le projet est coordonné par l'IRD/UMI-SOURCE et l'Université d'Antananarivo/CE
 
 Remerciements particuliers à l'UNEP-WCMC pour la maintenance de WDPA, à Madagascar National Parks (MNP) pour la fourniture des données SAPM, et à CNLEGIS pour avoir rendu les textes légaux publiquement accessibles.
 
-## Licence
+## Licence et conditions de réutilisation
 
-Ce travail est sous licence [Creative Commons Attribution 4.0 International (CC BY 4.0)](LICENSE).
+**Logiciel :** Le code source de ce dépôt est diffusé sous licence MIT.
+
+**Données :** Le jeu de données consolidé combine des informations provenant de plusieurs sources institutionnelles et reste soumis aux conditions de réutilisation propres à ces sources. La provenance des géométries est indiquée dans le champ geometry_source_dataset_id et la provenance des amendements est documentée dans le registre YAML. 
+
+Les sorties consolidées incorporent des éléments dérivés de la World Database on Protected and Conserved Areas (WDPCA, anciennement WDPA). L’UNEP-WCMC a fourni une autorisation écrite pour redistribuer les sorties dérivées concernant Madagascar dans le cadre de cet usage scientifique non commercial. L’utilisation commerciale des données WDPCA ou des œuvres dérivées nécessite une autorisation écrite préalable de l’UNEP-WCMC.
+
+Les fichiers consolidés téléchargeables correspondent à un instantané historique fondé sur la version de novembre 2025 de la WDPCA. Les utilisateurs ayant besoin des informations officielles les plus récentes doivent consulter [Protected Planet(https://www.protectedplanet.net/)].
+Les conditions détaillées de réutilisation du jeu de données déposé sont indiquées dans la notice DataSuds : https://doi.org/10.23708/VN2TWC.

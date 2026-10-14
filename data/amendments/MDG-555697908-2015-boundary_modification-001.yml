@@ -21,4 +21,4 @@ notes: Pre-2015 boundary from the Loky Manambato forest block subdivision layer.
   footprint visible on the annex map to Arrêté 18633/2008 and on the PGES 2010 map.
 geometry_ref: geoms/MDG-555697908-2015-boundary_modification-001.geojson
 geometry_crs_epsg: 4326
-geometry_source_dataset_id: MEDD_subdivisions_2008
+geometry_source_dataset_id: MEDD_subdivisions

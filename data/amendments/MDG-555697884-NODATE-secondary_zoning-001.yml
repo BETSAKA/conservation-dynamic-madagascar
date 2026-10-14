@@ -17,4 +17,4 @@ notes: 'Core zone (noyau dur) validated from MEDD subdivision data. Source: shap
   represents current management zoning without temporal validity.'
 geometry_ref: geoms/MDG-555697884-NODATE-secondary_zoning-001.geojson
 geometry_crs_epsg: 4326
-geometry_source_dataset_id: MEDD_subdivisions_2024
+geometry_source_dataset_id: MEDD_subdivisions

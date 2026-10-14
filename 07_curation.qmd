@@ -2219,7 +2219,7 @@ loky_sub <- read_sf(
   mutate(
     WDPAID = 555697908,
     NAME = "Loky Manambato",
-    dataset_id = "MEDD_subdivisions_2008"
+    dataset_id = "MEDD_subdivisions"
   )
 
 tm_shape(loky_sub) +
@@ -2268,7 +2268,7 @@ sat <- add_modif_sat(
   decisions = pa_decisions,
   wdpa_name_or_id = 555697908,
   decision_filter = list(num_texte = "2015-758"),
-  source_dataset_id = "MEDD_subdivisions_2008",
+  source_dataset_id = "MEDD_subdivisions",
   amendment_type = "boundary_modification",
   valid_from = "2008-10-17",
   notes = "Pre-2015 boundary from the Loky Manambato forest block subdivision layer. The original shapefile contains four polygons; they are merged with st_union() into a single geometry before insertion in SAT. This geometry matches the temporary protection footprint visible on the annex map to Arrêté 18633/2008 and on the PGES 2010 map."
@@ -3537,7 +3537,7 @@ Chaque noyau dur validé est ajouté à la table SAT avec le type d'amendement `
 nd_geoms <- noyaux_durs |>
   filter(!is.na(WDPAID)) |>
   select(geometry, WDPAID, NAME, pa_label) |>
-  mutate(dataset_id = "MEDD_subdivisions_2024")
+  mutate(dataset_id = "MEDD_subdivisions")
 
 # Add all core zones to SAT as secondary_zoning amendments
 for (i in seq_len(nrow(nd_geoms))) {
@@ -3558,7 +3558,7 @@ for (i in seq_len(nrow(nd_geoms))) {
         " - données transmises au MEDD"
       )
     ),
-    source_dataset_id = "MEDD_subdivisions_2024",
+    source_dataset_id = "MEDD_subdivisions",
     amendment_type = "secondary_zoning",
     valid_from = NULL, # Non-temporal: represents current management zoning
     notes = paste0(

@@ -123,20 +123,20 @@ Each row in the output dataset represents one zone in one temporal state. A prot
 |---|---|---|
 | `state_id` | Character | Unique identifier for each temporal state |
 | `WDPAID` | Integer | WDPA identifier, enabling cross-reference with the global database |
-| `valid_from` | Date | Start date of this state's validity period |
-| `valid_to` | Date | End date of this state's validity period |
-| `zone_type` | Character | Zone type: `external_boundary`, `core_zone`, `internal_buffer_zone`, or `external_buffer_zone` |
-| `zone_name` | Character | Name of the zone, if applicable |
+| `valid_from` | Date | Start date of the temporal state's validity period, inclusive |
+| `valid_to` | Date | End date of the validity period, exclusive; `NA` indicates an open-ended state, normally the configuration valid at the reference date |
+| `zone_type` | Character | Geometry role: `external_boundary` or `secondary_zoning` |
+| `zone_name` | Character | Name or label of the secondary zone, where available |
 | `geometry` | Geometry | Polygon or multipolygon in WGS84 (EPSG:4326) |
 | `NAME` | Character | Protected area name |
 | `DESIG` | Character | Designation type |
 | `IUCN_CAT` | Character | IUCN management category |
 | `STATUS` | Character | Designation status |
 | `STATUS_YR` | Integer | Year of current status |
-| `GOV_TYPE` | Character | Governance type |
-| `MANG_AUTH` | Character | Management authority |
-| `amendment_source` | Character | Reference to the YAML amendment file or `"wdpa_baseline"` |
-
+| `GOV_TYPE` | Character | Governance type inherited from the WDPA baseline unless explicitly amended |
+| `MANG_AUTH` | Character | Management authority inherited from the WDPA baseline unless explicitly amended |
+| `amendment_source` | Character | `WDPA` for baseline-derived rows, a YAML amendment identifier for amended rows, or `amendments_only` where no current WDPA record exists |
+| `geometry_source_dataset_id` | Character | Identifier of the spatial dataset from which the geometry originates |
 : Schema of the temporal states dataset. {#tbl-schema}
 
 The dataset covers 123 terrestrial protected areas in Madagascar with a temporal span from 2000 to 2025. Protected areas have between one and several temporal states depending on the documented amendments. Secondary zones are included for 73 protected areas where validated core zone shapefiles were available. @fig-map shows the spatial distribution of protected areas colored by the number of documented temporal states, illustrating where the dataset adds information relative to the static WDPA.
@@ -175,7 +175,7 @@ The YAML amendment registry is designed for collaborative extension. Researchers
 
 # Data Availability Statement
 
-The complete research dataset is publicly available from DataSuds, the institutional research data repository of the Institut de Recherche pour le Développment, at https://doi.org/10.23708/VN2TWC [@bedecarrats2026dataset]. Version 2.0 includes the consolidated files `dynamic_wdpa.gpkg`, `dynamic_wdpa.parquet`, and `dynamic_wdpa.rds`, together with the archived amendment registry `amendments.zip`. The version-controlled amendment registry and associated processing code are also maintained in the GitHub repository at https://github.com/BETSAKA/conservation-dynamic-madagascar.
+The complete dataset is publicly deposited in DataSuds under the persistent identifier https://doi.org/10.23708/VN2TWC [@bedecarrats2026dataset]. Version 2.0 includes the consolidated files `dynamic_wdpa.gpkg`, `dynamic_wdpa.parquet`, and `dynamic_wdpa.rds`, together with the archived amendment registry `amendments.zip`, which contains a snapshot of the version-controlled YAML amendment registry and associated GeoJSON geometries. The three consolidated files contain the same substantive information in formats suited respectively to GIS software, R, and broader analytical workflows.
 
 The consolidated files incorporate information derived from the November 2025 WDPCA release. UNEP-WCMC has provided written authorization for redistribution of these Madagascar-specific derived outputs for this non-commercial use case. Commercial use of WDPCA material or derivative works requires prior written permission from UNEP-WCMC [@unepwcmcWDPCAlicense]. The deposited files constitute a historical research snapshot; users requiring the latest official protected and conserved area data should obtain the current release directly from Protected Planet.
 

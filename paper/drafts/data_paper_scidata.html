@@ -2380,22 +2380,22 @@ Table 1: Schema of the temporal states dataset.
 <tr class="odd">
 <td><code>valid_from</code></td>
 <td>Date</td>
-<td>Start date of this state’s validity period</td>
+<td>Start date of the temporal state’s validity period, inclusive</td>
 </tr>
 <tr class="even">
 <td><code>valid_to</code></td>
 <td>Date</td>
-<td>End date of this state’s validity period</td>
+<td>End date of the validity period, exclusive; <code>NA</code> indicates an open-ended state, normally the configuration valid at the reference date</td>
 </tr>
 <tr class="odd">
 <td><code>zone_type</code></td>
 <td>Character</td>
-<td>Zone type: <code>external_boundary</code>, <code>core_zone</code>, <code>internal_buffer_zone</code>, or <code>external_buffer_zone</code></td>
+<td>Geometry role: <code>external_boundary</code> or <code>secondary_zoning</code></td>
 </tr>
 <tr class="even">
 <td><code>zone_name</code></td>
 <td>Character</td>
-<td>Name of the zone, if applicable</td>
+<td>Name or label of the secondary zone, where available</td>
 </tr>
 <tr class="odd">
 <td><code>geometry</code></td>
@@ -2430,17 +2430,22 @@ Table 1: Schema of the temporal states dataset.
 <tr class="odd">
 <td><code>GOV_TYPE</code></td>
 <td>Character</td>
-<td>Governance type</td>
+<td>Governance type inherited from the WDPA baseline unless explicitly amended</td>
 </tr>
 <tr class="even">
 <td><code>MANG_AUTH</code></td>
 <td>Character</td>
-<td>Management authority</td>
+<td>Management authority inherited from the WDPA baseline unless explicitly amended</td>
 </tr>
 <tr class="odd">
 <td><code>amendment_source</code></td>
 <td>Character</td>
-<td>Reference to the YAML amendment file or <code>&quot;wdpa_baseline&quot;</code></td>
+<td><code>WDPA</code> for baseline-derived rows, a YAML amendment identifier for amended rows, or <code>amendments_only</code> where no current WDPA record exists</td>
+</tr>
+<tr class="even">
+<td><code>geometry_source_dataset_id</code></td>
+<td>Character</td>
+<td>Identifier of the spatial dataset from which the geometry originates</td>
 </tr>
 </tbody>
 </table>
@@ -2487,7 +2492,7 @@ Figure 4: Type and counts of amendments documented in the YAML registry
 </section>
 <section id="data-availability-statement" class="level1">
 <h1>Data Availability Statement</h1>
-<p>The complete research dataset is publicly available from DataSuds, the institutional research data repository of the Institut de Recherche pour le Développment, at https://doi.org/10.23708/VN2TWC <span class="citation" data-cites="bedecarrats2026dataset">(<a href="#ref-bedecarrats2026dataset" role="doc-biblioref">Bédécarrats et al. 2026</a>)</span>. Version 2.0 includes the consolidated files <code>dynamic_wdpa.gpkg</code>, <code>dynamic_wdpa.parquet</code>, and <code>dynamic_wdpa.rds</code>, together with the archived amendment registry <code>amendments.zip</code>. The version-controlled amendment registry and associated processing code are also maintained in the GitHub repository at https://github.com/BETSAKA/conservation-dynamic-madagascar.</p>
+<p>The complete dataset is publicly deposited in DataSuds under the persistent identifier https://doi.org/10.23708/VN2TWC <span class="citation" data-cites="bedecarrats2026dataset">(<a href="#ref-bedecarrats2026dataset" role="doc-biblioref">Bédécarrats et al. 2026</a>)</span>. Version 2.0 includes the consolidated files <code>dynamic_wdpa.gpkg</code>, <code>dynamic_wdpa.parquet</code>, and <code>dynamic_wdpa.rds</code>, together with the archived amendment registry <code>amendments.zip</code>, which contains a snapshot of the version-controlled YAML amendment registry and associated GeoJSON geometries. The three consolidated files contain the same substantive information in formats suited respectively to GIS software, R, and broader analytical workflows.</p>
 <p>The consolidated files incorporate information derived from the November 2025 WDPCA release. UNEP-WCMC has provided written authorization for redistribution of these Madagascar-specific derived outputs for this non-commercial use case. Commercial use of WDPCA material or derivative works requires prior written permission from UNEP-WCMC <span class="citation" data-cites="unepwcmcWDPCAlicense">(<a href="#ref-unepwcmcWDPCAlicense" role="doc-biblioref">UNEP-WCMC 2026</a>)</span>. The deposited files constitute a historical research snapshot; users requiring the latest official protected and conserved area data should obtain the current release directly from Protected Planet.</p>
 <p>Geometry-level provenance is recorded in <code>geometry_source_dataset_id</code>, while amendment-level provenance and corresponding legal sources are documented in the YAML registry. Source datasets that are not themselves redistributed can therefore be identified from the published metadata.</p>
 </section>

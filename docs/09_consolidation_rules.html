@@ -456,14 +456,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"  Total amendments:"</span>, <span class="fu">nrow</span>(amendments<span class="sc">$</span>all), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>  Total amendments: 291 </code></pre>
+<pre><code>  Total amendments: 297 </code></pre>
 </div>
 <details class="code-fold">
 <summary>Voir le code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"  Spatial:"</span>, <span class="fu">nrow</span>(amendments<span class="sc">$</span>spatial), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>  Spatial: 84 </code></pre>
+<pre><code>  Spatial: 90 </code></pre>
 </div>
 <details class="code-fold">
 <summary>Voir le code</summary>
@@ -494,7 +494,7 @@ Amendment types:</code></pre>
 2 attribute      status_change            13
 3 attribute      temporary_protection    176
 4 spatial        boundary_modification    20
-5 spatial        secondary_zoning         64</code></pre>
+5 spatial        secondary_zoning         70</code></pre>
 </div>
 </div>
 </section>
@@ -506,77 +506,102 @@ Amendment types:</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Voir le code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">#' Generate timeline breakpoints for a protected area</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">#' Convert WDPA STATUS_YR to a Date</span></span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="co">#'</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co">#' Collects all temporal markers (STATUS_YR from WDPA, valid_from/valid_to from</span></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co">#' amendments) and creates non-overlapping intervals.</span></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="co">#'</span></span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param wdpaid_val WDPAID to generate timeline for</span></span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param wdpa WDPA reference dataset</span></span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param amendments Amendment registry (from read_yaml_amendments)</span></span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="co">#' @return Tibble with interval_start and interval_end columns</span></span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>generate_timeline <span class="ot">&lt;-</span> <span class="cf">function</span>(wdpaid_val, wdpa, amendments) {</span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Get WDPA record (may be absent for dissolved/merged PAs)</span></span>
-<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>  wdpa_record <span class="ot">&lt;-</span> wdpa <span class="sc">|&gt;</span> <span class="fu">filter</span>(WDPAID <span class="sc">==</span> wdpaid_val)</span>
-<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Collect all dates from amendments</span></span>
-<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>  pa_amendments <span class="ot">&lt;-</span> amendments<span class="sc">$</span>all <span class="sc">|&gt;</span> <span class="fu">filter</span>(wdpaid <span class="sc">==</span> wdpaid_val)</span>
-<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">nrow</span>(wdpa_record) <span class="sc">==</span> <span class="dv">0</span> <span class="sc">&amp;&amp;</span> <span class="fu">nrow</span>(pa_amendments) <span class="sc">==</span> <span class="dv">0</span>) {</span>
-<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">stop</span>(<span class="st">"WDPAID "</span>, wdpaid_val, <span class="st">" not found in WDPA and has no amendments"</span>)</span>
-<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Amendment dates (authoritative when present)</span></span>
-<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a>  amendment_dates <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>    pa_amendments<span class="sc">$</span>valid_from[<span class="sc">!</span><span class="fu">is.na</span>(pa_amendments<span class="sc">$</span>valid_from)],</span>
-<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a>    pa_amendments<span class="sc">$</span>valid_to[<span class="sc">!</span><span class="fu">is.na</span>(pa_amendments<span class="sc">$</span>valid_to)]</span>
-<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a>  <span class="co"># STATUS_YR fallback logic:</span></span>
-<span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 1. Always used when no amendments exist (baseline-only PA).</span></span>
-<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 2. Also used when a boundary_modification has valid_to but no valid_from</span></span>
-<span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a>  <span class="co">#    AND no other amendment provides a date earlier than that valid_to.</span></span>
-<span id="cb15-31"><a href="#cb15-31" aria-hidden="true" tabindex="-1"></a>  <span class="co">#    This ensures the pre-modification period is represented.</span></span>
-<span id="cb15-32"><a href="#cb15-32" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 3. Skipped otherwise: amendments already provide the correct temporal</span></span>
-<span id="cb15-33"><a href="#cb15-33" aria-hidden="true" tabindex="-1"></a>  <span class="co">#    segmentation and STATUS_YR would create spurious intervals.</span></span>
-<span id="cb15-34"><a href="#cb15-34" aria-hidden="true" tabindex="-1"></a>  wdpa_date <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
-<span id="cb15-35"><a href="#cb15-35" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">nrow</span>(wdpa_record) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
-<span id="cb15-36"><a href="#cb15-36" aria-hidden="true" tabindex="-1"></a>    status_yr_date <span class="ot">&lt;-</span> <span class="fu">as.Date</span>(<span class="fu">paste0</span>(wdpa_record<span class="sc">$</span>STATUS_YR[<span class="dv">1</span>], <span class="st">"-01-01"</span>))</span>
-<span id="cb15-37"><a href="#cb15-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-38"><a href="#cb15-38" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">length</span>(amendment_dates) <span class="sc">==</span> <span class="dv">0</span>) {</span>
-<span id="cb15-39"><a href="#cb15-39" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Case 1: no amendments at all</span></span>
-<span id="cb15-40"><a href="#cb15-40" aria-hidden="true" tabindex="-1"></a>      wdpa_date <span class="ot">&lt;-</span> status_yr_date</span>
-<span id="cb15-41"><a href="#cb15-41" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
-<span id="cb15-42"><a href="#cb15-42" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Case 2: check for spatial amendments missing valid_from</span></span>
-<span id="cb15-43"><a href="#cb15-43" aria-hidden="true" tabindex="-1"></a>      spatial_no_from <span class="ot">&lt;-</span> pa_amendments <span class="sc">|&gt;</span></span>
-<span id="cb15-44"><a href="#cb15-44" aria-hidden="true" tabindex="-1"></a>        <span class="fu">filter</span>(amendment_kind <span class="sc">==</span> <span class="st">"spatial"</span>,</span>
-<span id="cb15-45"><a href="#cb15-45" aria-hidden="true" tabindex="-1"></a>               amendment_type <span class="sc">==</span> <span class="st">"boundary_modification"</span>,</span>
-<span id="cb15-46"><a href="#cb15-46" aria-hidden="true" tabindex="-1"></a>               <span class="fu">is.na</span>(valid_from),</span>
-<span id="cb15-47"><a href="#cb15-47" aria-hidden="true" tabindex="-1"></a>               <span class="sc">!</span><span class="fu">is.na</span>(valid_to))</span>
-<span id="cb15-48"><a href="#cb15-48" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-49"><a href="#cb15-49" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="fu">nrow</span>(spatial_no_from) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
-<span id="cb15-50"><a href="#cb15-50" aria-hidden="true" tabindex="-1"></a>        earliest_valid_to <span class="ot">&lt;-</span> <span class="fu">min</span>(spatial_no_from<span class="sc">$</span>valid_to)</span>
-<span id="cb15-51"><a href="#cb15-51" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Only add STATUS_YR if it is strictly earlier than all existing dates</span></span>
-<span id="cb15-52"><a href="#cb15-52" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (status_yr_date <span class="sc">&lt;</span> <span class="fu">min</span>(amendment_dates)) {</span>
-<span id="cb15-53"><a href="#cb15-53" aria-hidden="true" tabindex="-1"></a>          wdpa_date <span class="ot">&lt;-</span> status_yr_date</span>
-<span id="cb15-54"><a href="#cb15-54" aria-hidden="true" tabindex="-1"></a>        }</span>
-<span id="cb15-55"><a href="#cb15-55" aria-hidden="true" tabindex="-1"></a>      }</span>
-<span id="cb15-56"><a href="#cb15-56" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb15-57"><a href="#cb15-57" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb15-58"><a href="#cb15-58" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-59"><a href="#cb15-59" aria-hidden="true" tabindex="-1"></a>  dates <span class="ot">&lt;-</span> <span class="fu">c</span>(wdpa_date, amendment_dates) <span class="sc">|&gt;</span></span>
-<span id="cb15-60"><a href="#cb15-60" aria-hidden="true" tabindex="-1"></a>    <span class="fu">unique</span>() <span class="sc">|&gt;</span></span>
-<span id="cb15-61"><a href="#cb15-61" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sort</span>()</span>
-<span id="cb15-62"><a href="#cb15-62" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-63"><a href="#cb15-63" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Restore Date class if lost during c() / unique() / sort()</span></span>
-<span id="cb15-64"><a href="#cb15-64" aria-hidden="true" tabindex="-1"></a>  dates <span class="ot">&lt;-</span> <span class="fu">as.Date</span>(dates, <span class="at">origin =</span> <span class="st">"1970-01-01"</span>)</span>
-<span id="cb15-65"><a href="#cb15-65" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-66"><a href="#cb15-66" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Créer les intervalles</span></span>
-<span id="cb15-67"><a href="#cb15-67" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(</span>
-<span id="cb15-68"><a href="#cb15-68" aria-hidden="true" tabindex="-1"></a>    <span class="at">interval_start =</span> dates,</span>
-<span id="cb15-69"><a href="#cb15-69" aria-hidden="true" tabindex="-1"></a>    <span class="at">interval_end =</span> <span class="fu">c</span>(dates[<span class="sc">-</span><span class="dv">1</span>], <span class="fu">as.Date</span>(<span class="cn">NA</span>)) <span class="co"># Dernier intervalle ouvert</span></span>
-<span id="cb15-70"><a href="#cb15-70" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb15-71"><a href="#cb15-71" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co">#' STATUS_YR = 0 in the WDPCA means the status year is not reported; it is not</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co">#' the year 0000. Missing, blank or non-numeric values are treated the same way.</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="co">#' The raw STATUS_YR attribute itself is never altered; only the derived</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="co">#' temporal field uses this conversion.</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="co">#'</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param status_yr STATUS_YR value or vector (numeric or character)</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="co">#' @return Date vector (YYYY-01-01), NA when the year is unknown</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>status_yr_to_date <span class="ot">&lt;-</span> <span class="cf">function</span>(status_yr) {</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>  yr <span class="ot">&lt;-</span> <span class="fu">suppressWarnings</span>(<span class="fu">as.numeric</span>(status_yr))</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>  ok <span class="ot">&lt;-</span> <span class="sc">!</span><span class="fu">is.na</span>(yr) <span class="sc">&amp;</span> <span class="fu">is.finite</span>(yr) <span class="sc">&amp;</span> yr <span class="sc">&gt;</span> <span class="dv">0</span></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>  out <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="fu">as.Date</span>(<span class="cn">NA</span>), <span class="fu">length</span>(yr))</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>  out[ok] <span class="ot">&lt;-</span> <span class="fu">as.Date</span>(<span class="fu">sprintf</span>(<span class="st">"%04.0f-01-01"</span>, yr[ok]))</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>  out</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a><span class="co">#' Generate timeline breakpoints for a protected area</span></span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a><span class="co">#'</span></span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a><span class="co">#' Collects all temporal markers (STATUS_YR from WDPA, valid_from/valid_to from</span></span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a><span class="co">#' amendments) and creates non-overlapping intervals. STATUS_YR = 0 or missing</span></span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a><span class="co">#' means an unreported year: it produces no breakpoint.</span></span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a><span class="co">#'</span></span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param wdpaid_val WDPAID to generate timeline for</span></span>
+<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param wdpa WDPA reference dataset</span></span>
+<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param amendments Amendment registry (from read_yaml_amendments)</span></span>
+<span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a><span class="co">#' @return Tibble with interval_start and interval_end columns</span></span>
+<span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a>generate_timeline <span class="ot">&lt;-</span> <span class="cf">function</span>(wdpaid_val, wdpa, amendments) {</span>
+<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Get WDPA record (may be absent for dissolved/merged PAs)</span></span>
+<span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a>  wdpa_record <span class="ot">&lt;-</span> wdpa <span class="sc">|&gt;</span> <span class="fu">filter</span>(WDPAID <span class="sc">==</span> wdpaid_val)</span>
+<span id="cb15-31"><a href="#cb15-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-32"><a href="#cb15-32" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Collect all dates from amendments</span></span>
+<span id="cb15-33"><a href="#cb15-33" aria-hidden="true" tabindex="-1"></a>  pa_amendments <span class="ot">&lt;-</span> amendments<span class="sc">$</span>all <span class="sc">|&gt;</span> <span class="fu">filter</span>(wdpaid <span class="sc">==</span> wdpaid_val)</span>
+<span id="cb15-34"><a href="#cb15-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-35"><a href="#cb15-35" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">nrow</span>(wdpa_record) <span class="sc">==</span> <span class="dv">0</span> <span class="sc">&amp;&amp;</span> <span class="fu">nrow</span>(pa_amendments) <span class="sc">==</span> <span class="dv">0</span>) {</span>
+<span id="cb15-36"><a href="#cb15-36" aria-hidden="true" tabindex="-1"></a>    <span class="fu">stop</span>(<span class="st">"WDPAID "</span>, wdpaid_val, <span class="st">" not found in WDPA and has no amendments"</span>)</span>
+<span id="cb15-37"><a href="#cb15-37" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb15-38"><a href="#cb15-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-39"><a href="#cb15-39" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Amendment dates (authoritative when present)</span></span>
+<span id="cb15-40"><a href="#cb15-40" aria-hidden="true" tabindex="-1"></a>  amendment_dates <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb15-41"><a href="#cb15-41" aria-hidden="true" tabindex="-1"></a>    pa_amendments<span class="sc">$</span>valid_from[<span class="sc">!</span><span class="fu">is.na</span>(pa_amendments<span class="sc">$</span>valid_from)],</span>
+<span id="cb15-42"><a href="#cb15-42" aria-hidden="true" tabindex="-1"></a>    pa_amendments<span class="sc">$</span>valid_to[<span class="sc">!</span><span class="fu">is.na</span>(pa_amendments<span class="sc">$</span>valid_to)]</span>
+<span id="cb15-43"><a href="#cb15-43" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb15-44"><a href="#cb15-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-45"><a href="#cb15-45" aria-hidden="true" tabindex="-1"></a>  <span class="co"># STATUS_YR fallback logic:</span></span>
+<span id="cb15-46"><a href="#cb15-46" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 1. Always used when no amendments exist (baseline-only PA).</span></span>
+<span id="cb15-47"><a href="#cb15-47" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 2. Also used when a boundary_modification has valid_to but no valid_from</span></span>
+<span id="cb15-48"><a href="#cb15-48" aria-hidden="true" tabindex="-1"></a>  <span class="co">#    AND no other amendment provides a date earlier than that valid_to.</span></span>
+<span id="cb15-49"><a href="#cb15-49" aria-hidden="true" tabindex="-1"></a>  <span class="co">#    This ensures the pre-modification period is represented.</span></span>
+<span id="cb15-50"><a href="#cb15-50" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 3. Skipped otherwise: amendments already provide the correct temporal</span></span>
+<span id="cb15-51"><a href="#cb15-51" aria-hidden="true" tabindex="-1"></a>  <span class="co">#    segmentation and STATUS_YR would create spurious intervals.</span></span>
+<span id="cb15-52"><a href="#cb15-52" aria-hidden="true" tabindex="-1"></a>  wdpa_date <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
+<span id="cb15-53"><a href="#cb15-53" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">nrow</span>(wdpa_record) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb15-54"><a href="#cb15-54" aria-hidden="true" tabindex="-1"></a>    status_yr_date <span class="ot">&lt;-</span> <span class="fu">status_yr_to_date</span>(wdpa_record<span class="sc">$</span>STATUS_YR[<span class="dv">1</span>])</span>
+<span id="cb15-55"><a href="#cb15-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-56"><a href="#cb15-56" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">length</span>(amendment_dates) <span class="sc">==</span> <span class="dv">0</span>) {</span>
+<span id="cb15-57"><a href="#cb15-57" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Case 1: no amendments at all</span></span>
+<span id="cb15-58"><a href="#cb15-58" aria-hidden="true" tabindex="-1"></a>      wdpa_date <span class="ot">&lt;-</span> status_yr_date</span>
+<span id="cb15-59"><a href="#cb15-59" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.na</span>(status_yr_date)) {</span>
+<span id="cb15-60"><a href="#cb15-60" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Case 2: check for spatial amendments missing valid_from</span></span>
+<span id="cb15-61"><a href="#cb15-61" aria-hidden="true" tabindex="-1"></a>      spatial_no_from <span class="ot">&lt;-</span> pa_amendments <span class="sc">|&gt;</span></span>
+<span id="cb15-62"><a href="#cb15-62" aria-hidden="true" tabindex="-1"></a>        <span class="fu">filter</span>(amendment_kind <span class="sc">==</span> <span class="st">"spatial"</span>,</span>
+<span id="cb15-63"><a href="#cb15-63" aria-hidden="true" tabindex="-1"></a>               amendment_type <span class="sc">==</span> <span class="st">"boundary_modification"</span>,</span>
+<span id="cb15-64"><a href="#cb15-64" aria-hidden="true" tabindex="-1"></a>               <span class="fu">is.na</span>(valid_from),</span>
+<span id="cb15-65"><a href="#cb15-65" aria-hidden="true" tabindex="-1"></a>               <span class="sc">!</span><span class="fu">is.na</span>(valid_to))</span>
+<span id="cb15-66"><a href="#cb15-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-67"><a href="#cb15-67" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="fu">nrow</span>(spatial_no_from) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb15-68"><a href="#cb15-68" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Only add STATUS_YR if it is strictly earlier than all existing dates</span></span>
+<span id="cb15-69"><a href="#cb15-69" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (status_yr_date <span class="sc">&lt;</span> <span class="fu">min</span>(amendment_dates)) {</span>
+<span id="cb15-70"><a href="#cb15-70" aria-hidden="true" tabindex="-1"></a>          wdpa_date <span class="ot">&lt;-</span> status_yr_date</span>
+<span id="cb15-71"><a href="#cb15-71" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb15-72"><a href="#cb15-72" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb15-73"><a href="#cb15-73" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb15-74"><a href="#cb15-74" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb15-75"><a href="#cb15-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-76"><a href="#cb15-76" aria-hidden="true" tabindex="-1"></a>  dates <span class="ot">&lt;-</span> <span class="fu">c</span>(wdpa_date, amendment_dates)</span>
+<span id="cb15-77"><a href="#cb15-77" aria-hidden="true" tabindex="-1"></a>  <span class="co"># An unknown STATUS_YR (NA) is not a chronology breakpoint</span></span>
+<span id="cb15-78"><a href="#cb15-78" aria-hidden="true" tabindex="-1"></a>  dates <span class="ot">&lt;-</span> dates[<span class="sc">!</span><span class="fu">is.na</span>(dates)] <span class="sc">|&gt;</span></span>
+<span id="cb15-79"><a href="#cb15-79" aria-hidden="true" tabindex="-1"></a>    <span class="fu">unique</span>() <span class="sc">|&gt;</span></span>
+<span id="cb15-80"><a href="#cb15-80" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sort</span>()</span>
+<span id="cb15-81"><a href="#cb15-81" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-82"><a href="#cb15-82" aria-hidden="true" tabindex="-1"></a>  <span class="co"># No usable breakpoint at all: fall back to a single undated state</span></span>
+<span id="cb15-83"><a href="#cb15-83" aria-hidden="true" tabindex="-1"></a>  <span class="co"># (deterministic) rather than inventing year 0000</span></span>
+<span id="cb15-84"><a href="#cb15-84" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(dates) <span class="sc">==</span> <span class="dv">0</span>) {</span>
+<span id="cb15-85"><a href="#cb15-85" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">tibble</span>(<span class="at">interval_start =</span> <span class="fu">as.Date</span>(<span class="cn">NA</span>), <span class="at">interval_end =</span> <span class="fu">as.Date</span>(<span class="cn">NA</span>)))</span>
+<span id="cb15-86"><a href="#cb15-86" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb15-87"><a href="#cb15-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-88"><a href="#cb15-88" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Restore Date class if lost during c() / unique() / sort()</span></span>
+<span id="cb15-89"><a href="#cb15-89" aria-hidden="true" tabindex="-1"></a>  dates <span class="ot">&lt;-</span> <span class="fu">as.Date</span>(dates, <span class="at">origin =</span> <span class="st">"1970-01-01"</span>)</span>
+<span id="cb15-90"><a href="#cb15-90" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-91"><a href="#cb15-91" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Créer les intervalles</span></span>
+<span id="cb15-92"><a href="#cb15-92" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(</span>
+<span id="cb15-93"><a href="#cb15-93" aria-hidden="true" tabindex="-1"></a>    <span class="at">interval_start =</span> dates,</span>
+<span id="cb15-94"><a href="#cb15-94" aria-hidden="true" tabindex="-1"></a>    <span class="at">interval_end =</span> <span class="fu">c</span>(dates[<span class="sc">-</span><span class="dv">1</span>], <span class="fu">as.Date</span>(<span class="cn">NA</span>)) <span class="co"># Dernier intervalle ouvert</span></span>
+<span id="cb15-95"><a href="#cb15-95" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb15-96"><a href="#cb15-96" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 </section>
@@ -604,99 +629,118 @@ Amendment types:</code></pre>
 <span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="co">#' - It starts before the interval ends (or interval is open-ended)</span></span>
 <span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="co">#' - It ends after the interval starts (or amendment is open-ended)</span></span>
 <span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="co">#'</span></span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param amendments_df Amendment registry subset (spatial or attribute)</span></span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param wdpaid_val WDPAID to filter</span></span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param interval_start Start of interval (inclusive)</span></span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param interval_end End of interval (exclusive), NA for open-ended</span></span>
-<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a><span class="co">#' @return Filtered tibble of active amendments</span></span>
-<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>find_active_amendments <span class="ot">&lt;-</span> <span class="cf">function</span>(</span>
-<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>  amendments_df,</span>
-<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>  wdpaid_val,</span>
-<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>  interval_start,</span>
-<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>  interval_end</span>
-<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>) {</span>
-<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Replace NA interval_end with far-future date for comparison</span></span>
-<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>  effective_end <span class="ot">&lt;-</span> <span class="cf">if</span> (<span class="fu">is.na</span>(interval_end)) {</span>
-<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.Date</span>(<span class="st">"2100-01-01"</span>)</span>
-<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
-<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a>    interval_end</span>
-<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a>  amendments_df <span class="sc">|&gt;</span></span>
-<span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(wdpaid <span class="sc">==</span> wdpaid_val) <span class="sc">|&gt;</span></span>
-<span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(</span>
-<span id="cb16-29"><a href="#cb16-29" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Amendment starts before interval ends</span></span>
-<span id="cb16-30"><a href="#cb16-30" aria-hidden="true" tabindex="-1"></a>      (<span class="fu">is.na</span>(valid_from) <span class="sc">|</span> valid_from <span class="sc">&lt;</span> effective_end) <span class="sc">&amp;</span></span>
-<span id="cb16-31"><a href="#cb16-31" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Amendment ends after interval starts</span></span>
-<span id="cb16-32"><a href="#cb16-32" aria-hidden="true" tabindex="-1"></a>        (<span class="fu">is.na</span>(valid_to) <span class="sc">|</span> valid_to <span class="sc">&gt;</span> interval_start)</span>
-<span id="cb16-33"><a href="#cb16-33" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb16-34"><a href="#cb16-34" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb16-35"><a href="#cb16-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-36"><a href="#cb16-36" aria-hidden="true" tabindex="-1"></a><span class="co">#' Check for conflicts in amendments</span></span>
-<span id="cb16-37"><a href="#cb16-37" aria-hidden="true" tabindex="-1"></a><span class="co">#'</span></span>
-<span id="cb16-38"><a href="#cb16-38" aria-hidden="true" tabindex="-1"></a><span class="co">#' Detects multiple amendments affecting the same attribute/geometry in the same</span></span>
-<span id="cb16-39"><a href="#cb16-39" aria-hidden="true" tabindex="-1"></a><span class="co">#' period. temporary_protection amendments are treated as attribute amendments</span></span>
-<span id="cb16-40"><a href="#cb16-40" aria-hidden="true" tabindex="-1"></a><span class="co">#' for conflict purposes.</span></span>
-<span id="cb16-41"><a href="#cb16-41" aria-hidden="true" tabindex="-1"></a><span class="co">#'</span></span>
-<span id="cb16-42"><a href="#cb16-42" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param amendments_active Active amendments for an interval</span></span>
-<span id="cb16-43"><a href="#cb16-43" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param type "boundary" or "attribute"</span></span>
-<span id="cb16-44"><a href="#cb16-44" aria-hidden="true" tabindex="-1"></a><span class="co">#' @return FALSE if no conflict (throws error on conflict)</span></span>
-<span id="cb16-45"><a href="#cb16-45" aria-hidden="true" tabindex="-1"></a>check_conflicts <span class="ot">&lt;-</span> <span class="cf">function</span>(amendments_active, <span class="at">type =</span> <span class="st">"boundary"</span>) {</span>
-<span id="cb16-46"><a href="#cb16-46" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (type <span class="sc">==</span> <span class="st">"boundary"</span>) {</span>
-<span id="cb16-47"><a href="#cb16-47" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Multiple boundary_modifications in same period</span></span>
-<span id="cb16-48"><a href="#cb16-48" aria-hidden="true" tabindex="-1"></a>    boundary_mods <span class="ot">&lt;-</span> amendments_active <span class="sc">|&gt;</span></span>
-<span id="cb16-49"><a href="#cb16-49" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(amendment_type <span class="sc">==</span> <span class="st">"boundary_modification"</span>)</span>
-<span id="cb16-50"><a href="#cb16-50" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-51"><a href="#cb16-51" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">nrow</span>(boundary_mods) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
-<span id="cb16-52"><a href="#cb16-52" aria-hidden="true" tabindex="-1"></a>      <span class="fu">stop</span>(</span>
-<span id="cb16-53"><a href="#cb16-53" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Conflict: Multiple boundary_modification amendments active in same period:</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb16-54"><a href="#cb16-54" aria-hidden="true" tabindex="-1"></a>        <span class="fu">paste</span>(boundary_mods<span class="sc">$</span>amendment_id, <span class="at">collapse =</span> <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb16-55"><a href="#cb16-55" aria-hidden="true" tabindex="-1"></a>      )</span>
-<span id="cb16-56"><a href="#cb16-56" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb16-57"><a href="#cb16-57" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> <span class="cf">if</span> (type <span class="sc">==</span> <span class="st">"attribute"</span>) {</span>
-<span id="cb16-58"><a href="#cb16-58" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Filter to amendments that actually have non-null attributes</span></span>
-<span id="cb16-59"><a href="#cb16-59" aria-hidden="true" tabindex="-1"></a>    attr_amendments <span class="ot">&lt;-</span> amendments_active <span class="sc">|&gt;</span></span>
-<span id="cb16-60"><a href="#cb16-60" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(<span class="fu">map_lgl</span>(attributes, <span class="sc">~</span> <span class="sc">!</span><span class="fu">is.null</span>(.x) <span class="sc">&amp;&amp;</span> <span class="fu">length</span>(.x) <span class="sc">&gt;</span> <span class="dv">0</span>))</span>
-<span id="cb16-61"><a href="#cb16-61" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-62"><a href="#cb16-62" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">nrow</span>(attr_amendments) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
-<span id="cb16-63"><a href="#cb16-63" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Check for overlapping attributes</span></span>
-<span id="cb16-64"><a href="#cb16-64" aria-hidden="true" tabindex="-1"></a>      all_attr_names <span class="ot">&lt;-</span> <span class="fu">map</span>(attr_amendments<span class="sc">$</span>attributes, names) <span class="sc">|&gt;</span></span>
-<span id="cb16-65"><a href="#cb16-65" aria-hidden="true" tabindex="-1"></a>        <span class="fu">unlist</span>()</span>
-<span id="cb16-66"><a href="#cb16-66" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-67"><a href="#cb16-67" aria-hidden="true" tabindex="-1"></a>      duplicated_attrs <span class="ot">&lt;-</span> all_attr_names[<span class="fu">duplicated</span>(all_attr_names)]</span>
-<span id="cb16-68"><a href="#cb16-68" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-69"><a href="#cb16-69" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="fu">length</span>(duplicated_attrs) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
-<span id="cb16-70"><a href="#cb16-70" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> (attr_name <span class="cf">in</span> <span class="fu">unique</span>(duplicated_attrs)) {</span>
-<span id="cb16-71"><a href="#cb16-71" aria-hidden="true" tabindex="-1"></a>          conflicting <span class="ot">&lt;-</span> attr_amendments <span class="sc">|&gt;</span></span>
-<span id="cb16-72"><a href="#cb16-72" aria-hidden="true" tabindex="-1"></a>            <span class="fu">filter</span>(<span class="fu">map_lgl</span>(attributes, <span class="sc">~</span> attr_name <span class="sc">%in%</span> <span class="fu">names</span>(.x)))</span>
-<span id="cb16-73"><a href="#cb16-73" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-74"><a href="#cb16-74" aria-hidden="true" tabindex="-1"></a>          <span class="co"># Extract values for this attribute across conflicting amendments</span></span>
-<span id="cb16-75"><a href="#cb16-75" aria-hidden="true" tabindex="-1"></a>          values <span class="ot">&lt;-</span> <span class="fu">map_chr</span>(</span>
-<span id="cb16-76"><a href="#cb16-76" aria-hidden="true" tabindex="-1"></a>            conflicting<span class="sc">$</span>attributes,</span>
-<span id="cb16-77"><a href="#cb16-77" aria-hidden="true" tabindex="-1"></a>            <span class="sc">~</span> <span class="fu">as.character</span>(.x[[attr_name]])</span>
-<span id="cb16-78"><a href="#cb16-78" aria-hidden="true" tabindex="-1"></a>          )</span>
-<span id="cb16-79"><a href="#cb16-79" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-80"><a href="#cb16-80" aria-hidden="true" tabindex="-1"></a>          <span class="co"># Only error if values actually differ (identical values = no conflict)</span></span>
-<span id="cb16-81"><a href="#cb16-81" aria-hidden="true" tabindex="-1"></a>          <span class="cf">if</span> (<span class="fu">n_distinct</span>(values) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
-<span id="cb16-82"><a href="#cb16-82" aria-hidden="true" tabindex="-1"></a>            <span class="fu">stop</span>(</span>
-<span id="cb16-83"><a href="#cb16-83" aria-hidden="true" tabindex="-1"></a>              <span class="st">"Conflict: Multiple amendments set different values for '"</span>,</span>
-<span id="cb16-84"><a href="#cb16-84" aria-hidden="true" tabindex="-1"></a>              attr_name,</span>
-<span id="cb16-85"><a href="#cb16-85" aria-hidden="true" tabindex="-1"></a>              <span class="st">"' in same period:</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb16-86"><a href="#cb16-86" aria-hidden="true" tabindex="-1"></a>              <span class="fu">paste</span>(</span>
-<span id="cb16-87"><a href="#cb16-87" aria-hidden="true" tabindex="-1"></a>                conflicting<span class="sc">$</span>amendment_id,</span>
-<span id="cb16-88"><a href="#cb16-88" aria-hidden="true" tabindex="-1"></a>                <span class="st">":"</span>,</span>
-<span id="cb16-89"><a href="#cb16-89" aria-hidden="true" tabindex="-1"></a>                values,</span>
-<span id="cb16-90"><a href="#cb16-90" aria-hidden="true" tabindex="-1"></a>                <span class="at">collapse =</span> <span class="st">"</span><span class="sc">\n</span><span class="st">"</span></span>
-<span id="cb16-91"><a href="#cb16-91" aria-hidden="true" tabindex="-1"></a>              )</span>
-<span id="cb16-92"><a href="#cb16-92" aria-hidden="true" tabindex="-1"></a>            )</span>
-<span id="cb16-93"><a href="#cb16-93" aria-hidden="true" tabindex="-1"></a>          }</span>
-<span id="cb16-94"><a href="#cb16-94" aria-hidden="true" tabindex="-1"></a>        }</span>
-<span id="cb16-95"><a href="#cb16-95" aria-hidden="true" tabindex="-1"></a>      }</span>
-<span id="cb16-96"><a href="#cb16-96" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb16-97"><a href="#cb16-97" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="co">#' Exception for secondary_zoning: an amendment with both bounds unknown has</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="co">#' no documented historical validity, so it is attached only to the current</span></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="co">#' open-ended state of the PA (interval_end = NA), never to closed historical</span></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a><span class="co">#' states. Other amendment types keep the ordinary interpretation of undated</span></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a><span class="co">#' validity.</span></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a><span class="co">#'</span></span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param amendments_df Amendment registry subset (spatial or attribute)</span></span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param wdpaid_val WDPAID to filter</span></span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param interval_start Start of interval (inclusive)</span></span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param interval_end End of interval (exclusive), NA for open-ended</span></span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a><span class="co">#' @return Filtered tibble of active amendments</span></span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>find_active_amendments <span class="ot">&lt;-</span> <span class="cf">function</span>(</span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>  amendments_df,</span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>  wdpaid_val,</span>
+<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a>  interval_start,</span>
+<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a>  interval_end</span>
+<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a>) {</span>
+<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Replace NA interval_end with far-future date for comparison</span></span>
+<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a>  effective_end <span class="ot">&lt;-</span> <span class="cf">if</span> (<span class="fu">is.na</span>(interval_end)) {</span>
+<span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.Date</span>(<span class="st">"2100-01-01"</span>)</span>
+<span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb16-29"><a href="#cb16-29" aria-hidden="true" tabindex="-1"></a>    interval_end</span>
+<span id="cb16-30"><a href="#cb16-30" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb16-31"><a href="#cb16-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-32"><a href="#cb16-32" aria-hidden="true" tabindex="-1"></a>  active <span class="ot">&lt;-</span> amendments_df <span class="sc">|&gt;</span></span>
+<span id="cb16-33"><a href="#cb16-33" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(wdpaid <span class="sc">==</span> wdpaid_val) <span class="sc">|&gt;</span></span>
+<span id="cb16-34"><a href="#cb16-34" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(</span>
+<span id="cb16-35"><a href="#cb16-35" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Amendment starts before interval ends</span></span>
+<span id="cb16-36"><a href="#cb16-36" aria-hidden="true" tabindex="-1"></a>      (<span class="fu">is.na</span>(valid_from) <span class="sc">|</span> valid_from <span class="sc">&lt;</span> effective_end) <span class="sc">&amp;</span></span>
+<span id="cb16-37"><a href="#cb16-37" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Amendment ends after interval starts</span></span>
+<span id="cb16-38"><a href="#cb16-38" aria-hidden="true" tabindex="-1"></a>        (<span class="fu">is.na</span>(valid_to) <span class="sc">|</span> <span class="fu">is.na</span>(interval_start) <span class="sc">|</span> valid_to <span class="sc">&gt;</span> interval_start)</span>
+<span id="cb16-39"><a href="#cb16-39" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb16-40"><a href="#cb16-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-41"><a href="#cb16-41" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Undated secondary_zoning (both bounds NA): only active in the current</span></span>
+<span id="cb16-42"><a href="#cb16-42" aria-hidden="true" tabindex="-1"></a>  <span class="co"># open-ended state. Dated secondary_zoning keeps ordinary overlap rules.</span></span>
+<span id="cb16-43"><a href="#cb16-43" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.na</span>(interval_end)) {</span>
+<span id="cb16-44"><a href="#cb16-44" aria-hidden="true" tabindex="-1"></a>    active <span class="ot">&lt;-</span> active <span class="sc">|&gt;</span></span>
+<span id="cb16-45"><a href="#cb16-45" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(</span>
+<span id="cb16-46"><a href="#cb16-46" aria-hidden="true" tabindex="-1"></a>        <span class="sc">!</span>(amendment_type <span class="sc">==</span> <span class="st">"secondary_zoning"</span> <span class="sc">&amp;</span></span>
+<span id="cb16-47"><a href="#cb16-47" aria-hidden="true" tabindex="-1"></a>          <span class="fu">is.na</span>(valid_from) <span class="sc">&amp;</span></span>
+<span id="cb16-48"><a href="#cb16-48" aria-hidden="true" tabindex="-1"></a>          <span class="fu">is.na</span>(valid_to))</span>
+<span id="cb16-49"><a href="#cb16-49" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb16-50"><a href="#cb16-50" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb16-51"><a href="#cb16-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-52"><a href="#cb16-52" aria-hidden="true" tabindex="-1"></a>  active</span>
+<span id="cb16-53"><a href="#cb16-53" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb16-54"><a href="#cb16-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-55"><a href="#cb16-55" aria-hidden="true" tabindex="-1"></a><span class="co">#' Check for conflicts in amendments</span></span>
+<span id="cb16-56"><a href="#cb16-56" aria-hidden="true" tabindex="-1"></a><span class="co">#'</span></span>
+<span id="cb16-57"><a href="#cb16-57" aria-hidden="true" tabindex="-1"></a><span class="co">#' Detects multiple amendments affecting the same attribute/geometry in the same</span></span>
+<span id="cb16-58"><a href="#cb16-58" aria-hidden="true" tabindex="-1"></a><span class="co">#' period. temporary_protection amendments are treated as attribute amendments</span></span>
+<span id="cb16-59"><a href="#cb16-59" aria-hidden="true" tabindex="-1"></a><span class="co">#' for conflict purposes.</span></span>
+<span id="cb16-60"><a href="#cb16-60" aria-hidden="true" tabindex="-1"></a><span class="co">#'</span></span>
+<span id="cb16-61"><a href="#cb16-61" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param amendments_active Active amendments for an interval</span></span>
+<span id="cb16-62"><a href="#cb16-62" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param type "boundary" or "attribute"</span></span>
+<span id="cb16-63"><a href="#cb16-63" aria-hidden="true" tabindex="-1"></a><span class="co">#' @return FALSE if no conflict (throws error on conflict)</span></span>
+<span id="cb16-64"><a href="#cb16-64" aria-hidden="true" tabindex="-1"></a>check_conflicts <span class="ot">&lt;-</span> <span class="cf">function</span>(amendments_active, <span class="at">type =</span> <span class="st">"boundary"</span>) {</span>
+<span id="cb16-65"><a href="#cb16-65" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (type <span class="sc">==</span> <span class="st">"boundary"</span>) {</span>
+<span id="cb16-66"><a href="#cb16-66" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Multiple boundary_modifications in same period</span></span>
+<span id="cb16-67"><a href="#cb16-67" aria-hidden="true" tabindex="-1"></a>    boundary_mods <span class="ot">&lt;-</span> amendments_active <span class="sc">|&gt;</span></span>
+<span id="cb16-68"><a href="#cb16-68" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(amendment_type <span class="sc">==</span> <span class="st">"boundary_modification"</span>)</span>
+<span id="cb16-69"><a href="#cb16-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-70"><a href="#cb16-70" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">nrow</span>(boundary_mods) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
+<span id="cb16-71"><a href="#cb16-71" aria-hidden="true" tabindex="-1"></a>      <span class="fu">stop</span>(</span>
+<span id="cb16-72"><a href="#cb16-72" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Conflict: Multiple boundary_modification amendments active in same period:</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb16-73"><a href="#cb16-73" aria-hidden="true" tabindex="-1"></a>        <span class="fu">paste</span>(boundary_mods<span class="sc">$</span>amendment_id, <span class="at">collapse =</span> <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb16-74"><a href="#cb16-74" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb16-75"><a href="#cb16-75" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb16-76"><a href="#cb16-76" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> <span class="cf">if</span> (type <span class="sc">==</span> <span class="st">"attribute"</span>) {</span>
+<span id="cb16-77"><a href="#cb16-77" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Filter to amendments that actually have non-null attributes</span></span>
+<span id="cb16-78"><a href="#cb16-78" aria-hidden="true" tabindex="-1"></a>    attr_amendments <span class="ot">&lt;-</span> amendments_active <span class="sc">|&gt;</span></span>
+<span id="cb16-79"><a href="#cb16-79" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(<span class="fu">map_lgl</span>(attributes, <span class="sc">~</span> <span class="sc">!</span><span class="fu">is.null</span>(.x) <span class="sc">&amp;&amp;</span> <span class="fu">length</span>(.x) <span class="sc">&gt;</span> <span class="dv">0</span>))</span>
+<span id="cb16-80"><a href="#cb16-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-81"><a href="#cb16-81" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">nrow</span>(attr_amendments) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
+<span id="cb16-82"><a href="#cb16-82" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Check for overlapping attributes</span></span>
+<span id="cb16-83"><a href="#cb16-83" aria-hidden="true" tabindex="-1"></a>      all_attr_names <span class="ot">&lt;-</span> <span class="fu">map</span>(attr_amendments<span class="sc">$</span>attributes, names) <span class="sc">|&gt;</span></span>
+<span id="cb16-84"><a href="#cb16-84" aria-hidden="true" tabindex="-1"></a>        <span class="fu">unlist</span>()</span>
+<span id="cb16-85"><a href="#cb16-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-86"><a href="#cb16-86" aria-hidden="true" tabindex="-1"></a>      duplicated_attrs <span class="ot">&lt;-</span> all_attr_names[<span class="fu">duplicated</span>(all_attr_names)]</span>
+<span id="cb16-87"><a href="#cb16-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-88"><a href="#cb16-88" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="fu">length</span>(duplicated_attrs) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb16-89"><a href="#cb16-89" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> (attr_name <span class="cf">in</span> <span class="fu">unique</span>(duplicated_attrs)) {</span>
+<span id="cb16-90"><a href="#cb16-90" aria-hidden="true" tabindex="-1"></a>          conflicting <span class="ot">&lt;-</span> attr_amendments <span class="sc">|&gt;</span></span>
+<span id="cb16-91"><a href="#cb16-91" aria-hidden="true" tabindex="-1"></a>            <span class="fu">filter</span>(<span class="fu">map_lgl</span>(attributes, <span class="sc">~</span> attr_name <span class="sc">%in%</span> <span class="fu">names</span>(.x)))</span>
+<span id="cb16-92"><a href="#cb16-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-93"><a href="#cb16-93" aria-hidden="true" tabindex="-1"></a>          <span class="co"># Extract values for this attribute across conflicting amendments</span></span>
+<span id="cb16-94"><a href="#cb16-94" aria-hidden="true" tabindex="-1"></a>          values <span class="ot">&lt;-</span> <span class="fu">map_chr</span>(</span>
+<span id="cb16-95"><a href="#cb16-95" aria-hidden="true" tabindex="-1"></a>            conflicting<span class="sc">$</span>attributes,</span>
+<span id="cb16-96"><a href="#cb16-96" aria-hidden="true" tabindex="-1"></a>            <span class="sc">~</span> <span class="fu">as.character</span>(.x[[attr_name]])</span>
+<span id="cb16-97"><a href="#cb16-97" aria-hidden="true" tabindex="-1"></a>          )</span>
 <span id="cb16-98"><a href="#cb16-98" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-99"><a href="#cb16-99" aria-hidden="true" tabindex="-1"></a>  <span class="cn">FALSE</span></span>
-<span id="cb16-100"><a href="#cb16-100" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb16-99"><a href="#cb16-99" aria-hidden="true" tabindex="-1"></a>          <span class="co"># Only error if values actually differ (identical values = no conflict)</span></span>
+<span id="cb16-100"><a href="#cb16-100" aria-hidden="true" tabindex="-1"></a>          <span class="cf">if</span> (<span class="fu">n_distinct</span>(values) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
+<span id="cb16-101"><a href="#cb16-101" aria-hidden="true" tabindex="-1"></a>            <span class="fu">stop</span>(</span>
+<span id="cb16-102"><a href="#cb16-102" aria-hidden="true" tabindex="-1"></a>              <span class="st">"Conflict: Multiple amendments set different values for '"</span>,</span>
+<span id="cb16-103"><a href="#cb16-103" aria-hidden="true" tabindex="-1"></a>              attr_name,</span>
+<span id="cb16-104"><a href="#cb16-104" aria-hidden="true" tabindex="-1"></a>              <span class="st">"' in same period:</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb16-105"><a href="#cb16-105" aria-hidden="true" tabindex="-1"></a>              <span class="fu">paste</span>(</span>
+<span id="cb16-106"><a href="#cb16-106" aria-hidden="true" tabindex="-1"></a>                conflicting<span class="sc">$</span>amendment_id,</span>
+<span id="cb16-107"><a href="#cb16-107" aria-hidden="true" tabindex="-1"></a>                <span class="st">":"</span>,</span>
+<span id="cb16-108"><a href="#cb16-108" aria-hidden="true" tabindex="-1"></a>                values,</span>
+<span id="cb16-109"><a href="#cb16-109" aria-hidden="true" tabindex="-1"></a>                <span class="at">collapse =</span> <span class="st">"</span><span class="sc">\n</span><span class="st">"</span></span>
+<span id="cb16-110"><a href="#cb16-110" aria-hidden="true" tabindex="-1"></a>              )</span>
+<span id="cb16-111"><a href="#cb16-111" aria-hidden="true" tabindex="-1"></a>            )</span>
+<span id="cb16-112"><a href="#cb16-112" aria-hidden="true" tabindex="-1"></a>          }</span>
+<span id="cb16-113"><a href="#cb16-113" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb16-114"><a href="#cb16-114" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb16-115"><a href="#cb16-115" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb16-116"><a href="#cb16-116" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb16-117"><a href="#cb16-117" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-118"><a href="#cb16-118" aria-hidden="true" tabindex="-1"></a>  <span class="cn">FALSE</span></span>
+<span id="cb16-119"><a href="#cb16-119" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 </section>
@@ -747,220 +791,231 @@ Amendment types:</code></pre>
 <span id="cb17-39"><a href="#cb17-39" aria-hidden="true" tabindex="-1"></a>  df</span>
 <span id="cb17-40"><a href="#cb17-40" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb17-41"><a href="#cb17-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-42"><a href="#cb17-42" aria-hidden="true" tabindex="-1"></a><span class="co">#' Consolidate PA states by applying amendments</span></span>
+<span id="cb17-42"><a href="#cb17-42" aria-hidden="true" tabindex="-1"></a><span class="co">#' Build a deterministic, unique state identifier</span></span>
 <span id="cb17-43"><a href="#cb17-43" aria-hidden="true" tabindex="-1"></a><span class="co">#'</span></span>
-<span id="cb17-44"><a href="#cb17-44" aria-hidden="true" tabindex="-1"></a><span class="co">#' Main function that generates temporal states with zones for a single</span></span>
-<span id="cb17-45"><a href="#cb17-45" aria-hidden="true" tabindex="-1"></a><span class="co">#' protected area. Implements the "delta-only" model: amendments only document</span></span>
-<span id="cb17-46"><a href="#cb17-46" aria-hidden="true" tabindex="-1"></a><span class="co">#' differences from WDPA. The current period always inherits from WDPA unless</span></span>
-<span id="cb17-47"><a href="#cb17-47" aria-hidden="true" tabindex="-1"></a><span class="co">#' a correction amendment exists.</span></span>
-<span id="cb17-48"><a href="#cb17-48" aria-hidden="true" tabindex="-1"></a><span class="co">#'</span></span>
-<span id="cb17-49"><a href="#cb17-49" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param wdpaid WDPAID to process</span></span>
-<span id="cb17-50"><a href="#cb17-50" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param wdpa WDPA reference dataset</span></span>
-<span id="cb17-51"><a href="#cb17-51" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param amendments Amendment registry</span></span>
-<span id="cb17-52"><a href="#cb17-52" aria-hidden="true" tabindex="-1"></a><span class="co">#' @return sf object with one row per zone per temporal state</span></span>
-<span id="cb17-53"><a href="#cb17-53" aria-hidden="true" tabindex="-1"></a>consolidate_pa_states <span class="ot">&lt;-</span> <span class="cf">function</span>(wdpaid, wdpa, amendments) {</span>
-<span id="cb17-54"><a href="#cb17-54" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Get WDPA baseline (may be absent for dissolved/merged PAs)</span></span>
-<span id="cb17-55"><a href="#cb17-55" aria-hidden="true" tabindex="-1"></a>  wdpa_record <span class="ot">&lt;-</span> wdpa <span class="sc">|&gt;</span> <span class="fu">filter</span>(WDPAID <span class="sc">==</span> wdpaid)</span>
-<span id="cb17-56"><a href="#cb17-56" aria-hidden="true" tabindex="-1"></a>  has_wdpa <span class="ot">&lt;-</span> <span class="fu">nrow</span>(wdpa_record) <span class="sc">&gt;</span> <span class="dv">0</span></span>
-<span id="cb17-57"><a href="#cb17-57" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-58"><a href="#cb17-58" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Generate timeline</span></span>
-<span id="cb17-59"><a href="#cb17-59" aria-hidden="true" tabindex="-1"></a>  timeline <span class="ot">&lt;-</span> <span class="fu">generate_timeline</span>(wdpaid, wdpa, amendments)</span>
-<span id="cb17-60"><a href="#cb17-60" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-61"><a href="#cb17-61" aria-hidden="true" tabindex="-1"></a>  <span class="co"># For each interval, create state(s)</span></span>
-<span id="cb17-62"><a href="#cb17-62" aria-hidden="true" tabindex="-1"></a>  states <span class="ot">&lt;-</span> <span class="fu">map_dfr</span>(<span class="fu">seq_len</span>(<span class="fu">nrow</span>(timeline)), <span class="cf">function</span>(i) {</span>
-<span id="cb17-63"><a href="#cb17-63" aria-hidden="true" tabindex="-1"></a>    interval_start <span class="ot">&lt;-</span> timeline<span class="sc">$</span>interval_start[i]</span>
-<span id="cb17-64"><a href="#cb17-64" aria-hidden="true" tabindex="-1"></a>    interval_end <span class="ot">&lt;-</span> timeline<span class="sc">$</span>interval_end[i]</span>
-<span id="cb17-65"><a href="#cb17-65" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-66"><a href="#cb17-66" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Find active amendments</span></span>
-<span id="cb17-67"><a href="#cb17-67" aria-hidden="true" tabindex="-1"></a>    active_spatial <span class="ot">&lt;-</span> <span class="fu">find_active_amendments</span>(</span>
-<span id="cb17-68"><a href="#cb17-68" aria-hidden="true" tabindex="-1"></a>      amendments<span class="sc">$</span>spatial,</span>
-<span id="cb17-69"><a href="#cb17-69" aria-hidden="true" tabindex="-1"></a>      wdpaid,</span>
-<span id="cb17-70"><a href="#cb17-70" aria-hidden="true" tabindex="-1"></a>      interval_start,</span>
-<span id="cb17-71"><a href="#cb17-71" aria-hidden="true" tabindex="-1"></a>      interval_end</span>
-<span id="cb17-72"><a href="#cb17-72" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb17-73"><a href="#cb17-73" aria-hidden="true" tabindex="-1"></a>    active_attribute <span class="ot">&lt;-</span> <span class="fu">find_active_amendments</span>(</span>
-<span id="cb17-74"><a href="#cb17-74" aria-hidden="true" tabindex="-1"></a>      amendments<span class="sc">$</span>attribute,</span>
-<span id="cb17-75"><a href="#cb17-75" aria-hidden="true" tabindex="-1"></a>      wdpaid,</span>
-<span id="cb17-76"><a href="#cb17-76" aria-hidden="true" tabindex="-1"></a>      interval_start,</span>
-<span id="cb17-77"><a href="#cb17-77" aria-hidden="true" tabindex="-1"></a>      interval_end</span>
-<span id="cb17-78"><a href="#cb17-78" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb17-79"><a href="#cb17-79" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-80"><a href="#cb17-80" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Check conflicts</span></span>
-<span id="cb17-81"><a href="#cb17-81" aria-hidden="true" tabindex="-1"></a>    <span class="fu">check_conflicts</span>(active_spatial, <span class="st">"boundary"</span>)</span>
-<span id="cb17-82"><a href="#cb17-82" aria-hidden="true" tabindex="-1"></a>    <span class="fu">check_conflicts</span>(active_attribute, <span class="st">"attribute"</span>)</span>
-<span id="cb17-83"><a href="#cb17-83" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-84"><a href="#cb17-84" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Start with WDPA attributes or minimal skeleton for dissolved PAs</span></span>
-<span id="cb17-85"><a href="#cb17-85" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (has_wdpa) {</span>
-<span id="cb17-86"><a href="#cb17-86" aria-hidden="true" tabindex="-1"></a>      state_attrs <span class="ot">&lt;-</span> wdpa_record <span class="sc">|&gt;</span></span>
-<span id="cb17-87"><a href="#cb17-87" aria-hidden="true" tabindex="-1"></a>        <span class="fu">st_drop_geometry</span>() <span class="sc">|&gt;</span></span>
-<span id="cb17-88"><a href="#cb17-88" aria-hidden="true" tabindex="-1"></a>        <span class="fu">standardize_types</span>()</span>
-<span id="cb17-89"><a href="#cb17-89" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
-<span id="cb17-90"><a href="#cb17-90" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Dissolved/merged PA: build minimal skeleton from amendment metadata</span></span>
-<span id="cb17-91"><a href="#cb17-91" aria-hidden="true" tabindex="-1"></a>      pa_meta <span class="ot">&lt;-</span> amendments<span class="sc">$</span>all <span class="sc">|&gt;</span> <span class="fu">filter</span>(wdpaid <span class="sc">==</span> <span class="sc">!!</span>wdpaid) <span class="sc">|&gt;</span> <span class="fu">slice</span>(<span class="dv">1</span>)</span>
-<span id="cb17-92"><a href="#cb17-92" aria-hidden="true" tabindex="-1"></a>      state_attrs <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb17-93"><a href="#cb17-93" aria-hidden="true" tabindex="-1"></a>        <span class="at">WDPAID =</span> <span class="fu">as.character</span>(wdpaid),</span>
-<span id="cb17-94"><a href="#cb17-94" aria-hidden="true" tabindex="-1"></a>        <span class="at">NAME =</span> pa_meta<span class="sc">$</span>wdpa_name <span class="sc">%||%</span> <span class="fu">as.character</span>(wdpaid),</span>
-<span id="cb17-95"><a href="#cb17-95" aria-hidden="true" tabindex="-1"></a>        <span class="at">ISO3 =</span> pa_meta<span class="sc">$</span>amendment_id <span class="sc">|&gt;</span></span>
-<span id="cb17-96"><a href="#cb17-96" aria-hidden="true" tabindex="-1"></a>          <span class="fu">str_extract</span>(<span class="st">"^[A-Z]{3}"</span>) <span class="sc">%||%</span></span>
-<span id="cb17-97"><a href="#cb17-97" aria-hidden="true" tabindex="-1"></a>          <span class="cn">NA_character_</span></span>
-<span id="cb17-98"><a href="#cb17-98" aria-hidden="true" tabindex="-1"></a>      )</span>
-<span id="cb17-99"><a href="#cb17-99" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb17-100"><a href="#cb17-100" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-101"><a href="#cb17-101" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Apply attribute amendments (status_change, correction, temporary_protection)</span></span>
-<span id="cb17-102"><a href="#cb17-102" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Only amendments active in this interval override WDPA attributes.</span></span>
-<span id="cb17-103"><a href="#cb17-103" aria-hidden="true" tabindex="-1"></a>    <span class="co"># For the open period, WDPA baseline is used unless a correction exists.</span></span>
-<span id="cb17-104"><a href="#cb17-104" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">nrow</span>(active_attribute) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
-<span id="cb17-105"><a href="#cb17-105" aria-hidden="true" tabindex="-1"></a>      <span class="cf">for</span> (j <span class="cf">in</span> <span class="fu">seq_len</span>(<span class="fu">nrow</span>(active_attribute))) {</span>
-<span id="cb17-106"><a href="#cb17-106" aria-hidden="true" tabindex="-1"></a>        attrs <span class="ot">&lt;-</span> active_attribute<span class="sc">$</span>attributes[[j]]</span>
-<span id="cb17-107"><a href="#cb17-107" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(attrs)) {</span>
-<span id="cb17-108"><a href="#cb17-108" aria-hidden="true" tabindex="-1"></a>          <span class="cf">for</span> (attr_name <span class="cf">in</span> <span class="fu">names</span>(attrs)) {</span>
-<span id="cb17-109"><a href="#cb17-109" aria-hidden="true" tabindex="-1"></a>            state_attrs[[attr_name]] <span class="ot">&lt;-</span> <span class="fu">as.character</span>(attrs[[attr_name]])</span>
-<span id="cb17-110"><a href="#cb17-110" aria-hidden="true" tabindex="-1"></a>          }</span>
-<span id="cb17-111"><a href="#cb17-111" aria-hidden="true" tabindex="-1"></a>        }</span>
-<span id="cb17-112"><a href="#cb17-112" aria-hidden="true" tabindex="-1"></a>      }</span>
-<span id="cb17-113"><a href="#cb17-113" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb17-114"><a href="#cb17-114" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-115"><a href="#cb17-115" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Derive STATUS_YR from context:</span></span>
-<span id="cb17-116"><a href="#cb17-116" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Per WDPA manual, STATUS_YR = year the *current status* came into effect.</span></span>
-<span id="cb17-117"><a href="#cb17-117" aria-hidden="true" tabindex="-1"></a>    <span class="co">#</span></span>
-<span id="cb17-118"><a href="#cb17-118" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Two cases:</span></span>
-<span id="cb17-119"><a href="#cb17-119" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 1. A status_change/temporary_protection is active in this interval:</span></span>
-<span id="cb17-120"><a href="#cb17-120" aria-hidden="true" tabindex="-1"></a>    <span class="co">#    then STATUS_YR = year(valid_from) of that amendment (= when this</span></span>
-<span id="cb17-121"><a href="#cb17-121" aria-hidden="true" tabindex="-1"></a>    <span class="co">#      historical status started).</span></span>
-<span id="cb17-122"><a href="#cb17-122" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 2. No status amendment active in this interval:</span></span>
-<span id="cb17-123"><a href="#cb17-123" aria-hidden="true" tabindex="-1"></a>    <span class="co">#    then STATUS_YR comes from WDPA baseline or from a `correction` amendment</span></span>
-<span id="cb17-124"><a href="#cb17-124" aria-hidden="true" tabindex="-1"></a>    <span class="co">#      if one exists. Corrections are open-ended and already applied above.</span></span>
-<span id="cb17-125"><a href="#cb17-125" aria-hidden="true" tabindex="-1"></a>    <span class="co">#      When WDPA eventually fixes its STATUS_YR, the correction simply</span></span>
-<span id="cb17-126"><a href="#cb17-126" aria-hidden="true" tabindex="-1"></a>    <span class="co">#      overwrites with the same value (idempotent, no conflict).</span></span>
-<span id="cb17-127"><a href="#cb17-127" aria-hidden="true" tabindex="-1"></a>    status_amendments <span class="ot">&lt;-</span> active_attribute <span class="sc">|&gt;</span></span>
-<span id="cb17-128"><a href="#cb17-128" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(amendment_type <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"status_change"</span>, <span class="st">"temporary_protection"</span>))</span>
-<span id="cb17-129"><a href="#cb17-129" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-130"><a href="#cb17-130" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">nrow</span>(status_amendments) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
-<span id="cb17-131"><a href="#cb17-131" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Case 1: active status amendment -- year of its valid_from</span></span>
-<span id="cb17-132"><a href="#cb17-132" aria-hidden="true" tabindex="-1"></a>      status_yr_date <span class="ot">&lt;-</span> <span class="fu">max</span>(status_amendments<span class="sc">$</span>valid_from, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb17-133"><a href="#cb17-133" aria-hidden="true" tabindex="-1"></a>      state_attrs[[<span class="st">"STATUS_YR"</span>]] <span class="ot">&lt;-</span> <span class="fu">as.character</span>(<span class="fu">year</span>(status_yr_date))</span>
-<span id="cb17-134"><a href="#cb17-134" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb17-135"><a href="#cb17-135" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Case 2: no override needed — WDPA or correction already in state_attrs</span></span>
-<span id="cb17-136"><a href="#cb17-136" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-137"><a href="#cb17-137" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Pre-compute state_id outside mutate to avoid R 4.5 format()/prettyNum()</span></span>
-<span id="cb17-138"><a href="#cb17-138" aria-hidden="true" tabindex="-1"></a>    <span class="co"># interaction issues inside dplyr context</span></span>
-<span id="cb17-139"><a href="#cb17-139" aria-hidden="true" tabindex="-1"></a>    current_state_id <span class="ot">&lt;-</span> <span class="fu">paste0</span>(wdpaid, <span class="st">"_"</span>, <span class="fu">year</span>(interval_start))</span>
-<span id="cb17-140"><a href="#cb17-140" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-141"><a href="#cb17-141" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Create zones</span></span>
-<span id="cb17-142"><a href="#cb17-142" aria-hidden="true" tabindex="-1"></a>    zones <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
-<span id="cb17-143"><a href="#cb17-143" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-144"><a href="#cb17-144" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Zone 1: External boundary</span></span>
-<span id="cb17-145"><a href="#cb17-145" aria-hidden="true" tabindex="-1"></a>    boundary_mod <span class="ot">&lt;-</span> active_spatial <span class="sc">|&gt;</span></span>
-<span id="cb17-146"><a href="#cb17-146" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(amendment_type <span class="sc">==</span> <span class="st">"boundary_modification"</span>)</span>
-<span id="cb17-147"><a href="#cb17-147" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-148"><a href="#cb17-148" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">nrow</span>(boundary_mod) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
-<span id="cb17-149"><a href="#cb17-149" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Use amended boundary</span></span>
-<span id="cb17-150"><a href="#cb17-150" aria-hidden="true" tabindex="-1"></a>      geom <span class="ot">&lt;-</span> <span class="fu">st_read</span>(boundary_mod<span class="sc">$</span>geom_file[<span class="dv">1</span>], <span class="at">quiet =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb17-151"><a href="#cb17-151" aria-hidden="true" tabindex="-1"></a>      zones[[<span class="dv">1</span>]] <span class="ot">&lt;-</span> state_attrs <span class="sc">|&gt;</span></span>
-<span id="cb17-152"><a href="#cb17-152" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mutate</span>(</span>
-<span id="cb17-153"><a href="#cb17-153" aria-hidden="true" tabindex="-1"></a>          <span class="at">state_id =</span> current_state_id,</span>
-<span id="cb17-154"><a href="#cb17-154" aria-hidden="true" tabindex="-1"></a>          <span class="at">valid_from =</span> interval_start,</span>
-<span id="cb17-155"><a href="#cb17-155" aria-hidden="true" tabindex="-1"></a>          <span class="at">valid_to =</span> interval_end,</span>
-<span id="cb17-156"><a href="#cb17-156" aria-hidden="true" tabindex="-1"></a>          <span class="at">zone_type =</span> <span class="st">"external_boundary"</span>,</span>
-<span id="cb17-157"><a href="#cb17-157" aria-hidden="true" tabindex="-1"></a>          <span class="at">zone_name =</span> <span class="cn">NA_character_</span>,</span>
-<span id="cb17-158"><a href="#cb17-158" aria-hidden="true" tabindex="-1"></a>          <span class="at">amendment_source =</span> boundary_mod<span class="sc">$</span>amendment_id[<span class="dv">1</span>],</span>
-<span id="cb17-159"><a href="#cb17-159" aria-hidden="true" tabindex="-1"></a>          <span class="at">geometry_source_dataset_id =</span> boundary_mod<span class="sc">$</span>geometry_source_dataset[<span class="dv">1</span>],</span>
-<span id="cb17-160"><a href="#cb17-160" aria-hidden="true" tabindex="-1"></a>          <span class="at">geometry =</span> <span class="fu">st_geometry</span>(geom)[<span class="dv">1</span>]</span>
-<span id="cb17-161"><a href="#cb17-161" aria-hidden="true" tabindex="-1"></a>        ) <span class="sc">|&gt;</span></span>
-<span id="cb17-162"><a href="#cb17-162" aria-hidden="true" tabindex="-1"></a>        <span class="fu">st_as_sf</span>()</span>
-<span id="cb17-163"><a href="#cb17-163" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> <span class="cf">if</span> (has_wdpa) {</span>
-<span id="cb17-164"><a href="#cb17-164" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Use WDPA boundary with standardized types</span></span>
-<span id="cb17-165"><a href="#cb17-165" aria-hidden="true" tabindex="-1"></a>      zones[[<span class="dv">1</span>]] <span class="ot">&lt;-</span> wdpa_record <span class="sc">|&gt;</span></span>
-<span id="cb17-166"><a href="#cb17-166" aria-hidden="true" tabindex="-1"></a>        <span class="fu">standardize_types</span>() <span class="sc">|&gt;</span></span>
-<span id="cb17-167"><a href="#cb17-167" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mutate</span>(</span>
-<span id="cb17-168"><a href="#cb17-168" aria-hidden="true" tabindex="-1"></a>          <span class="at">state_id =</span> current_state_id,</span>
-<span id="cb17-169"><a href="#cb17-169" aria-hidden="true" tabindex="-1"></a>          <span class="at">valid_from =</span> interval_start,</span>
-<span id="cb17-170"><a href="#cb17-170" aria-hidden="true" tabindex="-1"></a>          <span class="at">valid_to =</span> interval_end,</span>
-<span id="cb17-171"><a href="#cb17-171" aria-hidden="true" tabindex="-1"></a>          <span class="at">zone_type =</span> <span class="st">"external_boundary"</span>,</span>
-<span id="cb17-172"><a href="#cb17-172" aria-hidden="true" tabindex="-1"></a>          <span class="at">zone_name =</span> <span class="cn">NA_character_</span>,</span>
-<span id="cb17-173"><a href="#cb17-173" aria-hidden="true" tabindex="-1"></a>          <span class="at">amendment_source =</span> <span class="st">"WDPA"</span>,</span>
-<span id="cb17-174"><a href="#cb17-174" aria-hidden="true" tabindex="-1"></a>          <span class="at">geometry_source_dataset_id =</span> <span class="st">"WDPA"</span></span>
-<span id="cb17-175"><a href="#cb17-175" aria-hidden="true" tabindex="-1"></a>        )</span>
-<span id="cb17-176"><a href="#cb17-176" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
-<span id="cb17-177"><a href="#cb17-177" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Dissolved PA without boundary amendment for this period: skip zone</span></span>
-<span id="cb17-178"><a href="#cb17-178" aria-hidden="true" tabindex="-1"></a>      <span class="fu">warning</span>(</span>
-<span id="cb17-179"><a href="#cb17-179" aria-hidden="true" tabindex="-1"></a>        <span class="st">"WDPAID "</span>,</span>
-<span id="cb17-180"><a href="#cb17-180" aria-hidden="true" tabindex="-1"></a>        wdpaid,</span>
-<span id="cb17-181"><a href="#cb17-181" aria-hidden="true" tabindex="-1"></a>        <span class="st">": no WDPA record and no boundary_modification "</span>,</span>
-<span id="cb17-182"><a href="#cb17-182" aria-hidden="true" tabindex="-1"></a>        <span class="st">"for interval ["</span>,</span>
-<span id="cb17-183"><a href="#cb17-183" aria-hidden="true" tabindex="-1"></a>        interval_start,</span>
-<span id="cb17-184"><a href="#cb17-184" aria-hidden="true" tabindex="-1"></a>        <span class="st">", "</span>,</span>
-<span id="cb17-185"><a href="#cb17-185" aria-hidden="true" tabindex="-1"></a>        interval_end,</span>
-<span id="cb17-186"><a href="#cb17-186" aria-hidden="true" tabindex="-1"></a>        <span class="st">")"</span></span>
-<span id="cb17-187"><a href="#cb17-187" aria-hidden="true" tabindex="-1"></a>      )</span>
-<span id="cb17-188"><a href="#cb17-188" aria-hidden="true" tabindex="-1"></a>      zones[[<span class="dv">1</span>]] <span class="ot">&lt;-</span> state_attrs <span class="sc">|&gt;</span></span>
-<span id="cb17-189"><a href="#cb17-189" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mutate</span>(</span>
-<span id="cb17-190"><a href="#cb17-190" aria-hidden="true" tabindex="-1"></a>          <span class="at">state_id =</span> current_state_id,</span>
-<span id="cb17-191"><a href="#cb17-191" aria-hidden="true" tabindex="-1"></a>          <span class="at">valid_from =</span> interval_start,</span>
-<span id="cb17-192"><a href="#cb17-192" aria-hidden="true" tabindex="-1"></a>          <span class="at">valid_to =</span> interval_end,</span>
-<span id="cb17-193"><a href="#cb17-193" aria-hidden="true" tabindex="-1"></a>          <span class="at">zone_type =</span> <span class="st">"external_boundary"</span>,</span>
-<span id="cb17-194"><a href="#cb17-194" aria-hidden="true" tabindex="-1"></a>          <span class="at">zone_name =</span> <span class="cn">NA_character_</span>,</span>
-<span id="cb17-195"><a href="#cb17-195" aria-hidden="true" tabindex="-1"></a>          <span class="at">amendment_source =</span> <span class="st">"amendments_only"</span>,</span>
-<span id="cb17-196"><a href="#cb17-196" aria-hidden="true" tabindex="-1"></a>          <span class="at">geometry_source_dataset_id =</span> <span class="cn">NA_character_</span>,</span>
-<span id="cb17-197"><a href="#cb17-197" aria-hidden="true" tabindex="-1"></a>          <span class="at">geometry =</span> <span class="fu">st_sfc</span>(<span class="fu">st_polygon</span>(), <span class="at">crs =</span> <span class="dv">4326</span>)</span>
-<span id="cb17-198"><a href="#cb17-198" aria-hidden="true" tabindex="-1"></a>        ) <span class="sc">|&gt;</span></span>
-<span id="cb17-199"><a href="#cb17-199" aria-hidden="true" tabindex="-1"></a>        <span class="fu">st_as_sf</span>()</span>
-<span id="cb17-200"><a href="#cb17-200" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb17-201"><a href="#cb17-201" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-202"><a href="#cb17-202" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Inherit amended attributes into boundary zone</span></span>
-<span id="cb17-203"><a href="#cb17-203" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (col <span class="cf">in</span> <span class="fu">names</span>(state_attrs)) {</span>
-<span id="cb17-204"><a href="#cb17-204" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (col <span class="sc">%in%</span> <span class="fu">names</span>(zones[[<span class="dv">1</span>]]) <span class="sc">&amp;&amp;</span> col <span class="sc">!=</span> <span class="st">"WDPAID"</span>) {</span>
-<span id="cb17-205"><a href="#cb17-205" aria-hidden="true" tabindex="-1"></a>        zones[[<span class="dv">1</span>]][[col]] <span class="ot">&lt;-</span> state_attrs[[col]]</span>
-<span id="cb17-206"><a href="#cb17-206" aria-hidden="true" tabindex="-1"></a>      }</span>
-<span id="cb17-207"><a href="#cb17-207" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb17-208"><a href="#cb17-208" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-209"><a href="#cb17-209" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Additional zones: Secondary zoning (may contain multiple features)</span></span>
-<span id="cb17-210"><a href="#cb17-210" aria-hidden="true" tabindex="-1"></a>    secondary_zones <span class="ot">&lt;-</span> active_spatial <span class="sc">|&gt;</span></span>
-<span id="cb17-211"><a href="#cb17-211" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(amendment_type <span class="sc">==</span> <span class="st">"secondary_zoning"</span>)</span>
-<span id="cb17-212"><a href="#cb17-212" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-213"><a href="#cb17-213" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">nrow</span>(secondary_zones) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
-<span id="cb17-214"><a href="#cb17-214" aria-hidden="true" tabindex="-1"></a>      <span class="cf">for</span> (j <span class="cf">in</span> <span class="fu">seq_len</span>(<span class="fu">nrow</span>(secondary_zones))) {</span>
-<span id="cb17-215"><a href="#cb17-215" aria-hidden="true" tabindex="-1"></a>        geom <span class="ot">&lt;-</span> <span class="fu">st_read</span>(secondary_zones<span class="sc">$</span>geom_file[j], <span class="at">quiet =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb17-216"><a href="#cb17-216" aria-hidden="true" tabindex="-1"></a>        n_features <span class="ot">&lt;-</span> <span class="fu">nrow</span>(geom)</span>
-<span id="cb17-217"><a href="#cb17-217" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-218"><a href="#cb17-218" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> (k <span class="cf">in</span> <span class="fu">seq_len</span>(n_features)) {</span>
-<span id="cb17-219"><a href="#cb17-219" aria-hidden="true" tabindex="-1"></a>          zone_name_val <span class="ot">&lt;-</span> <span class="cf">if</span> (<span class="st">"zone_name"</span> <span class="sc">%in%</span> <span class="fu">names</span>(geom)) {</span>
-<span id="cb17-220"><a href="#cb17-220" aria-hidden="true" tabindex="-1"></a>            geom<span class="sc">$</span>zone_name[k]</span>
-<span id="cb17-221"><a href="#cb17-221" aria-hidden="true" tabindex="-1"></a>          } <span class="cf">else</span> <span class="cf">if</span> (<span class="st">"name"</span> <span class="sc">%in%</span> <span class="fu">names</span>(geom)) {</span>
-<span id="cb17-222"><a href="#cb17-222" aria-hidden="true" tabindex="-1"></a>            geom<span class="sc">$</span>name[k]</span>
-<span id="cb17-223"><a href="#cb17-223" aria-hidden="true" tabindex="-1"></a>          } <span class="cf">else</span> {</span>
-<span id="cb17-224"><a href="#cb17-224" aria-hidden="true" tabindex="-1"></a>            <span class="fu">paste0</span>(<span class="st">"zone_"</span>, k)</span>
-<span id="cb17-225"><a href="#cb17-225" aria-hidden="true" tabindex="-1"></a>          }</span>
-<span id="cb17-226"><a href="#cb17-226" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-227"><a href="#cb17-227" aria-hidden="true" tabindex="-1"></a>          zone <span class="ot">&lt;-</span> state_attrs <span class="sc">|&gt;</span></span>
-<span id="cb17-228"><a href="#cb17-228" aria-hidden="true" tabindex="-1"></a>            <span class="fu">mutate</span>(</span>
-<span id="cb17-229"><a href="#cb17-229" aria-hidden="true" tabindex="-1"></a>              <span class="at">state_id =</span> current_state_id,</span>
-<span id="cb17-230"><a href="#cb17-230" aria-hidden="true" tabindex="-1"></a>              <span class="at">valid_from =</span> interval_start,</span>
-<span id="cb17-231"><a href="#cb17-231" aria-hidden="true" tabindex="-1"></a>              <span class="at">valid_to =</span> interval_end,</span>
-<span id="cb17-232"><a href="#cb17-232" aria-hidden="true" tabindex="-1"></a>              <span class="at">zone_type =</span> <span class="st">"secondary_zoning"</span>,</span>
-<span id="cb17-233"><a href="#cb17-233" aria-hidden="true" tabindex="-1"></a>              <span class="at">zone_name =</span> zone_name_val,</span>
-<span id="cb17-234"><a href="#cb17-234" aria-hidden="true" tabindex="-1"></a>              <span class="at">amendment_source =</span> secondary_zones<span class="sc">$</span>amendment_id[j],</span>
-<span id="cb17-235"><a href="#cb17-235" aria-hidden="true" tabindex="-1"></a>              <span class="at">geometry_source_dataset_id =</span> secondary_zones<span class="sc">$</span>geometry_source_dataset[j],</span>
-<span id="cb17-236"><a href="#cb17-236" aria-hidden="true" tabindex="-1"></a>              <span class="at">geometry =</span> <span class="fu">st_geometry</span>(geom)[k]</span>
-<span id="cb17-237"><a href="#cb17-237" aria-hidden="true" tabindex="-1"></a>            ) <span class="sc">|&gt;</span></span>
-<span id="cb17-238"><a href="#cb17-238" aria-hidden="true" tabindex="-1"></a>            <span class="fu">st_as_sf</span>()</span>
-<span id="cb17-239"><a href="#cb17-239" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-240"><a href="#cb17-240" aria-hidden="true" tabindex="-1"></a>          zones[[<span class="fu">length</span>(zones) <span class="sc">+</span> <span class="dv">1</span>]] <span class="ot">&lt;-</span> zone</span>
-<span id="cb17-241"><a href="#cb17-241" aria-hidden="true" tabindex="-1"></a>        }</span>
-<span id="cb17-242"><a href="#cb17-242" aria-hidden="true" tabindex="-1"></a>      }</span>
-<span id="cb17-243"><a href="#cb17-243" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb17-244"><a href="#cb17-244" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-245"><a href="#cb17-245" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Combine all zones for this state</span></span>
-<span id="cb17-246"><a href="#cb17-246" aria-hidden="true" tabindex="-1"></a>    <span class="fu">bind_rows</span>(zones)</span>
-<span id="cb17-247"><a href="#cb17-247" aria-hidden="true" tabindex="-1"></a>  })</span>
-<span id="cb17-248"><a href="#cb17-248" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-249"><a href="#cb17-249" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Restore Date class lost during bind_rows() across heterogeneous sf/tibble</span></span>
+<span id="cb17-44"><a href="#cb17-44" aria-hidden="true" tabindex="-1"></a><span class="co">#' A state is identified by its WDPAID and the exact start date of its</span></span>
+<span id="cb17-45"><a href="#cb17-45" aria-hidden="true" tabindex="-1"></a><span class="co">#' temporal interval (format YYYYMMDD). Two states of the same protected area</span></span>
+<span id="cb17-46"><a href="#cb17-46" aria-hidden="true" tabindex="-1"></a><span class="co">#' beginning in the same year thus receive distinct identifiers. States with</span></span>
+<span id="cb17-47"><a href="#cb17-47" aria-hidden="true" tabindex="-1"></a><span class="co">#' an undefined start date (valid_from = NA) receive a "NODATE" suffix; the</span></span>
+<span id="cb17-48"><a href="#cb17-48" aria-hidden="true" tabindex="-1"></a><span class="co">#' timeline of a PA cannot contain two undated intervals, so uniqueness is</span></span>
+<span id="cb17-49"><a href="#cb17-49" aria-hidden="true" tabindex="-1"></a><span class="co">#' preserved.</span></span>
+<span id="cb17-50"><a href="#cb17-50" aria-hidden="true" tabindex="-1"></a><span class="co">#'</span></span>
+<span id="cb17-51"><a href="#cb17-51" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param wdpaid WDPAID of the protected area (numeric or character)</span></span>
+<span id="cb17-52"><a href="#cb17-52" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param valid_from Start of validity of the state (Date or NA)</span></span>
+<span id="cb17-53"><a href="#cb17-53" aria-hidden="true" tabindex="-1"></a><span class="co">#' @return Character vector of state identifiers</span></span>
+<span id="cb17-54"><a href="#cb17-54" aria-hidden="true" tabindex="-1"></a>make_state_id <span class="ot">&lt;-</span> <span class="cf">function</span>(wdpaid, valid_from) {</span>
+<span id="cb17-55"><a href="#cb17-55" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ifelse</span>(</span>
+<span id="cb17-56"><a href="#cb17-56" aria-hidden="true" tabindex="-1"></a>    <span class="fu">is.na</span>(valid_from),</span>
+<span id="cb17-57"><a href="#cb17-57" aria-hidden="true" tabindex="-1"></a>    <span class="fu">paste0</span>(wdpaid, <span class="st">"_NODATE"</span>),</span>
+<span id="cb17-58"><a href="#cb17-58" aria-hidden="true" tabindex="-1"></a>    <span class="fu">paste0</span>(wdpaid, <span class="st">"_"</span>, <span class="fu">format</span>(valid_from, <span class="st">"%Y%m%d"</span>))</span>
+<span id="cb17-59"><a href="#cb17-59" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb17-60"><a href="#cb17-60" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb17-61"><a href="#cb17-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-62"><a href="#cb17-62" aria-hidden="true" tabindex="-1"></a><span class="co">#' Consolidate PA states by applying amendments</span></span>
+<span id="cb17-63"><a href="#cb17-63" aria-hidden="true" tabindex="-1"></a><span class="co">#'</span></span>
+<span id="cb17-64"><a href="#cb17-64" aria-hidden="true" tabindex="-1"></a><span class="co">#' Main function that generates temporal states with zones for a single</span></span>
+<span id="cb17-65"><a href="#cb17-65" aria-hidden="true" tabindex="-1"></a><span class="co">#' protected area. Implements the "delta-only" model: amendments only document</span></span>
+<span id="cb17-66"><a href="#cb17-66" aria-hidden="true" tabindex="-1"></a><span class="co">#' differences from WDPA. The current period always inherits from WDPA unless</span></span>
+<span id="cb17-67"><a href="#cb17-67" aria-hidden="true" tabindex="-1"></a><span class="co">#' a correction amendment exists.</span></span>
+<span id="cb17-68"><a href="#cb17-68" aria-hidden="true" tabindex="-1"></a><span class="co">#'</span></span>
+<span id="cb17-69"><a href="#cb17-69" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param wdpaid WDPAID to process</span></span>
+<span id="cb17-70"><a href="#cb17-70" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param wdpa WDPA reference dataset</span></span>
+<span id="cb17-71"><a href="#cb17-71" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param amendments Amendment registry</span></span>
+<span id="cb17-72"><a href="#cb17-72" aria-hidden="true" tabindex="-1"></a><span class="co">#' @return sf object with one row per zone per temporal state</span></span>
+<span id="cb17-73"><a href="#cb17-73" aria-hidden="true" tabindex="-1"></a>consolidate_pa_states <span class="ot">&lt;-</span> <span class="cf">function</span>(wdpaid, wdpa, amendments) {</span>
+<span id="cb17-74"><a href="#cb17-74" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Get WDPA baseline (may be absent for dissolved/merged PAs)</span></span>
+<span id="cb17-75"><a href="#cb17-75" aria-hidden="true" tabindex="-1"></a>  wdpa_record <span class="ot">&lt;-</span> wdpa <span class="sc">|&gt;</span> <span class="fu">filter</span>(WDPAID <span class="sc">==</span> wdpaid)</span>
+<span id="cb17-76"><a href="#cb17-76" aria-hidden="true" tabindex="-1"></a>  has_wdpa <span class="ot">&lt;-</span> <span class="fu">nrow</span>(wdpa_record) <span class="sc">&gt;</span> <span class="dv">0</span></span>
+<span id="cb17-77"><a href="#cb17-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-78"><a href="#cb17-78" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Generate timeline</span></span>
+<span id="cb17-79"><a href="#cb17-79" aria-hidden="true" tabindex="-1"></a>  timeline <span class="ot">&lt;-</span> <span class="fu">generate_timeline</span>(wdpaid, wdpa, amendments)</span>
+<span id="cb17-80"><a href="#cb17-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-81"><a href="#cb17-81" aria-hidden="true" tabindex="-1"></a>  <span class="co"># For each interval, create state(s)</span></span>
+<span id="cb17-82"><a href="#cb17-82" aria-hidden="true" tabindex="-1"></a>  states <span class="ot">&lt;-</span> <span class="fu">map_dfr</span>(<span class="fu">seq_len</span>(<span class="fu">nrow</span>(timeline)), <span class="cf">function</span>(i) {</span>
+<span id="cb17-83"><a href="#cb17-83" aria-hidden="true" tabindex="-1"></a>    interval_start <span class="ot">&lt;-</span> timeline<span class="sc">$</span>interval_start[i]</span>
+<span id="cb17-84"><a href="#cb17-84" aria-hidden="true" tabindex="-1"></a>    interval_end <span class="ot">&lt;-</span> timeline<span class="sc">$</span>interval_end[i]</span>
+<span id="cb17-85"><a href="#cb17-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-86"><a href="#cb17-86" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Find active amendments</span></span>
+<span id="cb17-87"><a href="#cb17-87" aria-hidden="true" tabindex="-1"></a>    active_spatial <span class="ot">&lt;-</span> <span class="fu">find_active_amendments</span>(</span>
+<span id="cb17-88"><a href="#cb17-88" aria-hidden="true" tabindex="-1"></a>      amendments<span class="sc">$</span>spatial,</span>
+<span id="cb17-89"><a href="#cb17-89" aria-hidden="true" tabindex="-1"></a>      wdpaid,</span>
+<span id="cb17-90"><a href="#cb17-90" aria-hidden="true" tabindex="-1"></a>      interval_start,</span>
+<span id="cb17-91"><a href="#cb17-91" aria-hidden="true" tabindex="-1"></a>      interval_end</span>
+<span id="cb17-92"><a href="#cb17-92" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb17-93"><a href="#cb17-93" aria-hidden="true" tabindex="-1"></a>    active_attribute <span class="ot">&lt;-</span> <span class="fu">find_active_amendments</span>(</span>
+<span id="cb17-94"><a href="#cb17-94" aria-hidden="true" tabindex="-1"></a>      amendments<span class="sc">$</span>attribute,</span>
+<span id="cb17-95"><a href="#cb17-95" aria-hidden="true" tabindex="-1"></a>      wdpaid,</span>
+<span id="cb17-96"><a href="#cb17-96" aria-hidden="true" tabindex="-1"></a>      interval_start,</span>
+<span id="cb17-97"><a href="#cb17-97" aria-hidden="true" tabindex="-1"></a>      interval_end</span>
+<span id="cb17-98"><a href="#cb17-98" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb17-99"><a href="#cb17-99" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-100"><a href="#cb17-100" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Check conflicts</span></span>
+<span id="cb17-101"><a href="#cb17-101" aria-hidden="true" tabindex="-1"></a>    <span class="fu">check_conflicts</span>(active_spatial, <span class="st">"boundary"</span>)</span>
+<span id="cb17-102"><a href="#cb17-102" aria-hidden="true" tabindex="-1"></a>    <span class="fu">check_conflicts</span>(active_attribute, <span class="st">"attribute"</span>)</span>
+<span id="cb17-103"><a href="#cb17-103" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-104"><a href="#cb17-104" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Start with WDPA attributes or minimal skeleton for dissolved PAs</span></span>
+<span id="cb17-105"><a href="#cb17-105" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (has_wdpa) {</span>
+<span id="cb17-106"><a href="#cb17-106" aria-hidden="true" tabindex="-1"></a>      state_attrs <span class="ot">&lt;-</span> wdpa_record <span class="sc">|&gt;</span></span>
+<span id="cb17-107"><a href="#cb17-107" aria-hidden="true" tabindex="-1"></a>        <span class="fu">st_drop_geometry</span>() <span class="sc">|&gt;</span></span>
+<span id="cb17-108"><a href="#cb17-108" aria-hidden="true" tabindex="-1"></a>        <span class="fu">standardize_types</span>()</span>
+<span id="cb17-109"><a href="#cb17-109" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb17-110"><a href="#cb17-110" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Dissolved/merged PA: build minimal skeleton from amendment metadata</span></span>
+<span id="cb17-111"><a href="#cb17-111" aria-hidden="true" tabindex="-1"></a>      pa_meta <span class="ot">&lt;-</span> amendments<span class="sc">$</span>all <span class="sc">|&gt;</span> <span class="fu">filter</span>(wdpaid <span class="sc">==</span> <span class="sc">!!</span>wdpaid) <span class="sc">|&gt;</span> <span class="fu">slice</span>(<span class="dv">1</span>)</span>
+<span id="cb17-112"><a href="#cb17-112" aria-hidden="true" tabindex="-1"></a>      state_attrs <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb17-113"><a href="#cb17-113" aria-hidden="true" tabindex="-1"></a>        <span class="at">WDPAID =</span> <span class="fu">as.character</span>(wdpaid),</span>
+<span id="cb17-114"><a href="#cb17-114" aria-hidden="true" tabindex="-1"></a>        <span class="at">NAME =</span> pa_meta<span class="sc">$</span>wdpa_name <span class="sc">%||%</span> <span class="fu">as.character</span>(wdpaid),</span>
+<span id="cb17-115"><a href="#cb17-115" aria-hidden="true" tabindex="-1"></a>        <span class="at">ISO3 =</span> pa_meta<span class="sc">$</span>amendment_id <span class="sc">|&gt;</span></span>
+<span id="cb17-116"><a href="#cb17-116" aria-hidden="true" tabindex="-1"></a>          <span class="fu">str_extract</span>(<span class="st">"^[A-Z]{3}"</span>) <span class="sc">%||%</span></span>
+<span id="cb17-117"><a href="#cb17-117" aria-hidden="true" tabindex="-1"></a>          <span class="cn">NA_character_</span></span>
+<span id="cb17-118"><a href="#cb17-118" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb17-119"><a href="#cb17-119" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb17-120"><a href="#cb17-120" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-121"><a href="#cb17-121" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Apply attribute amendments (status_change, correction, temporary_protection)</span></span>
+<span id="cb17-122"><a href="#cb17-122" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Only amendments active in this interval override WDPA attributes.</span></span>
+<span id="cb17-123"><a href="#cb17-123" aria-hidden="true" tabindex="-1"></a>    <span class="co"># For the open period, WDPA baseline is used unless a correction exists.</span></span>
+<span id="cb17-124"><a href="#cb17-124" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">nrow</span>(active_attribute) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb17-125"><a href="#cb17-125" aria-hidden="true" tabindex="-1"></a>      <span class="cf">for</span> (j <span class="cf">in</span> <span class="fu">seq_len</span>(<span class="fu">nrow</span>(active_attribute))) {</span>
+<span id="cb17-126"><a href="#cb17-126" aria-hidden="true" tabindex="-1"></a>        attrs <span class="ot">&lt;-</span> active_attribute<span class="sc">$</span>attributes[[j]]</span>
+<span id="cb17-127"><a href="#cb17-127" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(attrs)) {</span>
+<span id="cb17-128"><a href="#cb17-128" aria-hidden="true" tabindex="-1"></a>          <span class="cf">for</span> (attr_name <span class="cf">in</span> <span class="fu">names</span>(attrs)) {</span>
+<span id="cb17-129"><a href="#cb17-129" aria-hidden="true" tabindex="-1"></a>            state_attrs[[attr_name]] <span class="ot">&lt;-</span> <span class="fu">as.character</span>(attrs[[attr_name]])</span>
+<span id="cb17-130"><a href="#cb17-130" aria-hidden="true" tabindex="-1"></a>          }</span>
+<span id="cb17-131"><a href="#cb17-131" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb17-132"><a href="#cb17-132" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb17-133"><a href="#cb17-133" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb17-134"><a href="#cb17-134" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-135"><a href="#cb17-135" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Derive STATUS_YR from context:</span></span>
+<span id="cb17-136"><a href="#cb17-136" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Per WDPA manual, STATUS_YR = year the *current status* came into effect.</span></span>
+<span id="cb17-137"><a href="#cb17-137" aria-hidden="true" tabindex="-1"></a>    <span class="co">#</span></span>
+<span id="cb17-138"><a href="#cb17-138" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Two cases:</span></span>
+<span id="cb17-139"><a href="#cb17-139" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 1. A status_change/temporary_protection is active in this interval:</span></span>
+<span id="cb17-140"><a href="#cb17-140" aria-hidden="true" tabindex="-1"></a>    <span class="co">#    then STATUS_YR = year(valid_from) of that amendment (= when this</span></span>
+<span id="cb17-141"><a href="#cb17-141" aria-hidden="true" tabindex="-1"></a>    <span class="co">#      historical status started).</span></span>
+<span id="cb17-142"><a href="#cb17-142" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 2. No status amendment active in this interval:</span></span>
+<span id="cb17-143"><a href="#cb17-143" aria-hidden="true" tabindex="-1"></a>    <span class="co">#    then STATUS_YR comes from WDPA baseline or from a `correction` amendment</span></span>
+<span id="cb17-144"><a href="#cb17-144" aria-hidden="true" tabindex="-1"></a>    <span class="co">#      if one exists. Corrections are open-ended and already applied above.</span></span>
+<span id="cb17-145"><a href="#cb17-145" aria-hidden="true" tabindex="-1"></a>    <span class="co">#      When WDPA eventually fixes its STATUS_YR, the correction simply</span></span>
+<span id="cb17-146"><a href="#cb17-146" aria-hidden="true" tabindex="-1"></a>    <span class="co">#      overwrites with the same value (idempotent, no conflict).</span></span>
+<span id="cb17-147"><a href="#cb17-147" aria-hidden="true" tabindex="-1"></a>    status_amendments <span class="ot">&lt;-</span> active_attribute <span class="sc">|&gt;</span></span>
+<span id="cb17-148"><a href="#cb17-148" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(amendment_type <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"status_change"</span>, <span class="st">"temporary_protection"</span>))</span>
+<span id="cb17-149"><a href="#cb17-149" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-150"><a href="#cb17-150" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">nrow</span>(status_amendments) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb17-151"><a href="#cb17-151" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Case 1: active status amendment -- year of its valid_from</span></span>
+<span id="cb17-152"><a href="#cb17-152" aria-hidden="true" tabindex="-1"></a>      status_yr_date <span class="ot">&lt;-</span> <span class="fu">max</span>(status_amendments<span class="sc">$</span>valid_from, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb17-153"><a href="#cb17-153" aria-hidden="true" tabindex="-1"></a>      state_attrs[[<span class="st">"STATUS_YR"</span>]] <span class="ot">&lt;-</span> <span class="fu">as.character</span>(<span class="fu">year</span>(status_yr_date))</span>
+<span id="cb17-154"><a href="#cb17-154" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb17-155"><a href="#cb17-155" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Case 2: no override needed — WDPA or correction already in state_attrs</span></span>
+<span id="cb17-156"><a href="#cb17-156" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-157"><a href="#cb17-157" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Pre-compute state_id outside mutate to avoid R 4.5 format()/prettyNum()</span></span>
+<span id="cb17-158"><a href="#cb17-158" aria-hidden="true" tabindex="-1"></a>    <span class="co"># interaction issues inside dplyr context. Unique identifier: WDPAID and</span></span>
+<span id="cb17-159"><a href="#cb17-159" aria-hidden="true" tabindex="-1"></a>    <span class="co"># exact start date (YYYYMMDD) of the interval.</span></span>
+<span id="cb17-160"><a href="#cb17-160" aria-hidden="true" tabindex="-1"></a>    current_state_id <span class="ot">&lt;-</span> <span class="fu">make_state_id</span>(wdpaid, interval_start)</span>
+<span id="cb17-161"><a href="#cb17-161" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-162"><a href="#cb17-162" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Additional zones: Secondary zoning (may contain multiple features).</span></span>
+<span id="cb17-163"><a href="#cb17-163" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Identified before the external boundary so that an interval without any</span></span>
+<span id="cb17-164"><a href="#cb17-164" aria-hidden="true" tabindex="-1"></a>    <span class="co"># valid zone can be skipped entirely.</span></span>
+<span id="cb17-165"><a href="#cb17-165" aria-hidden="true" tabindex="-1"></a>    secondary_zones <span class="ot">&lt;-</span> active_spatial <span class="sc">|&gt;</span></span>
+<span id="cb17-166"><a href="#cb17-166" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(amendment_type <span class="sc">==</span> <span class="st">"secondary_zoning"</span>)</span>
+<span id="cb17-167"><a href="#cb17-167" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-168"><a href="#cb17-168" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Create zones</span></span>
+<span id="cb17-169"><a href="#cb17-169" aria-hidden="true" tabindex="-1"></a>    zones <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb17-170"><a href="#cb17-170" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-171"><a href="#cb17-171" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Zone 1: External boundary</span></span>
+<span id="cb17-172"><a href="#cb17-172" aria-hidden="true" tabindex="-1"></a>    boundary_mod <span class="ot">&lt;-</span> active_spatial <span class="sc">|&gt;</span></span>
+<span id="cb17-173"><a href="#cb17-173" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(amendment_type <span class="sc">==</span> <span class="st">"boundary_modification"</span>)</span>
+<span id="cb17-174"><a href="#cb17-174" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-175"><a href="#cb17-175" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">nrow</span>(boundary_mod) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb17-176"><a href="#cb17-176" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Use amended boundary</span></span>
+<span id="cb17-177"><a href="#cb17-177" aria-hidden="true" tabindex="-1"></a>      geom <span class="ot">&lt;-</span> <span class="fu">st_read</span>(boundary_mod<span class="sc">$</span>geom_file[<span class="dv">1</span>], <span class="at">quiet =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb17-178"><a href="#cb17-178" aria-hidden="true" tabindex="-1"></a>      zones[[<span class="dv">1</span>]] <span class="ot">&lt;-</span> state_attrs <span class="sc">|&gt;</span></span>
+<span id="cb17-179"><a href="#cb17-179" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mutate</span>(</span>
+<span id="cb17-180"><a href="#cb17-180" aria-hidden="true" tabindex="-1"></a>          <span class="at">state_id =</span> current_state_id,</span>
+<span id="cb17-181"><a href="#cb17-181" aria-hidden="true" tabindex="-1"></a>          <span class="at">valid_from =</span> interval_start,</span>
+<span id="cb17-182"><a href="#cb17-182" aria-hidden="true" tabindex="-1"></a>          <span class="at">valid_to =</span> interval_end,</span>
+<span id="cb17-183"><a href="#cb17-183" aria-hidden="true" tabindex="-1"></a>          <span class="at">zone_type =</span> <span class="st">"external_boundary"</span>,</span>
+<span id="cb17-184"><a href="#cb17-184" aria-hidden="true" tabindex="-1"></a>          <span class="at">zone_name =</span> <span class="cn">NA_character_</span>,</span>
+<span id="cb17-185"><a href="#cb17-185" aria-hidden="true" tabindex="-1"></a>          <span class="at">amendment_source =</span> boundary_mod<span class="sc">$</span>amendment_id[<span class="dv">1</span>],</span>
+<span id="cb17-186"><a href="#cb17-186" aria-hidden="true" tabindex="-1"></a>          <span class="at">geometry_source_dataset_id =</span> boundary_mod<span class="sc">$</span>geometry_source_dataset[<span class="dv">1</span>],</span>
+<span id="cb17-187"><a href="#cb17-187" aria-hidden="true" tabindex="-1"></a>          <span class="at">geometry =</span> <span class="fu">st_geometry</span>(geom)[<span class="dv">1</span>]</span>
+<span id="cb17-188"><a href="#cb17-188" aria-hidden="true" tabindex="-1"></a>        ) <span class="sc">|&gt;</span></span>
+<span id="cb17-189"><a href="#cb17-189" aria-hidden="true" tabindex="-1"></a>        <span class="fu">st_as_sf</span>()</span>
+<span id="cb17-190"><a href="#cb17-190" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> <span class="cf">if</span> (has_wdpa) {</span>
+<span id="cb17-191"><a href="#cb17-191" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Use WDPA boundary with standardized types</span></span>
+<span id="cb17-192"><a href="#cb17-192" aria-hidden="true" tabindex="-1"></a>      zones[[<span class="dv">1</span>]] <span class="ot">&lt;-</span> wdpa_record <span class="sc">|&gt;</span></span>
+<span id="cb17-193"><a href="#cb17-193" aria-hidden="true" tabindex="-1"></a>        <span class="fu">standardize_types</span>() <span class="sc">|&gt;</span></span>
+<span id="cb17-194"><a href="#cb17-194" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mutate</span>(</span>
+<span id="cb17-195"><a href="#cb17-195" aria-hidden="true" tabindex="-1"></a>          <span class="at">state_id =</span> current_state_id,</span>
+<span id="cb17-196"><a href="#cb17-196" aria-hidden="true" tabindex="-1"></a>          <span class="at">valid_from =</span> interval_start,</span>
+<span id="cb17-197"><a href="#cb17-197" aria-hidden="true" tabindex="-1"></a>          <span class="at">valid_to =</span> interval_end,</span>
+<span id="cb17-198"><a href="#cb17-198" aria-hidden="true" tabindex="-1"></a>          <span class="at">zone_type =</span> <span class="st">"external_boundary"</span>,</span>
+<span id="cb17-199"><a href="#cb17-199" aria-hidden="true" tabindex="-1"></a>          <span class="at">zone_name =</span> <span class="cn">NA_character_</span>,</span>
+<span id="cb17-200"><a href="#cb17-200" aria-hidden="true" tabindex="-1"></a>          <span class="at">amendment_source =</span> <span class="st">"WDPA"</span>,</span>
+<span id="cb17-201"><a href="#cb17-201" aria-hidden="true" tabindex="-1"></a>          <span class="at">geometry_source_dataset_id =</span> <span class="st">"WDPA"</span></span>
+<span id="cb17-202"><a href="#cb17-202" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb17-203"><a href="#cb17-203" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb17-204"><a href="#cb17-204" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Dissolved/merged PA with no WDPA record and no boundary_modification</span></span>
+<span id="cb17-205"><a href="#cb17-205" aria-hidden="true" tabindex="-1"></a>    <span class="co"># active in this interval: no external_boundary zone is produced for this</span></span>
+<span id="cb17-206"><a href="#cb17-206" aria-hidden="true" tabindex="-1"></a>    <span class="co"># interval. Any secondary zoning valid here is still created below; if no</span></span>
+<span id="cb17-207"><a href="#cb17-207" aria-hidden="true" tabindex="-1"></a>    <span class="co"># zone exists at all, the interval yields no row (no empty-geometry</span></span>
+<span id="cb17-208"><a href="#cb17-208" aria-hidden="true" tabindex="-1"></a>    <span class="co"># placeholder is created).</span></span>
+<span id="cb17-209"><a href="#cb17-209" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-210"><a href="#cb17-210" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Inherit amended attributes into boundary zone</span></span>
+<span id="cb17-211"><a href="#cb17-211" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">length</span>(zones) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb17-212"><a href="#cb17-212" aria-hidden="true" tabindex="-1"></a>      <span class="cf">for</span> (col <span class="cf">in</span> <span class="fu">names</span>(state_attrs)) {</span>
+<span id="cb17-213"><a href="#cb17-213" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (col <span class="sc">%in%</span> <span class="fu">names</span>(zones[[<span class="dv">1</span>]]) <span class="sc">&amp;&amp;</span> col <span class="sc">!=</span> <span class="st">"WDPAID"</span>) {</span>
+<span id="cb17-214"><a href="#cb17-214" aria-hidden="true" tabindex="-1"></a>          zones[[<span class="dv">1</span>]][[col]] <span class="ot">&lt;-</span> state_attrs[[col]]</span>
+<span id="cb17-215"><a href="#cb17-215" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb17-216"><a href="#cb17-216" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb17-217"><a href="#cb17-217" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb17-218"><a href="#cb17-218" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-219"><a href="#cb17-219" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">nrow</span>(secondary_zones) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb17-220"><a href="#cb17-220" aria-hidden="true" tabindex="-1"></a>      <span class="cf">for</span> (j <span class="cf">in</span> <span class="fu">seq_len</span>(<span class="fu">nrow</span>(secondary_zones))) {</span>
+<span id="cb17-221"><a href="#cb17-221" aria-hidden="true" tabindex="-1"></a>        geom <span class="ot">&lt;-</span> <span class="fu">st_read</span>(secondary_zones<span class="sc">$</span>geom_file[j], <span class="at">quiet =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb17-222"><a href="#cb17-222" aria-hidden="true" tabindex="-1"></a>        n_features <span class="ot">&lt;-</span> <span class="fu">nrow</span>(geom)</span>
+<span id="cb17-223"><a href="#cb17-223" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-224"><a href="#cb17-224" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> (k <span class="cf">in</span> <span class="fu">seq_len</span>(n_features)) {</span>
+<span id="cb17-225"><a href="#cb17-225" aria-hidden="true" tabindex="-1"></a>          zone_name_val <span class="ot">&lt;-</span> <span class="cf">if</span> (<span class="st">"zone_name"</span> <span class="sc">%in%</span> <span class="fu">names</span>(geom)) {</span>
+<span id="cb17-226"><a href="#cb17-226" aria-hidden="true" tabindex="-1"></a>            geom<span class="sc">$</span>zone_name[k]</span>
+<span id="cb17-227"><a href="#cb17-227" aria-hidden="true" tabindex="-1"></a>          } <span class="cf">else</span> <span class="cf">if</span> (<span class="st">"name"</span> <span class="sc">%in%</span> <span class="fu">names</span>(geom)) {</span>
+<span id="cb17-228"><a href="#cb17-228" aria-hidden="true" tabindex="-1"></a>            geom<span class="sc">$</span>name[k]</span>
+<span id="cb17-229"><a href="#cb17-229" aria-hidden="true" tabindex="-1"></a>          } <span class="cf">else</span> {</span>
+<span id="cb17-230"><a href="#cb17-230" aria-hidden="true" tabindex="-1"></a>            <span class="fu">paste0</span>(<span class="st">"zone_"</span>, k)</span>
+<span id="cb17-231"><a href="#cb17-231" aria-hidden="true" tabindex="-1"></a>          }</span>
+<span id="cb17-232"><a href="#cb17-232" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-233"><a href="#cb17-233" aria-hidden="true" tabindex="-1"></a>          zone <span class="ot">&lt;-</span> state_attrs <span class="sc">|&gt;</span></span>
+<span id="cb17-234"><a href="#cb17-234" aria-hidden="true" tabindex="-1"></a>            <span class="fu">mutate</span>(</span>
+<span id="cb17-235"><a href="#cb17-235" aria-hidden="true" tabindex="-1"></a>              <span class="at">state_id =</span> current_state_id,</span>
+<span id="cb17-236"><a href="#cb17-236" aria-hidden="true" tabindex="-1"></a>              <span class="at">valid_from =</span> interval_start,</span>
+<span id="cb17-237"><a href="#cb17-237" aria-hidden="true" tabindex="-1"></a>              <span class="at">valid_to =</span> interval_end,</span>
+<span id="cb17-238"><a href="#cb17-238" aria-hidden="true" tabindex="-1"></a>              <span class="at">zone_type =</span> <span class="st">"secondary_zoning"</span>,</span>
+<span id="cb17-239"><a href="#cb17-239" aria-hidden="true" tabindex="-1"></a>              <span class="at">zone_name =</span> zone_name_val,</span>
+<span id="cb17-240"><a href="#cb17-240" aria-hidden="true" tabindex="-1"></a>              <span class="at">amendment_source =</span> secondary_zones<span class="sc">$</span>amendment_id[j],</span>
+<span id="cb17-241"><a href="#cb17-241" aria-hidden="true" tabindex="-1"></a>              <span class="at">geometry_source_dataset_id =</span> secondary_zones<span class="sc">$</span>geometry_source_dataset[j],</span>
+<span id="cb17-242"><a href="#cb17-242" aria-hidden="true" tabindex="-1"></a>              <span class="at">geometry =</span> <span class="fu">st_geometry</span>(geom)[k]</span>
+<span id="cb17-243"><a href="#cb17-243" aria-hidden="true" tabindex="-1"></a>            ) <span class="sc">|&gt;</span></span>
+<span id="cb17-244"><a href="#cb17-244" aria-hidden="true" tabindex="-1"></a>            <span class="fu">st_as_sf</span>()</span>
+<span id="cb17-245"><a href="#cb17-245" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-246"><a href="#cb17-246" aria-hidden="true" tabindex="-1"></a>          zones[[<span class="fu">length</span>(zones) <span class="sc">+</span> <span class="dv">1</span>]] <span class="ot">&lt;-</span> zone</span>
+<span id="cb17-247"><a href="#cb17-247" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb17-248"><a href="#cb17-248" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb17-249"><a href="#cb17-249" aria-hidden="true" tabindex="-1"></a>    }</span>
 <span id="cb17-250"><a href="#cb17-250" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-251"><a href="#cb17-251" aria-hidden="true" tabindex="-1"></a>  states<span class="sc">$</span>valid_from <span class="ot">&lt;-</span> <span class="fu">as.Date</span>(states<span class="sc">$</span>valid_from, <span class="at">origin =</span> <span class="st">"1970-01-01"</span>)</span>
-<span id="cb17-252"><a href="#cb17-252" aria-hidden="true" tabindex="-1"></a>  states<span class="sc">$</span>valid_to <span class="ot">&lt;-</span> <span class="fu">as.Date</span>(states<span class="sc">$</span>valid_to, <span class="at">origin =</span> <span class="st">"1970-01-01"</span>)</span>
-<span id="cb17-253"><a href="#cb17-253" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-254"><a href="#cb17-254" aria-hidden="true" tabindex="-1"></a>  states</span>
-<span id="cb17-255"><a href="#cb17-255" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb17-251"><a href="#cb17-251" aria-hidden="true" tabindex="-1"></a>    <span class="co"># An interval with no valid zone at all produces no row</span></span>
+<span id="cb17-252"><a href="#cb17-252" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">length</span>(zones) <span class="sc">==</span> <span class="dv">0</span>) {</span>
+<span id="cb17-253"><a href="#cb17-253" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="cn">NULL</span>)</span>
+<span id="cb17-254"><a href="#cb17-254" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb17-255"><a href="#cb17-255" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-256"><a href="#cb17-256" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Combine all zones for this state</span></span>
+<span id="cb17-257"><a href="#cb17-257" aria-hidden="true" tabindex="-1"></a>    <span class="fu">bind_rows</span>(zones)</span>
+<span id="cb17-258"><a href="#cb17-258" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb17-259"><a href="#cb17-259" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-260"><a href="#cb17-260" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Restore Date class lost during bind_rows() across heterogeneous sf/tibble</span></span>
+<span id="cb17-261"><a href="#cb17-261" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-262"><a href="#cb17-262" aria-hidden="true" tabindex="-1"></a>  states<span class="sc">$</span>valid_from <span class="ot">&lt;-</span> <span class="fu">as.Date</span>(states<span class="sc">$</span>valid_from, <span class="at">origin =</span> <span class="st">"1970-01-01"</span>)</span>
+<span id="cb17-263"><a href="#cb17-263" aria-hidden="true" tabindex="-1"></a>  states<span class="sc">$</span>valid_to <span class="ot">&lt;-</span> <span class="fu">as.Date</span>(states<span class="sc">$</span>valid_to, <span class="at">origin =</span> <span class="st">"1970-01-01"</span>)</span>
+<span id="cb17-264"><a href="#cb17-264" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-265"><a href="#cb17-265" aria-hidden="true" tabindex="-1"></a>  states</span>
+<span id="cb17-266"><a href="#cb17-266" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 </section>
@@ -1068,15 +1123,11 @@ TIMELINE: Ankarafantsika (WDPAID: 1299 )
 │ STATUS_YR: 1927 
 │ ├─ Zone: external_boundary
 │ │  Source: MDG-1299-2002-boundary_modification-001 
-│ ├─ Zone: secondary_zoning ( zone_1 )
-│ │  Source: MDG-1299-NODATE-secondary_zoning-001 
 ┌─ 2002-08-07 to 2015-04-21 
 │ Status: Parc National ( II )
 │ STATUS_YR: 2002 
 │ ├─ Zone: external_boundary
 │ │  Source: MDG-1299-2015-boundary_modification-001 
-│ ├─ Zone: secondary_zoning ( zone_1 )
-│ │  Source: MDG-1299-NODATE-secondary_zoning-001 
 ┌─ 2015-04-21 to present 
 │ Status: Parc National ( II )
 │ STATUS_YR: 2002 
@@ -1102,15 +1153,13 @@ TIMELINE: Ankarafantsika (WDPAID: 1299 )
 <span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 6 × 7
-  state_id  valid_from valid_to   zone_type     DESIG STATUS_YR amendment_source
-  &lt;chr&gt;     &lt;date&gt;     &lt;date&gt;     &lt;chr&gt;         &lt;chr&gt; &lt;chr&gt;     &lt;chr&gt;           
-1 1299_1927 1927-12-31 2002-08-07 external_bou… Rése… 1927      MDG-1299-2002-b…
-2 1299_1927 1927-12-31 2002-08-07 secondary_zo… Rése… 1927      MDG-1299-NODATE…
-3 1299_2002 2002-08-07 2015-04-21 external_bou… Parc… 2002      MDG-1299-2015-b…
-4 1299_2002 2002-08-07 2015-04-21 secondary_zo… Parc… 2002      MDG-1299-NODATE…
-5 1299_2015 2015-04-21 NA         external_bou… Parc… 2002      WDPA            
-6 1299_2015 2015-04-21 NA         secondary_zo… Parc… 2002      MDG-1299-NODATE…</code></pre>
+<pre><code># A tibble: 4 × 7
+  state_id      valid_from valid_to   zone_type DESIG STATUS_YR amendment_source
+  &lt;chr&gt;         &lt;date&gt;     &lt;date&gt;     &lt;chr&gt;     &lt;chr&gt; &lt;chr&gt;     &lt;chr&gt;           
+1 1299_19271231 1927-12-31 2002-08-07 external… Rése… 1927      MDG-1299-2002-b…
+2 1299_20020807 2002-08-07 2015-04-21 external… Parc… 2002      MDG-1299-2015-b…
+3 1299_20150421 2015-04-21 NA         external… Parc… 2002      WDPA            
+4 1299_20150421 2015-04-21 NA         secondar… Parc… 2002      MDG-1299-NODATE…</code></pre>
 </div>
 </div>
 </section>
@@ -1172,43 +1221,30 @@ TIMELINE: Ankarafantsika (WDPAID: 1299 )
 <span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>⚠️ status_change avec STATUS_YR (à supprimer) :
-# A tibble: 1 × 2
-  amendment_id                    wdpaid
-  &lt;chr&gt;                            &lt;int&gt;
-1 MDG-5025-2015-status_change-001   5025</code></pre>
+<pre><code>✅ Pas de STATUS_YR dans les status_change</code></pre>
 </div>
 <details class="code-fold">
 <summary>Voir le code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. Pas de NODATE dans les amendment_id</span></span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>nodate_amendments <span class="ot">&lt;-</span> amendments<span class="sc">$</span>all <span class="sc">|&gt;</span></span>
-<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">str_detect</span>(amendment_id, <span class="st">"NODATE"</span>))</span>
-<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(nodate_amendments) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
-<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"\u26a0\ufe0f Amendements avec NODATE dans l'ID :</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>  nodate_amendments <span class="sc">|&gt;</span></span>
-<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(amendment_id, wdpaid, amendment_type, valid_from, valid_to) <span class="sc">|&gt;</span></span>
-<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span>()</span>
-<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
-<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"\u2705 Pas d'amendment_id avec NODATE</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. Coherence NODATE / dates : l'annee de l'amendment_id vient de valid_to</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="co">#    (ou de valid_from pour temporary_protection) ; NODATE est legitime des</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="co">#    que l'amendement est open-ended ou non date. Incoherent si NODATE alors</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a><span class="co">#    qu'une date de cloture existe.</span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>nodate_amendments <span class="ot">&lt;-</span> amendments<span class="sc">$</span>all <span class="sc">|&gt;</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">str_detect</span>(amendment_id, <span class="st">"NODATE"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(valid_to) <span class="sc">|</span></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>           (amendment_type <span class="sc">==</span> <span class="st">"temporary_protection"</span> <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(valid_from)))</span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(nodate_amendments) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"\u26a0\ufe0f Amendements avec NODATE dans l'ID mais dates incoherentes :</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>  nodate_amendments <span class="sc">|&gt;</span></span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(amendment_id, wdpaid, amendment_type, valid_from, valid_to) <span class="sc">|&gt;</span></span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span>()</span>
+<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"\u2705 NODATE dans l'ID uniquement pour les amendements ouverts ou non dates</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb29-17"><a href="#cb29-17" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>⚠️ Amendements avec NODATE dans l'ID :
-# A tibble: 82 × 5
-   amendment_id                      wdpaid amendment_type valid_from valid_to
-   &lt;chr&gt;                              &lt;int&gt; &lt;chr&gt;          &lt;date&gt;     &lt;date&gt;  
- 1 MDG-10634-NODATE-secondary_zonin…  10634 secondary_zon… NA         NA      
- 2 MDG-1299-NODATE-correction-001      1299 correction     2002-08-07 NA      
- 3 MDG-1299-NODATE-secondary_zoning…   1299 secondary_zon… NA         NA      
- 4 MDG-166880-NODATE-secondary_zoni… 166880 secondary_zon… NA         NA      
- 5 MDG-20272-NODATE-correction-001    20272 correction     1997-12-18 NA      
- 6 MDG-20273-NODATE-correction-001    20273 correction     1997-12-18 NA      
- 7 MDG-20287-NODATE-secondary_zonin…  20287 secondary_zon… NA         NA      
- 8 MDG-2303-NODATE-correction-001      2303 correction     1997-08-07 NA      
- 9 MDG-2303-NODATE-secondary_zoning…   2303 secondary_zon… NA         NA      
-10 MDG-2305-NODATE-secondary_zoning…   2305 secondary_zon… NA         NA      
-# ℹ 72 more rows</code></pre>
+<pre><code>✅ NODATE dans l'ID uniquement pour les amendements ouverts ou non dates</code></pre>
 </div>
 </div>
 </section>
@@ -1224,7 +1260,7 @@ TIMELINE: Ankarafantsika (WDPAID: 1299 )
 <span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Processing"</span>, <span class="fu">length</span>(wdpaids_with_amendments), <span class="st">"PAs with amendments...</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>Processing 115 PAs with amendments...</code></pre>
+<pre><code>Processing 116 PAs with amendments...</code></pre>
 </div>
 <details class="code-fold">
 <summary>Voir le code</summary>
@@ -1252,20 +1288,49 @@ TIMELINE: Ankarafantsika (WDPAID: 1299 )
 <span id="cb33-22"><a href="#cb33-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(WDPAID <span class="sc">%in%</span> wdpaids_without_amendments) <span class="sc">|&gt;</span></span>
 <span id="cb33-23"><a href="#cb33-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">standardize_types</span>() <span class="sc">|&gt;</span> <span class="co"># Use standard type conversion</span></span>
 <span id="cb33-24"><a href="#cb33-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb33-25"><a href="#cb33-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">state_id =</span> <span class="fu">paste0</span>(WDPAID, <span class="st">"_"</span>, STATUS_YR),</span>
-<span id="cb33-26"><a href="#cb33-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">valid_from =</span> <span class="fu">as.Date</span>(<span class="fu">paste0</span>(STATUS_YR, <span class="st">"-01-01"</span>)),</span>
-<span id="cb33-27"><a href="#cb33-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">valid_to =</span> <span class="fu">as.Date</span>(<span class="cn">NA</span>),</span>
-<span id="cb33-28"><a href="#cb33-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">zone_type =</span> <span class="st">"external_boundary"</span>,</span>
-<span id="cb33-29"><a href="#cb33-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">zone_name =</span> <span class="cn">NA_character_</span>,</span>
-<span id="cb33-30"><a href="#cb33-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">amendment_source =</span> <span class="st">"WDPA"</span>,</span>
-<span id="cb33-31"><a href="#cb33-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">geometry_source_dataset_id =</span> <span class="st">"WDPA"</span></span>
-<span id="cb33-32"><a href="#cb33-32" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb33-33"><a href="#cb33-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-34"><a href="#cb33-34" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine</span></span>
-<span id="cb33-35"><a href="#cb33-35" aria-hidden="true" tabindex="-1"></a>dynamic_wdpa_full <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(dynamic_wdpa, baseline_states)</span>
-<span id="cb33-36"><a href="#cb33-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-37"><a href="#cb33-37" aria-hidden="true" tabindex="-1"></a><span class="co"># Summary</span></span>
-<span id="cb33-38"><a href="#cb33-38" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">Dynamic WDPA generated:</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb33-25"><a href="#cb33-25" aria-hidden="true" tabindex="-1"></a>    <span class="co"># STATUS_YR = 0 or missing means unreported year: valid_from stays NA</span></span>
+<span id="cb33-26"><a href="#cb33-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">valid_from =</span> <span class="fu">status_yr_to_date</span>(STATUS_YR),</span>
+<span id="cb33-27"><a href="#cb33-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">valid_to =</span> <span class="fu">as.Date</span>(<span class="cn">NA</span>)</span>
+<span id="cb33-28"><a href="#cb33-28" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb33-29"><a href="#cb33-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-30"><a href="#cb33-30" aria-hidden="true" tabindex="-1"></a><span class="co"># Unique identifier: WDPAID and exact start date (YYYYMMDD) of the state.</span></span>
+<span id="cb33-31"><a href="#cb33-31" aria-hidden="true" tabindex="-1"></a><span class="co"># Computed outside mutate to avoid R 4.5 format()/prettyNum() interaction</span></span>
+<span id="cb33-32"><a href="#cb33-32" aria-hidden="true" tabindex="-1"></a><span class="co"># issues inside dplyr context</span></span>
+<span id="cb33-33"><a href="#cb33-33" aria-hidden="true" tabindex="-1"></a>baseline_states<span class="sc">$</span>state_id <span class="ot">&lt;-</span> <span class="fu">make_state_id</span>(</span>
+<span id="cb33-34"><a href="#cb33-34" aria-hidden="true" tabindex="-1"></a>  baseline_states<span class="sc">$</span>WDPAID,</span>
+<span id="cb33-35"><a href="#cb33-35" aria-hidden="true" tabindex="-1"></a>  baseline_states<span class="sc">$</span>valid_from</span>
+<span id="cb33-36"><a href="#cb33-36" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb33-37"><a href="#cb33-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-38"><a href="#cb33-38" aria-hidden="true" tabindex="-1"></a>baseline_states <span class="ot">&lt;-</span> baseline_states <span class="sc">|&gt;</span></span>
+<span id="cb33-39"><a href="#cb33-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb33-40"><a href="#cb33-40" aria-hidden="true" tabindex="-1"></a>    <span class="at">zone_type =</span> <span class="st">"external_boundary"</span>,</span>
+<span id="cb33-41"><a href="#cb33-41" aria-hidden="true" tabindex="-1"></a>    <span class="at">zone_name =</span> <span class="cn">NA_character_</span>,</span>
+<span id="cb33-42"><a href="#cb33-42" aria-hidden="true" tabindex="-1"></a>    <span class="at">amendment_source =</span> <span class="st">"WDPA"</span>,</span>
+<span id="cb33-43"><a href="#cb33-43" aria-hidden="true" tabindex="-1"></a>    <span class="at">geometry_source_dataset_id =</span> <span class="st">"WDPA"</span></span>
+<span id="cb33-44"><a href="#cb33-44" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb33-45"><a href="#cb33-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-46"><a href="#cb33-46" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine</span></span>
+<span id="cb33-47"><a href="#cb33-47" aria-hidden="true" tabindex="-1"></a>dynamic_wdpa_full <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(dynamic_wdpa, baseline_states)</span>
+<span id="cb33-48"><a href="#cb33-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-49"><a href="#cb33-49" aria-hidden="true" tabindex="-1"></a><span class="co"># Fail-fast check: state_id must identify exactly one temporal state</span></span>
+<span id="cb33-50"><a href="#cb33-50" aria-hidden="true" tabindex="-1"></a><span class="co"># (one (WDPAID, valid_from) pair), even when a state contains several zones.</span></span>
+<span id="cb33-51"><a href="#cb33-51" aria-hidden="true" tabindex="-1"></a>n_states <span class="ot">&lt;-</span> dynamic_wdpa_full <span class="sc">|&gt;</span></span>
+<span id="cb33-52"><a href="#cb33-52" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_drop_geometry</span>() <span class="sc">|&gt;</span></span>
+<span id="cb33-53"><a href="#cb33-53" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(WDPAID, valid_from) <span class="sc">|&gt;</span></span>
+<span id="cb33-54"><a href="#cb33-54" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nrow</span>()</span>
+<span id="cb33-55"><a href="#cb33-55" aria-hidden="true" tabindex="-1"></a>n_state_ids <span class="ot">&lt;-</span> <span class="fu">n_distinct</span>(dynamic_wdpa_full<span class="sc">$</span>state_id)</span>
+<span id="cb33-56"><a href="#cb33-56" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (n_state_ids <span class="sc">!=</span> n_states) {</span>
+<span id="cb33-57"><a href="#cb33-57" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stop</span>(</span>
+<span id="cb33-58"><a href="#cb33-58" aria-hidden="true" tabindex="-1"></a>    <span class="st">"state_id uniqueness violated: "</span>,</span>
+<span id="cb33-59"><a href="#cb33-59" aria-hidden="true" tabindex="-1"></a>    n_states,</span>
+<span id="cb33-60"><a href="#cb33-60" aria-hidden="true" tabindex="-1"></a>    <span class="st">" temporal states but "</span>,</span>
+<span id="cb33-61"><a href="#cb33-61" aria-hidden="true" tabindex="-1"></a>    n_state_ids,</span>
+<span id="cb33-62"><a href="#cb33-62" aria-hidden="true" tabindex="-1"></a>    <span class="st">" distinct state_id values"</span></span>
+<span id="cb33-63"><a href="#cb33-63" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb33-64"><a href="#cb33-64" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb33-65"><a href="#cb33-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-66"><a href="#cb33-66" aria-hidden="true" tabindex="-1"></a><span class="co"># Summary</span></span>
+<span id="cb33-67"><a href="#cb33-67" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">Dynamic WDPA generated:</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>
@@ -1283,21 +1348,21 @@ Dynamic WDPA generated:</code></pre>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"  Total zones:"</span>, <span class="fu">nrow</span>(dynamic_wdpa_full), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>  Total zones: 507 </code></pre>
+<pre><code>  Total zones: 431 </code></pre>
 </div>
 <details class="code-fold">
 <summary>Voir le code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"  PAs with amendments:"</span>, <span class="fu">length</span>(wdpaids_with_amendments), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>  PAs with amendments: 115 </code></pre>
+<pre><code>  PAs with amendments: 116 </code></pre>
 </div>
 <details class="code-fold">
 <summary>Voir le code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"  PAs baseline only:"</span>, <span class="fu">length</span>(wdpaids_without_amendments), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>  PAs baseline only: 53 </code></pre>
+<pre><code>  PAs baseline only: 52 </code></pre>
 </div>
 <details class="code-fold">
 <summary>Voir le code</summary>
@@ -1307,20 +1372,20 @@ Dynamic WDPA generated:</code></pre>
 <span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 86 × 2
+<pre><code># A tibble: 91 × 2
    amendment_source                             n
    &lt;chr&gt;                                    &lt;int&gt;
  1 MDG-10634-2015-boundary_modification-001     1
- 2 MDG-10634-NODATE-secondary_zoning-001        2
+ 2 MDG-10634-NODATE-secondary_zoning-001        1
  3 MDG-1299-2002-boundary_modification-001      1
  4 MDG-1299-2015-boundary_modification-001      1
- 5 MDG-1299-NODATE-secondary_zoning-001         3
- 6 MDG-166880-NODATE-secondary_zoning-001       2
- 7 MDG-20287-NODATE-secondary_zoning-001        1
- 8 MDG-2303-2015-boundary_modification-001      2
- 9 MDG-2303-NODATE-secondary_zoning-001         3
-10 MDG-2305-NODATE-secondary_zoning-001         2
-# ℹ 76 more rows</code></pre>
+ 5 MDG-1299-NODATE-secondary_zoning-001         1
+ 6 MDG-166880-NODATE-secondary_zoning-001       1
+ 7 MDG-20272-NODATE-secondary_zoning-001        1
+ 8 MDG-20273-NODATE-secondary_zoning-001        1
+ 9 MDG-20287-NODATE-secondary_zoning-001        1
+10 MDG-2303-2015-boundary_modification-001      2
+# ℹ 81 more rows</code></pre>
 </div>
 </div>
 </section>
@@ -1340,7 +1405,7 @@ Dynamic WDPA generated:</code></pre>
 <pre><code>Deleting source `data/dynamic_wdpa.gpkg' using driver `GPKG'
 Writing layer `dynamic_wdpa' to data source 
   `data/dynamic_wdpa.gpkg' using driver `GPKG'
-Writing 507 features with 35 fields and geometry type Unknown (any).</code></pre>
+Writing 431 features with 35 fields and geometry type Unknown (any).</code></pre>
 </div>
 <details class="code-fold">
 <summary>Voir le code</summary>
@@ -1399,15 +1464,11 @@ TIMELINE: Ankarafantsika (WDPAID: 1299 )
 │ STATUS_YR: 1927 
 │ ├─ Zone: external_boundary
 │ │  Source: MDG-1299-2002-boundary_modification-001 
-│ ├─ Zone: secondary_zoning ( zone_1 )
-│ │  Source: MDG-1299-NODATE-secondary_zoning-001 
 ┌─ 2002-08-07 to 2015-04-21 
 │ Status: Parc National ( II )
 │ STATUS_YR: 2002 
 │ ├─ Zone: external_boundary
 │ │  Source: MDG-1299-2015-boundary_modification-001 
-│ ├─ Zone: secondary_zoning ( zone_1 )
-│ │  Source: MDG-1299-NODATE-secondary_zoning-001 
 ┌─ 2015-04-21 to present 
 │ Status: Parc National ( II )
 │ STATUS_YR: 2002 
@@ -1433,8 +1494,6 @@ TIMELINE: Beza Mahafaly (WDPAID: 10634 )
 │ STATUS_YR: 1986 
 │ ├─ Zone: external_boundary
 │ │  Source: MDG-10634-2015-boundary_modification-001 
-│ ├─ Zone: secondary_zoning ( zone_1 )
-│ │  Source: MDG-10634-NODATE-secondary_zoning-001 
 ┌─ 2015-04-21 to present 
 │ Status: Reserve Speciale ( IV )
 │ STATUS_YR: 1986 
@@ -1460,15 +1519,11 @@ TIMELINE: Tsimanampesotse (WDPAID: 2307 )
 │ STATUS_YR: 1927 
 │ ├─ Zone: external_boundary
 │ │  Source: MDG-2307-2015-boundary_modification-001 
-│ ├─ Zone: secondary_zoning ( zone_1 )
-│ │  Source: MDG-2307-NODATE-secondary_zoning-001 
 ┌─ 2002-08-07 to 2015-04-21 
 │ Status: Parc National ( II )
 │ STATUS_YR: 2002 
 │ ├─ Zone: external_boundary
 │ │  Source: MDG-2307-2015-boundary_modification-001 
-│ ├─ Zone: secondary_zoning ( zone_1 )
-│ │  Source: MDG-2307-NODATE-secondary_zoning-001 
 ┌─ 2015-04-21 to present 
 │ Status: Parc National ( II )
 │ STATUS_YR: 2002 

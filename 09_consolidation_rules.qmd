@@ -173,10 +173,28 @@ amendments$all |>
 Création d'intervalles temporels non chevauchants en combinant tous les marqueurs de dates issus de WDPA et des amendements.
 
 ```{r timeline}
+#' Convert WDPA STATUS_YR to a Date
+#'
+#' STATUS_YR = 0 in the WDPCA means the status year is not reported; it is not
+#' the year 0000. Missing, blank or non-numeric values are treated the same way.
+#' The raw STATUS_YR attribute itself is never altered; only the derived
+#' temporal field uses this conversion.
+#'
+#' @param status_yr STATUS_YR value or vector (numeric or character)
+#' @return Date vector (YYYY-01-01), NA when the year is unknown
+status_yr_to_date <- function(status_yr) {
+  yr <- suppressWarnings(as.numeric(status_yr))
+  ok <- !is.na(yr) & is.finite(yr) & yr > 0
+  out <- rep(as.Date(NA), length(yr))
+  out[ok] <- as.Date(sprintf("%04.0f-01-01", yr[ok]))
+  out
+}
+
 #' Generate timeline breakpoints for a protected area
 #'
 #' Collects all temporal markers (STATUS_YR from WDPA, valid_from/valid_to from
-#' amendments) and creates non-overlapping intervals.
+#' amendments) and creates non-overlapping intervals. STATUS_YR = 0 or missing
+#' means an unreported year: it produces no breakpoint.
 #'
 #' @param wdpaid_val WDPAID to generate timeline for
 #' @param wdpa WDPA reference dataset
@@ -208,12 +226,12 @@ generate_timeline <- function(wdpaid_val, wdpa, amendments) {
   #    segmentation and STATUS_YR would create spurious intervals.
   wdpa_date <- NULL
   if (nrow(wdpa_record) > 0) {
-    status_yr_date <- as.Date(paste0(wdpa_record$STATUS_YR[1], "-01-01"))
+    status_yr_date <- status_yr_to_date(wdpa_record$STATUS_YR[1])
 
     if (length(amendment_dates) == 0) {
       # Case 1: no amendments at all
       wdpa_date <- status_yr_date
-    } else {
+    } else if (!is.na(status_yr_date)) {
       # Case 2: check for spatial amendments missing valid_from
       spatial_no_from <- pa_amendments |>
         filter(amendment_kind == "spatial",
@@ -222,7 +240,6 @@ generate_timeline <- function(wdpaid_val, wdpa, amendments) {
                !is.na(valid_to))
 
       if (nrow(spatial_no_from) > 0) {
-        earliest_valid_to <- min(spatial_no_from$valid_to)
         # Only add STATUS_YR if it is strictly earlier than all existing dates
         if (status_yr_date < min(amendment_dates)) {
           wdpa_date <- status_yr_date
@@ -231,9 +248,17 @@ generate_timeline <- function(wdpaid_val, wdpa, amendments) {
     }
   }
 
-  dates <- c(wdpa_date, amendment_dates) |>
+  dates <- c(wdpa_date, amendment_dates)
+  # An unknown STATUS_YR (NA) is not a chronology breakpoint
+  dates <- dates[!is.na(dates)] |>
     unique() |>
     sort()
+
+  # No usable breakpoint at all: fall back to a single undated state
+  # (deterministic) rather than inventing year 0000
+  if (length(dates) == 0) {
+    return(tibble(interval_start = as.Date(NA), interval_end = as.Date(NA)))
+  }
 
   # Restore Date class if lost during c() / unique() / sort()
   dates <- as.Date(dates, origin = "1970-01-01")
@@ -268,6 +293,12 @@ generate_timeline <- function(wdpaid_val, wdpa, amendments) {
 #' - It starts before the interval ends (or interval is open-ended)
 #' - It ends after the interval starts (or amendment is open-ended)
 #'
+#' Exception for secondary_zoning: an amendment with both bounds unknown has
+#' no documented historical validity, so it is attached only to the current
+#' open-ended state of the PA (interval_end = NA), never to closed historical
+#' states. Other amendment types keep the ordinary interpretation of undated
+#' validity.
+#'
 #' @param amendments_df Amendment registry subset (spatial or attribute)
 #' @param wdpaid_val WDPAID to filter
 #' @param interval_start Start of interval (inclusive)
@@ -286,14 +317,27 @@ find_active_amendments <- function(
     interval_end
   }
 
-  amendments_df |>
+  active <- amendments_df |>
     filter(wdpaid == wdpaid_val) |>
     filter(
       # Amendment starts before interval ends
       (is.na(valid_from) | valid_from < effective_end) &
         # Amendment ends after interval starts
-        (is.na(valid_to) | valid_to > interval_start)
+        (is.na(valid_to) | is.na(interval_start) | valid_to > interval_start)
     )
+
+  # Undated secondary_zoning (both bounds NA): only active in the current
+  # open-ended state. Dated secondary_zoning keeps ordinary overlap rules.
+  if (!is.na(interval_end)) {
+    active <- active |>
+      filter(
+        !(amendment_type == "secondary_zoning" &
+          is.na(valid_from) &
+          is.na(valid_to))
+      )
+  }
+
+  active
 }
 
 #' Check for conflicts in amendments
@@ -409,6 +453,26 @@ standardize_types <- function(df) {
   df
 }
 
+#' Build a deterministic, unique state identifier
+#'
+#' A state is identified by its WDPAID and the exact start date of its
+#' temporal interval (format YYYYMMDD). Two states of the same protected area
+#' beginning in the same year thus receive distinct identifiers. States with
+#' an undefined start date (valid_from = NA) receive a "NODATE" suffix; the
+#' timeline of a PA cannot contain two undated intervals, so uniqueness is
+#' preserved.
+#'
+#' @param wdpaid WDPAID of the protected area (numeric or character)
+#' @param valid_from Start of validity of the state (Date or NA)
+#' @return Character vector of state identifiers
+make_state_id <- function(wdpaid, valid_from) {
+  ifelse(
+    is.na(valid_from),
+    paste0(wdpaid, "_NODATE"),
+    paste0(wdpaid, "_", format(valid_from, "%Y%m%d"))
+  )
+}
+
 #' Consolidate PA states by applying amendments
 #'
 #' Main function that generates temporal states with zones for a single
@@ -505,8 +569,15 @@ consolidate_pa_states <- function(wdpaid, wdpa, amendments) {
     # Case 2: no override needed — WDPA or correction already in state_attrs
 
     # Pre-compute state_id outside mutate to avoid R 4.5 format()/prettyNum()
-    # interaction issues inside dplyr context
-    current_state_id <- paste0(wdpaid, "_", year(interval_start))
+    # interaction issues inside dplyr context. Unique identifier: WDPAID and
+    # exact start date (YYYYMMDD) of the interval.
+    current_state_id <- make_state_id(wdpaid, interval_start)
+
+    # Additional zones: Secondary zoning (may contain multiple features).
+    # Identified before the external boundary so that an interval without any
+    # valid zone can be skipped entirely.
+    secondary_zones <- active_spatial |>
+      filter(amendment_type == "secondary_zoning")
 
     # Create zones
     zones <- list()
@@ -543,42 +614,21 @@ consolidate_pa_states <- function(wdpaid, wdpa, amendments) {
           amendment_source = "WDPA",
           geometry_source_dataset_id = "WDPA"
         )
-    } else {
-      # Dissolved PA without boundary amendment for this period: skip zone
-      warning(
-        "WDPAID ",
-        wdpaid,
-        ": no WDPA record and no boundary_modification ",
-        "for interval [",
-        interval_start,
-        ", ",
-        interval_end,
-        ")"
-      )
-      zones[[1]] <- state_attrs |>
-        mutate(
-          state_id = current_state_id,
-          valid_from = interval_start,
-          valid_to = interval_end,
-          zone_type = "external_boundary",
-          zone_name = NA_character_,
-          amendment_source = "amendments_only",
-          geometry_source_dataset_id = NA_character_,
-          geometry = st_sfc(st_polygon(), crs = 4326)
-        ) |>
-        st_as_sf()
     }
+    # Dissolved/merged PA with no WDPA record and no boundary_modification
+    # active in this interval: no external_boundary zone is produced for this
+    # interval. Any secondary zoning valid here is still created below; if no
+    # zone exists at all, the interval yields no row (no empty-geometry
+    # placeholder is created).
 
     # Inherit amended attributes into boundary zone
-    for (col in names(state_attrs)) {
-      if (col %in% names(zones[[1]]) && col != "WDPAID") {
-        zones[[1]][[col]] <- state_attrs[[col]]
+    if (length(zones) > 0) {
+      for (col in names(state_attrs)) {
+        if (col %in% names(zones[[1]]) && col != "WDPAID") {
+          zones[[1]][[col]] <- state_attrs[[col]]
+        }
       }
     }
-
-    # Additional zones: Secondary zoning (may contain multiple features)
-    secondary_zones <- active_spatial |>
-      filter(amendment_type == "secondary_zoning")
 
     if (nrow(secondary_zones) > 0) {
       for (j in seq_len(nrow(secondary_zones))) {
@@ -610,6 +660,11 @@ consolidate_pa_states <- function(wdpaid, wdpa, amendments) {
           zones[[length(zones) + 1]] <- zone
         }
       }
+    }
+
+    # An interval with no valid zone at all produces no row
+    if (length(zones) == 0) {
+      return(NULL)
     }
 
     # Combine all zones for this state
@@ -772,17 +827,22 @@ if (nrow(status_yr_in_change) > 0) {
   cat("\u2705 Pas de STATUS_YR dans les status_change\n")
 }
 
-# 4. Pas de NODATE dans les amendment_id
+# 4. Coherence NODATE / dates : l'annee de l'amendment_id vient de valid_to
+#    (ou de valid_from pour temporary_protection) ; NODATE est legitime des
+#    que l'amendement est open-ended ou non date. Incoherent si NODATE alors
+#    qu'une date de cloture existe.
 nodate_amendments <- amendments$all |>
-  filter(str_detect(amendment_id, "NODATE"))
+  filter(str_detect(amendment_id, "NODATE")) |>
+  filter(!is.na(valid_to) |
+           (amendment_type == "temporary_protection" & !is.na(valid_from)))
 
 if (nrow(nodate_amendments) > 0) {
-  cat("\u26a0\ufe0f Amendements avec NODATE dans l'ID :\n")
+  cat("\u26a0\ufe0f Amendements avec NODATE dans l'ID mais dates incoherentes :\n")
   nodate_amendments |>
     select(amendment_id, wdpaid, amendment_type, valid_from, valid_to) |>
     print()
 } else {
-  cat("\u2705 Pas d'amendment_id avec NODATE\n")
+  cat("\u2705 NODATE dans l'ID uniquement pour les amendements ouverts ou non dates\n")
 }
 ```
 
@@ -820,9 +880,21 @@ baseline_states <- wdpa_mdg |>
   filter(WDPAID %in% wdpaids_without_amendments) |>
   standardize_types() |> # Use standard type conversion
   mutate(
-    state_id = paste0(WDPAID, "_", STATUS_YR),
-    valid_from = as.Date(paste0(STATUS_YR, "-01-01")),
-    valid_to = as.Date(NA),
+    # STATUS_YR = 0 or missing means unreported year: valid_from stays NA
+    valid_from = status_yr_to_date(STATUS_YR),
+    valid_to = as.Date(NA)
+  )
+
+# Unique identifier: WDPAID and exact start date (YYYYMMDD) of the state.
+# Computed outside mutate to avoid R 4.5 format()/prettyNum() interaction
+# issues inside dplyr context
+baseline_states$state_id <- make_state_id(
+  baseline_states$WDPAID,
+  baseline_states$valid_from
+)
+
+baseline_states <- baseline_states |>
+  mutate(
     zone_type = "external_boundary",
     zone_name = NA_character_,
     amendment_source = "WDPA",
@@ -831,6 +903,23 @@ baseline_states <- wdpa_mdg |>
 
 # Combine
 dynamic_wdpa_full <- bind_rows(dynamic_wdpa, baseline_states)
+
+# Fail-fast check: state_id must identify exactly one temporal state
+# (one (WDPAID, valid_from) pair), even when a state contains several zones.
+n_states <- dynamic_wdpa_full |>
+  st_drop_geometry() |>
+  distinct(WDPAID, valid_from) |>
+  nrow()
+n_state_ids <- n_distinct(dynamic_wdpa_full$state_id)
+if (n_state_ids != n_states) {
+  stop(
+    "state_id uniqueness violated: ",
+    n_states,
+    " temporal states but ",
+    n_state_ids,
+    " distinct state_id values"
+  )
+}
 
 # Summary
 cat("\nDynamic WDPA generated:\n")

@@ -4,7 +4,7 @@ editor_options:
   chunk_output_type: console
 ---
 
-# Consolidation et appariement des sources
+# Consolidation et appariement des sources {#sec-combination}
 
 Dans cette section, nous consolidons et apparions les différents jeux de données harmonisés dans les chapitres précédents (SAPM, WDPA, textes juridiques). L'objectif est d'identifier les correspondances entre les aires protégées documentées dans ces sources multiples et de construire une base unifiée avec des identifiants stables. Nous appliquons un ensemble de traitements standardisés :
 

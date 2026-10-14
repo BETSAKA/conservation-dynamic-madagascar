@@ -2881,9 +2881,45 @@ mnp_ap_names <- sub_mnp |>
   pull(AP) |>
   unique()
 
+# Correspondances explicites pour les AP MNP dont l'orthographe diffère de la
+# désignation WDPA. Table déterministe : chaque nom MNP est rattaché à son
+# WDPAID, vérifié unique dans la base WDPA de novembre 2025, sans correspondance
+# floue. Variantes orthographiques à l'origine de chaque entrée :
+#   Befotaka - Midongy du Sud  (WDPA : "Befotaka Midongy")
+#   Zombitse - Vohibasia       (WDPA : "Zombitse Vohibasia")
+#   Cap Ste Marie              (WDPA : "Cap Sainte Marie")
+#   Anjanaharibe Sud           (WDPA : "Anjanaharibe_sud")
+#   Tsingy de Namoroka         (WDPA : "Namoroka")
+#   Kalambatritra              (WDPA : "Kalambatrika" ; identifiant 5027 stable,
+#     porté de 2010 à 2019 sous "Kalambatritra" puis de 2020 à 2025 sous
+#     "Kalambatrika" dans les versions successives de la WDPA)
+#   Sahamalaza - Iles Radama   (WDPA : "Sahamalaza Iles Radama", Parc National
+#     352254 ; la détection par nom capturerait sinon l'entité distincte
+#     "Sahamalaza - Iles Radama", Réserve de Biosphère UNESCO-MAB, 900667)
+mnp_name_crosswalk <- tribble(
+  ~ap_name, ~wdpaid,
+  "Befotaka - Midongy du Sud", 20272,
+  "Zombitse - Vohibasia", 20273,
+  "Cap Ste Marie", 5041,
+  "Anjanaharibe Sud", 5023,
+  "Tsingy de Namoroka", 2309,
+  "Kalambatritra", 5027,
+  "Sahamalaza - Iles Radama", 352254
+)
+
 mnp_nd_rows <- map(mnp_ap_names, \(ap_name) {
-  wdpa_match <- wdpa_mdg |>
-    filter(str_detect(NAME, regex(ap_name, ignore_case = TRUE)))
+  # AP avec orthographe exceptionnelle : jointure par WDPAID explicite ;
+  # autres AP : détection de chaîne insensible à la casse (comportement conservé)
+  crosswalk_id <- mnp_name_crosswalk$wdpaid[
+    match(ap_name, mnp_name_crosswalk$ap_name)
+  ]
+  if (is.na(crosswalk_id)) {
+    wdpa_match <- wdpa_mdg |>
+      filter(str_detect(NAME, regex(ap_name, ignore_case = TRUE)))
+  } else {
+    wdpa_match <- wdpa_mdg |>
+      filter(WDPAID == crosswalk_id)
+  }
   if (nrow(wdpa_match) == 0) {
     return(NULL)
   }

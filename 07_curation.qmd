@@ -2707,8 +2707,8 @@ fat <- add_modif_fat(
     DESIG = "Réserve Spéciale",
     DESIG_ENG = "Special Reserve",
     IUCN_CAT = "IV",
-    STATUS = "Designated",
-    STATUS_YR = "1958"
+    STATUS = "Designated"
+    # STATUS_YR deleted (deduced from valid_from)
   ),
   amendment_type = "status_change",
   valid_from = "1958-10-28",
@@ -3600,6 +3600,71 @@ sat |>
 ```
 
 Les zonages secondaires sont maintenant documentés dans la table SAT aux côtés des amendements temporels (modifications de frontières, corrections). Lors de l'export YAML, ces entrées seront distinguées par `amendment_type: secondary_zoning` et pourront être filtrées selon les besoins d'analyse.
+
+### Portée SAPM 2017 et correspondance d'identifiants
+
+La portée du manuscrit correspond aux 123 aires protégées du jeu `SAPM_2017` (voir @sec-combination). Les identifiants WDPAID des zonages secondaires proviennent de la WDPA de novembre 2025 ; or certains identifiants ont changé entre les versions des jeux de données. La table ci-dessous documente de manière déterministe ces changements d'identifiant (sans correspondance floue), afin de permettre un test d'appartenance à la portée SAPM 2017 reproductible. Le zonage lui-même reste rattaché à l'identifiant courant.
+
+```{r wdpaid-vintage-crosswalk}
+# Correspondance explicite d'identifiants entre vintages :
+# identifiant WDPA courant (novembre 2025) -> identifiant SAPM_2017, pour les
+# AP dont l'identifiant a changé entre les versions. Table déterministe, sans
+# correspondance floue ; seuls les changements d'identifiant documentés dans
+# data/id/all_PAs_conso.rds figurent ici.
+# Tsaratanana : 2306 pour "Tsaratanana (Future SAPM)" dans SAPM_2010 et
+#   SAPM_evol_2001-2011, et pour "Tsaratanana" dans WDPA_2025 ; 555697871 pour
+#   le même site dans ANGAP_2002, MNP_2010, SAPM_2010, SAPM_evol_2001-2011,
+#   Vahatra, et SAPM_2017 ("Tsaratanàna").
+wdpaid_vintage_crosswalk <- tribble(
+  ~wdpaid_current, ~wdpaid_sapm2017, ~pa_identity,
+  2306, 555697871, "Tsaratanana"
+)
+```
+
+```{r sapm2017-scope-check}
+# Test d'appartenance à la portée du manuscrit : chaque AP à zonage secondaire
+# intégré doit correspondre à une des 123 AP de SAPM_2017, soit directement
+# (même WDPAID), soit via la table de correspondance d'identifiants.
+sapm2017_ids <- all_PAs_conso |>
+  st_drop_geometry() |>
+  filter(dataset_id == "SAPM_2017") |>
+  pull(WDPAID)
+
+zoning_ids <- nd_geoms |>
+  st_drop_geometry() |>
+  pull(WDPAID)
+
+zoning_scope <- tibble(wdpaid_current = zoning_ids) |>
+  left_join(wdpaid_vintage_crosswalk, by = "wdpaid_current") |>
+  mutate(
+    wdpaid_sapm2017 = coalesce(wdpaid_sapm2017, wdpaid_current),
+    in_sapm2017_strict = wdpaid_current %in% sapm2017_ids,
+    in_sapm2017_identity = wdpaid_sapm2017 %in% sapm2017_ids
+  )
+
+cat(
+  "Correspondance stricte par WDPAID : ",
+  sum(zoning_scope$in_sapm2017_strict), "/", nrow(zoning_scope), "\n"
+)
+zoning_scope |>
+  filter(!in_sapm2017_strict) |>
+  select(wdpaid_current, wdpaid_sapm2017, pa_identity) |>
+  print()
+
+cat(
+  "Correspondance d'identité après crosswalk : ",
+  sum(zoning_scope$in_sapm2017_identity), "/", nrow(zoning_scope), "\n"
+)
+
+# Fail-fast : toute identité hors portée SAPM_2017 doit être documentée ici
+if (any(!zoning_scope$in_sapm2017_identity)) {
+  stop(
+    "Zonages secondaires hors portée SAPM_2017 : ",
+    paste(zoning_scope$wdpaid_current[!zoning_scope$in_sapm2017_identity],
+          collapse = ", ")
+  )
+}
+```
 
 ## Post-traitement : resolution des chevauchements temporels {#sec-post-processing}
 

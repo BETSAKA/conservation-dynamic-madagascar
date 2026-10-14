@@ -1,7 +1,7 @@
-amendment_id: MDG-900667-NODATE-secondary_zoning-001
+amendment_id: MDG-5041-NODATE-secondary_zoning-001
 iso3: MDG
-wdpaid: 900667
-wdpa_name: Sahamalaza - Iles Radama
+wdpaid: 5041
+wdpa_name: Cap Sainte Marie
 amendment_kind: spatial
 amendment_type: secondary_zoning
 legal_instrument:
@@ -13,8 +13,8 @@ legal_instrument:
   url: ~
 temporal_description: Zonage secondaire selon décret n. MEDD-2024.
 notes: 'Core zone (noyau dur) validated from MEDD subdivision data. Source: shapefile
-  transmitted to MEDD, analyzed in 06_subdivisions.qmd. PA label: Sahamalaza - Iles
-  Radama. This represents current management zoning without temporal validity.'
-geometry_ref: geoms/MDG-900667-NODATE-secondary_zoning-001.geojson
+  transmitted to MEDD, analyzed in 06_subdivisions.qmd. PA label: Cap Ste Marie. This
+  represents current management zoning without temporal validity.'
+geometry_ref: geoms/MDG-5041-NODATE-secondary_zoning-001.geojson
 geometry_crs_epsg: 4326
 geometry_source_dataset_id: MEDD_subdivisions

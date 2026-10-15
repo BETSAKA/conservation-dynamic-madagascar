@@ -31,7 +31,7 @@ date: today
 format:
   docx:
     reference-doc: custom-reference.docx
-    number-sections: true
+    number-sections: false
   html:
     toc: true
     embed-resources: true
@@ -40,7 +40,7 @@ format:
 bibliography: references/references.bib
 csl: references/springer-basic-author-date.csl
 abstract: |
-  Georeferenced data on protected areas underpin much of the research studying the impacts of nature conservation on the environment and human wellbeing. Yet, existing databases typically record only the current state of each site. When boundaries or designations change, previous configurations are silently overwritten, preventing reliable temporal analyses and introducing bias in impact evaluations. We present a replicable temporal data model that extends the World Database on Protected Areas with time-bounded states documenting boundary modifications, status reclassifications, governance changes, temporary protections, and internal zoning. The model is designed to be generalizable to any national context and extensible to the full diversity of protected area modifications. We demonstrate it on Madagascar's 123 terrestrial protected areas over 2000–2025, integrating historical archive snapshots, successive national system datasets, legal texts from the national legislative database, and expert literature. All amendments are stored in a version-controlled YAML registry and consolidated through deterministic rules implemented in R. The resulting dataset is distributed in GeoPackage and GeoParquet formats, enabling spatio-temporal analyses of conservation dynamics.
+  Georeferenced data on protected areas underpin much of the research studying the impacts of nature conservation on the environment and human wellbeing. Yet, existing databases typically record only the current state of each site. When boundaries or designations change, previous configurations are silently overwritten, preventing reliable temporal analyses and introducing bias in impact evaluations. We present a replicable temporal data model that extends the World Database on Protected Areas with time-bounded states documenting boundary modifications, status changes, temporary protections and internal zoning. The model is designed to be generalizable to any national context and extensible to the full diversity of protected area modifications. We demonstrate it on Madagascar's 123 terrestrial protected areas over 2000–2025, integrating historical archive snapshots, successive national system datasets, legal texts from the national legislative database, and expert literature. All amendments are stored in a version-controlled YAML registry and consolidated through deterministic rules implemented in R. The resulting dataset is distributed in GeoPackage, RDS and GeoParquet formats, enabling spatio-temporal analyses of conservation dynamics. Although the sources and reconstruction process are country-specific, the amendment-based data model and consolidation engine can be applied to other national subsets of the WDPCA.
 ---
 
 *Corresponding author: Florent Bédécarrats (florent.bedecarrats@ird.fr)*
@@ -59,18 +59,20 @@ This matters for researchers from all disciplines that study conservation (biolo
 
 Madagascar offers a particularly instructive demonstration case. The island is one of the world's foremost biodiversity hotspots, with forests sheltering over 80% of its biodiversity and endemism rates exceeding 80% across many taxonomic groups [@Waeber2020]. Its conservation history spans colonial-era strict nature reserves, post-independence national parks, and a rapid expansion following the 2003 Durban Vision, in which the government committed to tripling the protected surface to six million hectares [@Waeber2020]. This complex trajectory has been meticulously documented by Goodman et al. [-@Goodman2018] in a three-volume monograph covering 98 terrestrial sites, while the national protected area system (Système des Aires Protégées de Madagascar, SAPM) has produced successive spatial datasets, and the national legislative database (CNLEGIS) contains the legal decisions underpinning each status change. Yet no single dataset has assembled these complementary sources into a unified temporal record.
 
-The problem, however, is not specific to Madagascar. In most countries, the WDPA contains protected areas whose histories of boundary and status changes are lost. The temporal data model we present here is designed to be generalizable to any country where complementary sources can supplement the WDPA baseline.
+The problem, however, is not specific to Madagascar. In most countries, the WDPA contains protected areas whose histories of boundary and status changes are lost. The historical evidence needed to reconstruct these trajectories is inherently country-specific: legal systems, spatial archives, protected-area identifiers and institutional records differ widely across jurisdictions. The transferable component of our approach is therefore not a standardized reconstruction procedure, but a common data model for encoding reconstructed changes as dated amendments to a WDPCA baseline and consolidating them into temporal states.
 
-This paper presents three contributions. First, a temporal data model that extends the WDPA with time-bounded states, validity periods, legal source references, and secondary zoning, applicable to any national context. Second, a demonstration dataset covering 123 terrestrial protected areas in Madagascar from 2000 to 2025. Third, an open collaborative infrastructure consisting of a YAML amendment registry and a deterministic consolidation engine that enables other researchers to audit, correct, and extend the dataset through standard version control workflows. An interactive companion website allows visual exploration and verification of the data.
+This paper presents three contributions. First, a reusable temporal data model that represents protected-area histories as time-bounded amendments to a current WDPCA baseline, including changes in external boundaries, legal status and internal zoning. Second, an application of this model to the 123 protected-area identities represented in Madagascar’s SAPM dataset over 2000–2025, reconstructed from country-specific spatial, legal and expert sources. Third, an open infrastructure consisting of a version-controlled YAML amendment registry and a deterministic consolidation engine, allowing curated histories to be audited, corrected and regenerated reproducibly.
 
 
 # Methods
 
 The dataset was constructed through a multi-step pipeline integrating four complementary data sources, cross-referencing them through spatial and textual matching, curating amendments through expert review, and consolidating them into temporal states using deterministic rules. Access to institutional datasets and validation processes was facilitated through close collaboration with national authorities, ensuring consistency with official records and operational practices. 
 
-The complete methodology is documented in a reproducible notebook accompanying this paper (see supplementary material). We summarize the key steps below and illustrate the overall workflow in @fig-workflow.
+The complete workflow, source documentation, curation notebooks, amendment registry and consolidation code are publicly available in the associated GitHub repository and its rendered Quarto documentation. We summarize the key steps below and illustrate the overall workflow in @fig-workflow.
 
 ![Workflow diagram of the data processing pipeline](figures/Data_preparation_workflow.drawio.png){#fig-workflow width=100%}
+
+The source-discovery and historical-reconstruction steps described below are specific to Madagascar and are not proposed as a standardized workflow for other countries. Generalizability instead lies in the downstream representation: once locally reconstructed changes are expressed through the amendment schema, the same consolidation model can transform any country-level WDPCA baseline into a temporal dataset.
 
 ## Input data
 
@@ -139,11 +141,11 @@ Each row in the output dataset represents one zone in one temporal state. A prot
 | `geometry_source_dataset_id` | Character | Identifier of the spatial dataset from which the geometry originates |
 : Schema of the temporal states dataset. {#tbl-schema}
 
-The dataset covers 123 terrestrial protected areas in Madagascar with a temporal span from 2000 to 2025. Protected areas have between one and several temporal states depending on the documented amendments. Secondary zones are included for 73 protected areas where validated core zone shapefiles were available. @fig-map shows the spatial distribution of protected areas colored by the number of documented temporal states, illustrating where the dataset adds information relative to the static WDPA.
+The national temporal reconstruction targets the 123 protected-area identities represented in SAPM until beginning of 2026. The consolidated files additionally preserve the complete  Madagascar WDPCA baseline, including proposed and international-designation records, together with one historical dissolved protected-area record. The current release therefore contains 168 distinct WDPAIDs, represented by 367 temporal states and 437 zone-state rows. Secondary zoning is included for 70 protected-area identities.
 
-![Map of Madagascar's 123 terrestrial protected areas](figures/fig_map.png){#fig-map width=70%}
+![Map of Madagascar's 123 terrestrial protected areas from SAPM, up to early 2026](figures/fig_map.png){#fig-map width=70%}
 
-The data model and the associated infrastructure are designed to be generalizable to any country or region where complementary sources can supplement the WDPA baseline, and extensible to the full diversity of protected area modifications including boundary changes, status reclassifications, governance changes, temporary protections, and any form of internal zoning.
+The amendment schema and consolidation engine are independent of the particular sources used in Madagascar. They can therefore be applied to another country or region once locally reconstructed historical information has been expressed as dated amendments to the corresponding WDPCA baseline.
 
 
 # Technical Validation
@@ -154,7 +156,7 @@ Every amendment in the YAML registry is linked to a specific legal decision iden
 
 Automated checks enforce three invariants across the dataset: no overlapping validity periods exist for the same zone of the same protected area; no temporal gaps exist in the coverage of external boundaries from the creation date to the reference date; and `valid_from` is strictly earlier than `valid_to` for every state.
 
-All geometries were validated using `sf::st_make_valid()` in R. Core zones were verified to fall within their parent protected area's external boundaries using spatial containment checks. Coordinate reference system consistency was enforced across all source datasets.
+Curated amendment geometries were checked during processing and spatial review. Baseline WDPCA geometries are retained without silently modifying their topology, in order to preserve source fidelity.
 
 @fig-amendments summarizes the types and counts of amendments documented in the registry. 
 
@@ -165,7 +167,7 @@ All geometries were validated using `sf::st_make_valid()` in R. Core zones were 
 
 The published dataset can be used directly without reproducing the data-preparation pipeline. The GeoPackage can be opened in standard GIS software including QGIS and ArcGIS and in R or Python through geospatial libraries. The Parquet representation is intended for efficient analytical workflows, while the RDS file preserves the R spatial object directly. The `WDPAID` field enables linkage with other WDPCA-based datasets.
 
-Temporal configurations can be selected using `valid_from` and `valid_to`. Validity intervals follow a start-inclusive and end-exclusive convention. An `NA` value in `valid_to` indicates that no later state is recorded and therefore normally identifies the configuration valid at the reference date. The `zone_type`field distinguishes external protected-area boundaries from secondary zoning geometries.
+Temporal configurations can be selected using `valid_from` and `valid_to`. Validity intervals follow a start-inclusive and end-exclusive convention. An `NA` value in `valid_to` indicates that no later state is recorded and therefore normally identifies the configuration valid at the reference date. The `zone_type` field distinguishes external protected-area boundaries from secondary zoning geometries.
 Researchers wishing to update the dataset beyond the November 2025 baseline can download a more recent WDPCA release from Protected Planet and apply the published amendment registry using the Consolidation and Auditing Rules provided in the GitHub repository. This reconstruction route uses the curated YAML and GeoJSON amendment registry as input and does not require repeating the complete historical source-curation process.
 
 Users must observe the reuse conditions associated with the underlying source data. In particular, commercial use of WDPCA material or works derived from it requires prior written permission from UNEP-WCMC [@unepwcmcWDPCAlicense]. UNEP-WCMC has separately provided written authorization for public redistribution of the Madagascar-specific derived outputs included in this dataset for the non-commercial use case described here.

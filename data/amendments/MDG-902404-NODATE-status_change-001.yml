@@ -1,0 +1,33 @@
+amendment_id: MDG-902404-NODATE-status_change-001
+iso3: MDG
+wdpaid: 902404
+wdpa_name: Torotorofotsy
+amendment_kind: attribute
+amendment_type: status_change
+valid_from: '2015-05-05'
+legal_instrument:
+  source: CNLEGIS
+  type: décret
+  number: 2015-808
+  date: '2015-05-05'
+  id: '45572'
+  url: https://cnlegis.gov.mg/page_num_find_direct/?2015-808
+temporal_description: Changement de statut depuis le 2015-05-05 selon décret n. 2015-808
+  du 2015-05-05.
+notes: 'Décret n°2015-808 du 5 mai 2015 portant création globale de dix aires protégées,
+  dont ''Torotorofotsy'' (CNLEGIS id 45572), superficie 9 764 ha, sans catégorie UICN
+  spécifiée (SAPM_2017 : CATEG_IUCN ''Non définie''). Statut national permanent parallèle
+  à la désignation Ramsar (site Ramsar depuis 2005), qui demeure une désignation internationale
+  indépendante. Dans la WDPCA, le WDPAID 902404 correspond à l''entité Ramsar et aucune
+  entité nationale distincte n''existe dans les vintages 2010-2025 ; le trajet national
+  est donc porté par des amendements sur ce WDPAID. Les métadonnées CNLEGIS attribuaient
+  à tort la date du 5 mai 2017 au décret ; la date de signature réelle est le 5 mai
+  2015 (publication au JO le 27 novembre 2017), correction appliquée dans 03_legal_docs.qmd.
+  Confirmé par SAPM_2017 (STAT_DEF ''n°2015-808 du 5 mai 2015'', DAT_ST_DEF 2015-05-05,
+  CATEG_IUCN ''Non définie'').'
+attributes:
+  DESIG: Aire Protégée
+  DESIG_ENG: Protected Area
+  DESIG_TYPE: National
+  IUCN_CAT: Not Reported
+  STATUS: Designated

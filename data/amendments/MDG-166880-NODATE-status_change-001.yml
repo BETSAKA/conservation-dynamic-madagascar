@@ -1,0 +1,31 @@
+amendment_id: MDG-166880-NODATE-status_change-001
+iso3: MDG
+wdpaid: 166880
+wdpa_name: Complexe Tsimembo Manambolomaty
+amendment_kind: attribute
+amendment_type: status_change
+valid_from: '2015-04-21'
+legal_instrument:
+  source: CNLEGIS
+  type: décret
+  number: 2015-715
+  date: '2015-04-21'
+  id: '46205'
+  url: https://cnlegis.gov.mg/page_num_find_direct/?2015-715
+temporal_description: Changement de statut depuis le 2015-04-21 selon décret n. 2015-715
+  du 2015-04-21.
+notes: Décret n°2015-715 du 21 avril 2015 portant création définitive de la nouvelle
+  aire protégée 'Complexe Tsimembo Manambolomaty' (CNLEGIS id 46205), catégorie 'Paysage
+  harmonieux protégé' équivalente catégorie V UICN, 62 745 ha, limites en annexe II.
+  Statut national permanent parallèle à la désignation Ramsar (site Ramsar depuis
+  1998), qui demeure une désignation internationale indépendante. Dans la WDPCA, le
+  WDPAID 166880 correspond à l'entité Ramsar et aucune entité nationale distincte
+  n'existe dans les vintages 2010-2025 ; le trajet national est donc porté par des
+  amendements sur ce WDPAID. Confirmé par SAPM_2017 et SAPM_2024 (STATUT_JUR 'Paysage
+  Harmonieux Protégé', DAT_ST_DEF 2015-04-21).
+attributes:
+  DESIG: Paysage Harmonieux Protégé
+  DESIG_ENG: Protected Landscape
+  DESIG_TYPE: National
+  IUCN_CAT: V
+  STATUS: Designated

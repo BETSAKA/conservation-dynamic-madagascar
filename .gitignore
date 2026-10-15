@@ -10,6 +10,9 @@ data/*
 !data/dynamic_wdpa.parquet
 !data/amendments/
 !data/amendments/**
+!data/id/
+data/id/*
+!data/id/international_wdpa_proxies.csv
 /.quarto/
 *.Rproj
 Backlog*

@@ -3502,6 +3502,127 @@ cat("Total FAT entries:", nrow(fat), "\n")
 
 Le traitement a permis de documenter l'historique de protection temporaire pour les aires protégées concernées. Chaque aire ayant reçu une protection temporaire dispose désormais d'une ou deux entrées FAT selon qu'elle a obtenu ou non une désignation permanente. Cet historique, absent de la WDPA actuelle, permet de reconstituer fidèlement l'évolution juridique de ces sites depuis leur mise en protection initiale.
 
+### Mandrozo et Complexe Tsimembo Manambolomaty : statut national permanent
+
+Les deux aires protégées gérées par The Peregrine Fund, Mandrozo (555547961) et Complexe Tsimembo Manambolomaty (166880), sont couvertes dans la baseline WDPCA de novembre 2025 par des enregistrements Ramsar (DESIG_TYPE = International, STATUS_YR = 1998 pour Tsimembo, 2012 pour Mandrozo). La désignation Ramsar est une désignation internationale parallèle : elle ne constitue pas le statut national et ne doit pas apparaître comme successeur de la protection temporaire nationale.
+
+Le texte intégral des décrets de création définitive (CNLEGIS) établit sans ambiguïté la désignation nationale : le Décret n°2015-714 du 21 avril 2015 porte création définitive de la nouvelle aire protégée "Mandrozo", de catégorie "Paysage Harmonieux Protégé", équivalente de la catégorie V de l'UICN, superficie 15 145 ha, limites définies en annexe II ; le Décret n°2015-715 du 21 avril 2015 porte création définitive de la nouvelle aire protégée "Complexe Tsimembo Manambolomaty", de catégorie "Paysage harmonieux protégé", équivalente de la catégorie V de l'UICN, superficie 62 745 ha, limites définies en annexe II. Les sources nationales SAPM_2017 et SAPM_2024 portent les mêmes désignations et dates (STAT_DEF = "n°2015-714 du 21 avril 2015" et "n°2015-715 du 21 avril 2015").
+
+Sans amendement explicite, l'état courant de la CAR hérite des attributs Ramsar de la baseline WDPCA, ce qui produit une trajectoire conceptuellement fausse (protection temporaire nationale, puis site Ramsar). Nous documentons donc le passage au statut permanent national par un amendement `status_change` explicite pour chacun des deux sites, en omettant `STATUS_YR` (dérivé de `valid_from` par la consolidation) et sans inclure le statut Ramsar dans les attributs.
+
+```{r}
+#| label: permanent-status-mandrozo-tsimembo
+
+# Mandrozo : Décret n°2015-714 du 21 avril 2015 (création définitive, CNLEGIS)
+fat <- fat |>
+  add_modif_fat(
+    decisions = pa_decisions,
+    wdpa_name_or_id = 555547961,
+    decision_filter = list(num_texte = "2015-714"),
+    attributes = list(
+      DESIG = "Paysage Harmonieux Protégé",
+      DESIG_ENG = "Protected Landscape",
+      DESIG_TYPE = "National",
+      IUCN_CAT = "V",
+      STATUS = "Designated"
+    ),
+    amendment_type = "status_change",
+    valid_from = "2015-04-21",
+    notes = "Décret n°2015-714 du 21 avril 2015 portant création définitive de la nouvelle aire protégée 'Mandrozo' (CNLEGIS id 44720), catégorie 'Paysage Harmonieux Protégé' équivalente catégorie V UICN, 15 145 ha, limites en annexe II. Statut national permanent parallèle à la désignation Ramsar (site Ramsar depuis 2012), qui demeure une désignation internationale indépendante. Dans la WDPCA, le WDPAID 555547961 correspond à l'entité Ramsar et aucune entité nationale distincte n'existe dans les vintages 2010-2025 ; le trajet national est donc porté par des amendements sur ce WDPAID. DESIG_TYPE et IUCN_CAT remplacent l'héritage Ramsar ('International' et 'Not Reported'). Confirmé par SAPM_2017 et SAPM_2024 (STATUT_JUR 'Paysage Harmonieux Protégé', DAT_ST_DEF 2015-04-21)."
+  )
+
+# Complexe Tsimembo Manambolomaty : Décret n°2015-715 du 21 avril 2015 (CNLEGIS)
+fat <- fat |>
+  add_modif_fat(
+    decisions = pa_decisions,
+    wdpa_name_or_id = 166880,
+    decision_filter = list(num_texte = "2015-715"),
+    attributes = list(
+      DESIG = "Paysage Harmonieux Protégé",
+      DESIG_ENG = "Protected Landscape",
+      DESIG_TYPE = "National",
+      IUCN_CAT = "V",
+      STATUS = "Designated"
+    ),
+    amendment_type = "status_change",
+    valid_from = "2015-04-21",
+    notes = "Décret n°2015-715 du 21 avril 2015 portant création définitive de la nouvelle aire protégée 'Complexe Tsimembo Manambolomaty' (CNLEGIS id 46205), catégorie 'Paysage harmonieux protégé' équivalente catégorie V UICN, 62 745 ha, limites en annexe II. Statut national permanent parallèle à la désignation Ramsar (site Ramsar depuis 1998), qui demeure une désignation internationale indépendante. Dans la WDPCA, le WDPAID 166880 correspond à l'entité Ramsar et aucune entité nationale distincte n'existe dans les vintages 2010-2025 ; le trajet national est donc porté par des amendements sur ce WDPAID. Confirmé par SAPM_2017 et SAPM_2024 (STATUT_JUR 'Paysage Harmonieux Protégé', DAT_ST_DEF 2015-04-21)."
+  )
+
+cat(
+  "FAT status_change entries for 555547961 / 166880:",
+  sum(fat$amendment_type == "status_change" & fat$WDPAID %in% c(555547961, 166880)),
+  "\n"
+)
+```
+
+Les arrêtés de protection temporaire (18633/2008, 52005/2010, 9874/2013 pour Mandrozo ; 21478/2008 pour Tsimembo) sont des instruments nationaux (arrêtés interministériels) ; l'attribut DESIG_TYPE = International que les états temporaires héritent de la baseline Ramsar est un artefact de conflation identitaire. Pour ces deux aires protégées uniquement, nous corrigeons DESIG_TYPE des états temporaires en National.
+
+```{r}
+#| label: temp-desig-type-mandrozo-tsimembo
+
+fat <- fat |>
+  mutate(
+    DESIG_TYPE = if_else(
+      WDPAID %in% c(555547961, 166880) &
+        amendment_type == "temporary_protection",
+      "National",
+      DESIG_TYPE
+    )
+  )
+```
+
+### Torotorofotsy : protection temporaire et statut national permanent
+
+La situation de Torotorofotsy (902404) est analogue. La baseline WDPCA de novembre 2025 ne comporte qu'un enregistrement Ramsar (DESIG_TYPE = International, STATUS_YR = 2005) et aucune entité nationale distincte n'existe dans les vintages WDPCA. Le site figure pourtant sur les listes de mise en protection temporaire des trois arrêtés interministériels pris pour l'ensemble des nouvelles aires protégées (18633/2008, 52005/2010, 9874/2013). Il était exclu à tort du traitement générique des protections temporaires : son STATUS_YR = 2005 le faisait apparaître comme une aire protégée nationale préexistante au processus SAPM. L'exclusion générique des entités préexistantes est levée pour ce WDPAID uniquement dans 03_legal_docs.qmd.
+
+Le décret n°2015-808 du 5 mai 2015 (CNLEGIS id 45572) porte création globale de dix aires protégées, dont Torotorofotsy, superficie 9 764 ha, sans catégorie UICN spécifiée (SAPM_2017 : STAT_DEF = "n°2015-808 du 5 mai 2015", DAT_ST_DEF = 2015-05-05, CATEG_IUCN = "Non définie"). Les métadonnées CNLEGIS attribuaient à tort la date du 5 mai 2017 au décret : la date de signature réelle est le 5 mai 2015, le 27 novembre 2017 correspondant à la publication au Journal officiel ; cette correction est appliquée en amont dans 03_legal_docs.qmd et vaut pour l'ensemble des dix aires protégées du décret.
+
+Le statut national permanent est donc documenté par un amendement `status_change` explicite, en omettant `STATUS_YR` (dérivé de `valid_from` par la consolidation) et sans géométrie ajoutée : les états créés héritent du polygone de la baseline WDPCA.
+
+```{r}
+#| label: permanent-status-torotorofotsy
+
+# Torotorofotsy : Décret n°2015-808 du 5 mai 2015 (création définitive, CNLEGIS)
+fat <- fat |>
+  add_modif_fat(
+    decisions = pa_decisions,
+    wdpa_name_or_id = 902404,
+    decision_filter = list(num_texte = "2015-808"),
+    attributes = list(
+      DESIG = "Aire Protégée",
+      DESIG_ENG = "Protected Area",
+      DESIG_TYPE = "National",
+      IUCN_CAT = "Not Reported",
+      STATUS = "Designated"
+    ),
+    amendment_type = "status_change",
+    valid_from = "2015-05-05",
+    notes = "Décret n°2015-808 du 5 mai 2015 portant création globale de dix aires protégées, dont 'Torotorofotsy' (CNLEGIS id 45572), superficie 9 764 ha, sans catégorie UICN spécifiée (SAPM_2017 : CATEG_IUCN 'Non définie'). Statut national permanent parallèle à la désignation Ramsar (site Ramsar depuis 2005), qui demeure une désignation internationale indépendante. Dans la WDPCA, le WDPAID 902404 correspond à l'entité Ramsar et aucune entité nationale distincte n'existe dans les vintages 2010-2025 ; le trajet national est donc porté par des amendements sur ce WDPAID. Les métadonnées CNLEGIS attribuaient à tort la date du 5 mai 2017 au décret ; la date de signature réelle est le 5 mai 2015 (publication au JO le 27 novembre 2017), correction appliquée dans 03_legal_docs.qmd. Confirmé par SAPM_2017 (STAT_DEF 'n°2015-808 du 5 mai 2015', DAT_ST_DEF 2015-05-05, CATEG_IUCN 'Non définie')."
+  )
+
+cat(
+  "FAT status_change entries for 902404:",
+  sum(fat$amendment_type == "status_change" & fat$WDPAID == 902404),
+  "\n"
+)
+```
+
+Les arrêtés de protection temporaire (18633/2008, 52005/2010, 9874/2013) sont des instruments nationaux ; l'attribut DESIG_TYPE = International que les états temporaires de Torotorofotsy héritent de la baseline Ramsar est un artefact de conflation identitaire. Pour ce site uniquement, nous corrigeons DESIG_TYPE des états temporaires en National.
+
+```{r}
+#| label: temp-desig-type-torotorofotsy
+
+fat <- fat |>
+  mutate(
+    DESIG_TYPE = if_else(
+      WDPAID == 902404 & amendment_type == "temporary_protection",
+      "National",
+      DESIG_TYPE
+    )
+  )
+```
+
 ## Zonage secondaire
 
 Au-delà des délimitations réglementaires, les plans d'aménagement et de gestion des aires protégées disposent de zonages secondaire, qui peuvent être internes (noyaux durs, zones de développement, etc.) ou externes (zones tampons, périmètres de protection), et qui définissent différents usages autorisés. Ces zonages secondaires ont été validés dans le cadre de l'analyse documentée au chapitre @sec-subdivisions. On intègre ce type d'amendement dans notre registre avec la catégorie `secondary_zoning`.

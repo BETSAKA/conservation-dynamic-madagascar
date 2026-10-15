@@ -1160,7 +1160,7 @@ list.files(
 
 ```{r}
 
-wdpa_mahialambo <- wdpa_mdg |>
+wdpa_mahimborondro <- wdpa_mdg |>
   filter(str_detect(NAME, regex("Mahimborondro", ignore_case = TRUE)))
 
 sub_mahimborondro <- st_read(
@@ -1169,7 +1169,7 @@ sub_mahimborondro <- st_read(
 )
 
 
-tm_shape(wdpa_mahialambo) +
+tm_shape(wdpa_mahimborondro) +
   tm_borders(col = "red", lwd = 2) +
   tm_shape(sub_mahimborondro) +
   tm_borders(col = "blue") +
@@ -2939,6 +2939,45 @@ nd_sf <- c(nd_rows, mnp_nd_rows) |>
     WDPAID = as.numeric(WDPAID),
     NAME = as.character(NAME)
   )
+
+# Validation fail-fast : les WDPAID des noyaux durs ne doivent pas cibler des
+# entités WDPCA internationales hors proxys autorisés (Mandrozo 555547961,
+# Tsimembo 166880, Torotorofotsy 902404).
+intl_proxy_wdpaids <- c(555547961, 166880, 902404)
+nd_intl_check <- nd_sf |>
+  st_drop_geometry() |>
+  filter(!is.na(WDPAID)) |>
+  transmute(pa_label, WDPAID = as.numeric(WDPAID), NAME) |>
+  left_join(
+    wdpa_mdg |>
+      st_drop_geometry() |>
+      transmute(
+        WDPAID = as.numeric(WDPAID),
+        WDPCA_NAME = NAME,
+        WDPCA_DESIG = DESIG,
+        DESIG_TYPE
+      ),
+    by = "WDPAID"
+  ) |>
+  filter(DESIG_TYPE == "International", !WDPAID %in% intl_proxy_wdpaids)
+
+if (nrow(nd_intl_check) > 0) {
+  stop(
+    "Subdivision rows target unauthorised International WDPCA records:\n",
+    format(
+      nd_intl_check |>
+        select(pa_label, WDPAID, NAME, WDPCA_NAME, WDPCA_DESIG, DESIG_TYPE)
+    )
+  )
+}
+
+# Identités attendues : Sahamalaza reste sur le Parc National (352254, pas
+# l'entité UNESCO-MAB 900667) et Mahialambo sur son identité nationale propre
+# (555697887, et non Mahimborondro 555697905).
+stopifnot(
+  nd_sf$WDPAID[nd_sf$pa_label == "Sahamalaza - Iles Radama"] == 352254,
+  nd_sf$WDPAID[nd_sf$pa_label == "Mahialambo"] == 555697887
+)
 
 st_write(
   nd_sf,

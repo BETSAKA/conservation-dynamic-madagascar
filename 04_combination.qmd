@@ -40,7 +40,17 @@ sapm_evol_2001_2011 <- read_rds("data/no_id/sapm_evol_2001_2011.rds")
 vahatra <- read_rds("data/no_id/vahatra.rds")
 mnp_anka_rni_pre2002 <- read_rds("data/no_id/mnp_anka_rni_pre2002.rds")
 mnp_mantadia_pre2002 <- read_rds("data/no_id/mnp_mantadia_pre2002.rds")
-wdpa_mdg_2025 <- wdpa_read("sources/WDPA_WDOECM_mar2025_Public_MDG.zip")
+# Baseline WDPCA de novembre 2025 : la version exacte utilisée plus tard dans
+# le projet (chapitres 07 et 09). La baseline complète est conservée pour
+# l'append final ; seul l'appariement domestique automatique est restreint
+# (voir wdpa_dom_candidates).
+wdpa_mdg_2025 <- wdpa_read("data/WDPA_WDOECM_Nov2025_Public_MDG.zip")
+
+# Entités WDPCA internationales explicitement autorisées comme cibles
+# d'identité technique d'une AP nationale SAPM (aucune entité nationale
+# WDPCA distincte n'existe pour ces AP)
+international_wdpa_proxies <- read_csv("data/id/international_wdpa_proxies.csv")
+proxy_wdpaids <- international_wdpa_proxies$WDPAID
 
 # Read WDPA historical parquet file
 wdpa_mdg_all <- read_parquet("data/MDG_WDPA_Consolidated.parquet") %>%
@@ -365,7 +375,19 @@ pa_match <- function(
 }
 
 
-all_PAs_matched <- pa_match(all_PAs, wdpa_mdg_2025)
+# Candidats domestiques pour l'appariement : entités WDPCA non
+# internationales, plus les proxys internationaux explicitement autorisés.
+# Ceci ne restreint que les CANDIDATS D'APPARIEMENT ; la baseline WDPCA
+# complète reste dans le jeu consolidé final, et les WDPAID curatés ont
+# priorité sur l'appariement automatique en aval.
+wdpa_dom_candidates <- wdpa_mdg_2025 |>
+  filter(
+    is.na(DESIG_TYPE) |
+      DESIG_TYPE != "International" |
+      WDPAID %in% proxy_wdpaids
+  )
+
+all_PAs_matched <- pa_match(all_PAs, wdpa_dom_candidates)
 
 all_PAs_unmatched <- all_PAs_matched %>%
   filter(is.na(name_y))
@@ -496,11 +518,91 @@ pa_match_fallback_name <- function(
 # Perform spatial matching
 all_PAs_matched <- pa_match_fallback_name(
   x = all_PAs_matched,
-  y = wdpa_mdg_2025,
+  y = wdpa_dom_candidates,
   remove_terms = words_to_exlcude
 ) %>%
   rename(WDPA_NAME = name_y, WDPAID = id_y, overlap_WDPA = overlap_y)
 
+# Deterministic identity override: "Nosivolo Marolambo" (SAPM_evol_2001-2011
+# and SAPM_2010) is the same national identity later designated
+# "Rivière Nosivolo" (permanent PHP 555697874, décret 2015-757). The spatial
+# matching currently reaches the right WDPAID, but the association is pinned
+# here so that it does not depend on geometry vintage or fuzzy matching. The
+# perimeter change relative to the old Ramsar polygon (555542728) is a
+# boundary revision, not a distinct PA ; no boundary amendment is derived
+# from it.
+nosivolo_override <- all_PAs_matched %>%
+  st_drop_geometry() %>%
+  filter(
+    dataset_id %in% c("SAPM_evol_2001-2011", "SAPM_2010"),
+    NAME == "Nosivolo Marolambo"
+  ) %>%
+  nrow()
+
+all_PAs_matched <- all_PAs_matched %>%
+  mutate(
+    nosivolo_pin = dataset_id %in% c("SAPM_evol_2001-2011", "SAPM_2010") &
+      NAME == "Nosivolo Marolambo",
+    WDPAID = if_else(nosivolo_pin, 555697874, WDPAID),
+    WDPA_NAME = if_else(nosivolo_pin, "Rivière Nosivolo", WDPA_NAME),
+    overlap_WDPA = if_else(nosivolo_pin, NA_real_, overlap_WDPA)
+  ) %>%
+  select(-nosivolo_pin)
+
+cat(
+  "Deterministic override: Nosivolo Marolambo -> 555697874 (",
+  nosivolo_override, " rows)\n",
+  sep = ""
+)
+
+```
+
+Validation fail-fast de l'appariement SAPM-2017 : aucune ligne SAPM-2017 ne
+doit cibler une entité WDPCA internationale hors proxys autorisés.
+
+```{r}
+# Fail-fast validation: SAPM-2017 rows must not target International WDPCA
+# records outside the authorised proxies
+# (data/id/international_wdpa_proxies.csv).
+sapm_2017_intl_check <- all_PAs_matched |>
+  filter(dataset_id == "SAPM_2017", !is.na(WDPAID)) |>
+  st_drop_geometry() |>
+  transmute(NAME, ORIG_NAME, WDPAID = as.numeric(WDPAID)) |>
+  left_join(
+    wdpa_mdg_2025 |>
+      st_drop_geometry() |>
+      transmute(
+        WDPAID = as.numeric(WDPAID),
+        WDPCA_NAME = NAME,
+        WDPCA_DESIG = DESIG,
+        DESIG_TYPE
+      ),
+    by = "WDPAID"
+  ) |>
+  filter(DESIG_TYPE == "International", !WDPAID %in% proxy_wdpaids)
+
+if (nrow(sapm_2017_intl_check) > 0) {
+  stop(
+    "SAPM-2017 matched to unauthorised International WDPCA records:\n",
+    format(
+      sapm_2017_intl_check |>
+        select(NAME, ORIG_NAME, WDPAID, WDPCA_NAME, WDPCA_DESIG, DESIG_TYPE)
+    )
+  )
+}
+
+sapm_2017_n <- all_PAs_matched |>
+  filter(dataset_id == "SAPM_2017") |>
+  nrow()
+sapm_2017_proxy_n <- all_PAs_matched |>
+  filter(dataset_id == "SAPM_2017", WDPAID %in% proxy_wdpaids) |>
+  nrow()
+cat(
+  "SAPM-2017 validation: ", sapm_2017_n, " rows; ",
+  sapm_2017_proxy_n, " International proxy targets (",
+  paste(proxy_wdpaids, collapse = ", "), ")\n",
+  sep = ""
+)
 ```
 
 ## Ajout des données légales issues des textes officiels
@@ -536,7 +638,7 @@ all_PAs_matched <- all_PAs_matched %>%
 
 ## Export final
 
-On ajoute enfin les données WDPA de mars 2025. Le jeu consolidé est exporté dans des formats interopérables (.parquet et 
+On ajoute enfin les données WDPA de novembre 2025. Le jeu consolidé est exporté dans des formats interopérables (.parquet et 
 .rds).
 
 ```{r}

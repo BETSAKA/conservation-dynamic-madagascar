@@ -1,0 +1,32 @@
+amendment_id: MDG-555547961-NODATE-status_change-001
+iso3: MDG
+wdpaid: 555547961
+wdpa_name: Mandrozo
+amendment_kind: attribute
+amendment_type: status_change
+valid_from: '2015-04-21'
+legal_instrument:
+  source: CNLEGIS
+  type: décret
+  number: 2015-714
+  date: '2015-04-21'
+  id: '44720'
+  url: https://cnlegis.gov.mg/page_num_find_direct/?2015-714
+temporal_description: Changement de statut depuis le 2015-04-21 selon décret n. 2015-714
+  du 2015-04-21.
+notes: Décret n°2015-714 du 21 avril 2015 portant création définitive de la nouvelle
+  aire protégée 'Mandrozo' (CNLEGIS id 44720), catégorie 'Paysage Harmonieux Protégé'
+  équivalente catégorie V UICN, 15 145 ha, limites en annexe II. Statut national permanent
+  parallèle à la désignation Ramsar (site Ramsar depuis 2012), qui demeure une désignation
+  internationale indépendante. Dans la WDPCA, le WDPAID 555547961 correspond à l'entité
+  Ramsar et aucune entité nationale distincte n'existe dans les vintages 2010-2025
+  ; le trajet national est donc porté par des amendements sur ce WDPAID. DESIG_TYPE
+  et IUCN_CAT remplacent l'héritage Ramsar ('International' et 'Not Reported'). Confirmé
+  par SAPM_2017 et SAPM_2024 (STATUT_JUR 'Paysage Harmonieux Protégé', DAT_ST_DEF
+  2015-04-21).
+attributes:
+  DESIG: Paysage Harmonieux Protégé
+  DESIG_ENG: Protected Landscape
+  DESIG_TYPE: National
+  IUCN_CAT: V
+  STATUS: Designated

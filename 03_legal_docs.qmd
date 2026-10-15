@@ -150,6 +150,16 @@ all_results <- map_dfr(html_files, extract_table) |>
       as.Date("2015-04-21"),
       date_txt
     ),
+    # Correct a CNLEGIS metadata error: Décret 2015-808 (batch creation of
+    # ten PAs including Torotorofotsy) is incorrectly exposed with the date
+    # 05 Mai 2017. The decree number and SAPM_2017 (DAT_ST_DEF = 2015-05-05)
+    # confirm the actual signature date is 05 Mai 2015 ; the 2017-11-27 date
+    # is the JO publication and is correctly parsed in date_jo.
+    date_txt = if_else(
+      num_texte == "2015-808" & date_txt == as.Date("2017-05-05"),
+      as.Date("2015-05-05"),
+      date_txt
+    ),
     # Use date_txt as fallback if date_jo is missing
     date_jo = coalesce(date_jo, date_txt)
   ) |>
@@ -489,7 +499,28 @@ conversion_table_verif <- conversion_table_verif %>%
                        NA_real_,      WDPAID),
     # "lokobe extension" is a distinct SAPM extension, not the legacy Lokobe RNI/PN (2311).
     WDPA_NAME = ifelse(original_pa == "lokobe extension", NA_character_, WDPA_NAME),
-    WDPAID    = ifelse(original_pa == "lokobe extension", NA_real_,      WDPAID)
+    WDPAID    = ifelse(original_pa == "lokobe extension", NA_real_,      WDPAID),
+    # "iles barren" is the national Nouvelle Aire Protégée (Arrêté
+    # interministériel n°30.441/2014 portant mise en protection temporaire).
+    # The Ramsar entity 555624855 must not receive Malagasy domestic
+    # amendments; the national WDPCA record is 555790281 (DESIG_TYPE National,
+    # STATUS Proposed, 2014, IUCN_CAT Not Reported).
+    WDPA_NAME = ifelse(original_pa == "iles barren", "Iles Barren", WDPA_NAME),
+    WDPAID    = ifelse(original_pa == "iles barren", 555790281, WDPAID),
+    # "antetezana" is a distinct national NAP (~509 ha, around 49.47E/-17.84S)
+    # with no WDPCA record; the fuzzy match to the small Ramsar site Parc de
+    # Tsarasaotra (902692, Antananarivo) is spurious.
+    WDPA_NAME = ifelse(original_pa == "antetezana", NA_character_, WDPA_NAME),
+    WDPAID    = ifelse(original_pa == "antetezana", NA_real_,      WDPAID),
+    # "nosivolo marolambo" is the SAPM site later designated "Rivière
+    # Nosivolo" (permanent PHP 555697874, décret 2015-757) ; the association
+    # with the distinct PA Marolambo (555697917) is spurious. Audit
+    # conclusion CONFIRMED_SAME_NATIONAL_IDENTITY: the perimeter change
+    # relative to the old (Ramsar 555542728) polygon is a boundary revision,
+    # not a separate PA, and must not generate a boundary amendment.
+    WDPA_NAME = ifelse(original_pa == "nosivolo marolambo",
+                       "Rivière Nosivolo", WDPA_NAME),
+    WDPAID    = ifelse(original_pa == "nosivolo marolambo", 555697874, WDPAID)
   )
 
 # Merge with split_class_clean to integrate the verified closest matches
@@ -528,11 +559,18 @@ decision_pa <- split_class_clean %>%
 # *new* SAPM sites, not legacy parks/reserves that were already designated
 # before the SAPM process began (decree 17914/2006).
 blanket_decrees <- c("18633/2008", "52005/2010", "9874/2013")
+# Exception: Torotorofotsy (902404). Its only WDPCA record is the Ramsar
+# entity (DESIG_TYPE International, STATUS_YR 2005) and no separate national
+# WDPAID exists, but the site is explicitly on the SAPM temporary-protection
+# lists of the three blanket decrees ; its STATUS_YR = 2005 made it look like
+# a pre-existing national PA and wrongly triggered this exclusion.
+pre_existing_exemption <- c(902404)
 pre_existing_wdpaids <- wdpa_mdg_2025 %>%
   as_tibble() %>%
   filter(STATUS_YR > 0, STATUS_YR < 2006) %>%
   pull(WDPAID) %>%
-  unique()
+  unique() %>%
+  setdiff(pre_existing_exemption)
 
 decision_pa <- decision_pa %>%
   filter(

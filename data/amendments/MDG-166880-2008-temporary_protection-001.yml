@@ -21,5 +21,6 @@ notes: Temporary protection via Arrêté 21478/2008 (2008-12-02). Legal designat
 attributes:
   DESIG: Protection Temporaire
   DESIG_ENG: Temporary Protection
+  DESIG_TYPE: National
   STATUS: Designated
   STATUS_YR: '2008'

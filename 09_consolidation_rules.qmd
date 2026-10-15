@@ -544,6 +544,27 @@ consolidate_pa_states <- function(wdpaid, wdpa, amendments) {
           }
         }
       }
+
+      # Generic temporary-protection IUCN rule: a temporary-protection state
+      # must not inherit an IUCN category from the later/current WDPCA
+      # baseline (arrêtés de protection temporaire do not carry an IUCN
+      # category; the category appears only in the later permanent decree).
+      # If an active temporary_protection amendment explicitly sets IUCN_CAT,
+      # that explicit value (applied above) is preserved. Other amendment
+      # types (status_change, correction) and baseline-only states keep the
+      # ordinary behaviour.
+      active_temp_protection <- active_attribute |>
+        filter(amendment_type == "temporary_protection")
+
+      if (nrow(active_temp_protection) > 0) {
+        temp_has_iucn <- map_lgl(
+          active_temp_protection$attributes,
+          ~ "IUCN_CAT" %in% names(.x %||% list())
+        )
+        if (!any(temp_has_iucn)) {
+          state_attrs[["IUCN_CAT"]] <- "Not Reported"
+        }
+      }
     }
 
     # Derive STATUS_YR from context:
@@ -844,6 +865,58 @@ if (nrow(nodate_amendments) > 0) {
 } else {
   cat("\u2705 NODATE dans l'ID uniquement pour les amendements ouverts ou non dates\n")
 }
+```
+
+## Validation du registre : entités internationales
+
+Les amendements domestiques malgaches (protection temporaire, changement de
+statut, correction, modification de limites, zonage secondaire) ne doivent pas
+être rattachés à une entité WDPCA internationale, hormis les trois proxys
+explicites documentés dans `data/id/international_wdpa_proxies.csv` (Mandrozo,
+Complexe Tsimembo Manambolomaty, Torotorofotsy). La baseline WDPCA complète
+n'est pas modifiée : cette validation protège uniquement l'affectation des
+amendements nationaux.
+
+```{r registry-international-validation}
+proxy_wdpaids <- read_csv("data/id/international_wdpa_proxies.csv")$WDPAID
+
+intl_amendment_check <- amendments$all |>
+  filter(wdpaid %in% wdpa_mdg$WDPAID) |>
+  left_join(
+    wdpa_mdg |>
+      st_drop_geometry() |>
+      transmute(
+        wdpaid = as.numeric(WDPAID),
+        WDPCA_NAME = NAME,
+        WDPCA_DESIG = DESIG,
+        DESIG_TYPE
+      ),
+    by = "wdpaid"
+  ) |>
+  filter(DESIG_TYPE == "International", !wdpaid %in% proxy_wdpaids)
+
+if (nrow(intl_amendment_check) > 0) {
+  stop(
+    "Domestic amendments attached to unauthorised International WDPCA records:\n",
+    format(
+      intl_amendment_check |>
+        select(
+          amendment_id,
+          amendment_type,
+          wdpaid,
+          WDPCA_NAME,
+          WDPCA_DESIG,
+          DESIG_TYPE
+        )
+    )
+  )
+}
+
+cat(
+  "International-proxy registry validation: OK (",
+  sum(amendments$all$wdpaid %in% proxy_wdpaids),
+  "amendments on the authorised proxies )\n"
+)
 ```
 
 ## Génération du jeu de données complet

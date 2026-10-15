@@ -4,7 +4,7 @@
 
 ## Overview
 
-This repository documents the transparent and reproducible methodology used to produce a **dynamic temporal dataset** of Madagascar's protected areas covering the period 2000-2025. Unlike conventional static datasets that capture only current boundaries, this work reconstructs the complete legal and spatial history of each protected area, including boundary modifications, status changes, internal zoning, and temporary protections.
+This repository documents the construction of a temporal protected-area dataset for Madagascar over 2000–2025 and provides a reusable data model for adding historical states to a country subset of the World Database on Protected and Conserved Areas (WDPCA). The reconstruction of Madagascar’s protected-area histories relies on country-specific spatial, legal and institutional sources, while the resulting amendment model and consolidation rules are designed to be applicable independently of the sources used to reconstruct those histories.
 
 The repository now includes the main derived outputs together with the code, documentation, amendment registry, and validation tools used to produce them. The consolidated outputs incorporate material derived from the World Database on Protected and Conserved Areas (WDPCA, formerly WDPA). UNEP-WCMC has provided written authorization to redistribute the Madagascar-specific derived outputs for this non-commercial research use case. Commercial use of WDPCA material or works derived from it requires prior written permission from UNEP-WCMC.
 
@@ -16,7 +16,8 @@ Baseline source citation for the WDPA-derived outputs: UNEP-WCMC and IUCN (2025)
 
 - **Produce a temporal extension of WDPA**: Create time-explicit protected area data that preserves historical configurations, enabling robust longitudinal and impact analyses
 - **Document legal and spatial amendments**: Systematically identify and record changes to protected areas using legal texts (CNLEGIS), historical spatial datasets (SAPM versions), and expert literature
-- **Ensure transparency and reproducibility**: Provide open, auditable consolidation rules (CAR) that transform baseline WDPA data and documented amendments into temporal states
+- **Provide a reusable temporal data model:** Represent historical protected-area configurations as dated amendments to a current WDPCA baseline, using a structure that can be applied to other country subsets.
+- **Ensure computational reproducibility:** Store curated amendments in a version-controlled registry and transform them into temporal states through deterministic consolidation rules.
 - **Promote open science**: Enable the conservation research community to verify, critique, and build upon this methodology
 
 ## Key Features
@@ -37,8 +38,8 @@ Baseline source citation for the WDPA-derived outputs: UNEP-WCMC and IUCN (2025)
 The final dataset provides:
 - **Temporal states**: Each protected area represented as a sequence of time-bounded states (valid_from - valid_to)
 - **Zone model**: Multiple zones per state (external boundary, core zones, buffer zones)
-- **WDPA compatibility**: Maintains all WDPA identifiers and attributes while adding temporal dimension
-- **Multiple formats**: RDS (R native), GeoPackage (GIS standard), and Parquet with WKT geometry (analytics)
+- **WDPCA baseline preservation:** the complete November 2025 Madagascar WDPCA baseline is retained. Historical national states may override selected attributes for dated intervals, while parallel international-designation records remain present as separate baseline entities where they exist.
+- **Multiple formats**: RDS (R native), GeoPackage (GIS standard), and Parquet (WKT geometry)
 
 ### Download Outputs
 - [GeoPackage](https://github.com/BETSAKA/conservation-dynamic-madagascar/blob/main/data/dynamic_wdpa.gpkg?raw=1)
@@ -58,8 +59,9 @@ The repository is organized as a Quarto book with the following chapters:
 5. **Visual Verification** (`05_visual_verif.qmd`): Interactive validation dashboard
 6. **Internal Zoning** (`06_subdivisions.qmd`): Processing core zones and subdivisions
 7. **Amendment Curation** (`07_curation.qmd`): Systematic documentation of corrections and amendments
-8. **CAR Implementation** (`07ter_CAR.qmd`): Consolidation and auditing rules
-9. **Technical Proposals** (`08_technical_proposal_en.qmd`, `09_technical_proposal_fr.qmd`): Formal specifications
+8. YAML Registry (08_yaml_registry.qmd): Validation and documentation of the amendment registry  
+9. **Consolidation Rules** (`09_consolidation_rules.qmd`): Deterministic generation and validation of temporal states  
+10. **References** `(10_references.qmd`)
 
 ### Key Components
 
@@ -74,19 +76,13 @@ The repository is organized as a Quarto book with the following chapters:
 - R 4.0+ with packages: tidyverse, sf, arrow, wdpar, yaml, tmap, gt
 - Quarto for rendering documentation
 
-### Reproducing the Dataset
+### Reproducing the consolidated dataset
+The released temporal dataset can be reconstructed from the November 2025 Madagascar WDPCA baseline and the version-controlled amendment registry without repeating the complete source-curation process.
+1. Clone this repository.
+2. Obtain the Madagascar WDPA dataset extract (November 2025 or more recent) from Protected Planet, subject to the WDPCA reuse conditions, and place it in the *data/* folder (eg. `data/WDPA_WDOECM_Nov2025_Public_MDG.zip`).
+3. Render `09_consolidation_rules.qmd`. The consolidation engine reads the WDPCA baseline, the tracked YAML/GeoJSON amendment registry and the explicit international-proxy table, validates them, and regenerates the RDS, GeoPackage and Parquet outputs.
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/BETSAKA/conservation-dynamic-madagascar.git
-   cd conservation-dynamic-madagascar
-   ```
-
-2. **Download source data**: Place WDPA, SAPM, and CNLEGIS sources in `sources/` directory (see documentation for details)
-
-3. **Run analysis chapters sequentially**: Each `.qmd` file can be rendered independently or as part of the complete book
-
-4. **Generate final dataset**: Run `07ter_CAR.qmd` to produce temporal states from WDPA and amendments
+Reproducing the curation of the amendment registry itself requires additional institutional and historical source datasets described in Chapters 1–7. Some of these sources are not redistributed in this repository; their provenance and access routes are documented in the complementary documentation.
 
 ### Intended Audience
 

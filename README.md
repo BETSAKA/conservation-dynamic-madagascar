@@ -147,7 +147,7 @@ Detailed reuse conditions for the deposited dataset are provided in the DataSuds
 
 ## Vue d'ensemble
 
-Ce dépôt documente la méthodologie transparente et reproductible utilisée pour produire un **jeu de données temporel dynamique** des aires protégées de Madagascar couvrant la période 2000-2025. Contrairement aux bases de données statiques conventionnelles qui ne capturent que les limites actuelles, ce travail reconstruit l'historique légal et spatial complet de chaque aire protégée, incluant les modifications de limites, les changements de statut, les zonages internes et les protections temporaires.
+Ce dépôt documente la construction d’un jeu de données temporel sur les aires protégées de Madagascar pour la période 2000-2025 et propose un modèle de données réutilisable permettant d’ajouter une dimension historique à un sous-ensemble national de la World Database on Protected and Conserved Areas (WDPCA). La reconstruction de l’histoire des aires protégées malgaches repose sur des sources spatiales, juridiques et institutionnelles propres au pays, tandis que le modèle d’amendements et les règles de consolidation peuvent être réutilisés indépendamment des sources mobilisées pour cette reconstruction.
 
 Le dépôt inclut les principales sorties dérivées ainsi que le code, la documentation, le registre d’amendements et les outils de validation utilisés pour les produire. Les sorties consolidées incorporent des éléments dérivés de la World Database on Protected and Conserved Areas (WDPCA, anciennement WDPA). L’UNEP-WCMC a fourni une autorisation écrite pour redistribuer les sorties dérivées concernant Madagascar dans le cadre de cet usage scientifique non commercial. L’utilisation commerciale des données WDPCA ou des œuvres qui en dérivent nécessite une autorisation écrite préalable de l’UNEP-WCMC.
 
@@ -159,8 +159,9 @@ Citation de la source de base des sorties dérivées de la WDPA : UNEP-WCMC and 
 
 - **Produire une extension temporelle de WDPA** : Créer des données temporellement explicites qui préservent les configurations historiques, permettant des analyses longitudinales et d'impact robustes
 - **Documenter les amendements légaux et spatiaux** : Identifier et enregistrer systématiquement les changements aux aires protégées via les textes légaux (CNLEGIS), les jeux de données spatiaux historiques (versions SAPM) et la littérature experte
-- **Assurer transparence et reproductibilité** : Fournir des règles de consolidation ouvertes et auditables (CAR) qui transforment les données WDPA de base et les amendements documentés en états temporels
-- **Promouvoir la science ouverte** : Permettre à la communauté de recherche en conservation de vérifier, critiquer et développer cette méthodologie
+- **Proposer un modèle de données temporel réutilisable** : représenter les configurations historiques sous forme d’amendements datés appliqués à une version courante de la WDPCA, selon une structure pouvant être utilisée pour d’autres pays  
+- **Assurer la reproductibilité du traitement** : conserver les amendements sous contrôle de version et les transformer en états temporels au moyen de règles de consolidation déterministes  
+- **Promouvoir la science ouverte** : permettre à la communauté de vérifier, discuter et enrichir le jeu de données et son modèle
 
 ## Caractéristiques principales
 
@@ -180,7 +181,7 @@ Citation de la source de base des sorties dérivées de la WDPA : UNEP-WCMC and 
 Le jeu de données final fournit :
 - **États temporels** : Chaque aire protégée représentée comme une séquence d'états délimités dans le temps (valid_from - valid_to)
 - **Modèle de zones** : Multiples zones par état (limite externe, zones noyaux, zones tampons)
-- **Compatibilité WDPA** : Maintien de tous les identifiants et attributs WDPA tout en ajoutant la dimension temporelle
+- **Conservation de la WDPCA de référence** : l’ensemble des données WDPCA de novembre 2025 pour Madagascar est conservé dans le jeu consolidé, y compris les désignations internationales distinctes.
 - **Formats multiples** : RDS (natif R), GeoPackage (standard SIG), et Parquet avec géométrie WKT (analytique)
 
 ### Télécharger les sorties
@@ -201,8 +202,9 @@ Le dépôt est organisé comme un livre Quarto avec les chapitres suivants :
 5. **Vérification visuelle** (`05_visual_verif.qmd`) : Tableau de bord de validation interactive
 6. **Zonage interne** (`06_subdivisions.qmd`) : Traitement des zones noyaux et subdivisions
 7. **Curation des amendements** (`07_curation.qmd`) : Documentation systématique des corrections et amendements
-8. **Implémentation CAR** (`07ter_CAR.qmd`) : Règles de consolidation et d'audit
-9. **Propositions techniques** (`08_technical_proposal_en.qmd`, `09_technical_proposal_fr.qmd`) : Spécifications formelles
+8. **Registre YAML** (`08_yaml_registry.qmd`) : validation et documentation du registre d’amendements  
+9. **Règles de consolidation** (`09_consolidation_rules.qmd`) : génération déterministe et validation des états temporels  
+10. **Références** (`10_references.qmd`)
 
 ### Composantes clés
 
@@ -219,23 +221,19 @@ Le dépôt est organisé comme un livre Quarto avec les chapitres suivants :
 
 ### Reproduire le jeu de données
 
-1. **Cloner le dépôt** :
-   ```bash
-   git clone https://github.com/BETSAKA/conservation-dynamic-madagascar.git
-   cd conservation-dynamic-madagascar
-   ```
+Le jeu de données temporel publié peut être reconstruit à partir de la version de novembre 2025 de la WDPCA pour Madagascar et du registre d’amendements placé sous contrôle de version, sans reproduire l’ensemble du travail de curation des sources.
 
-2. **Télécharger les données sources** : Placer les sources WDPA, SAPM et CNLEGIS dans le répertoire `sources/` (voir documentation pour détails)
+1. Cloner ce dépôt.
+2. Télécharger depuis Protected Planet l’extrait WDPCA de Madagascar (novembre 2025 ou version plus récente), dans le respect des conditions de réutilisation de la WDPCA, et le placer dans le dossier `data/`.
+3. Exécuter `09_consolidation_rules.qmd`, qui applique le registre d’amendements au fichier WDPCA et génère les sorties RDS, GeoPackage et Parquet.
 
-3. **Exécuter les chapitres d'analyse séquentiellement** : Chaque fichier `.qmd` peut être généré indépendamment ou comme partie du livre complet
-
-4. **Générer le jeu de données final** : Exécuter `07ter_CAR.qmd` pour produire les états temporels à partir de WDPA et des amendements
+Reproduire la constitution du registre d’amendements nécessite en revanche les sources institutionnelles et historiques décrites dans les chapitres 1 à 7. Certaines ne sont pas redistribuées dans ce dépôt ; leur provenance et leurs modalités d’accès sont documentées dans la documentation associée.
 
 ### Public cible
 
 - **Chercheurs en conservation** : Analyse des dynamiques temporelles, déclassements, et efficacité des aires protégées
 - **Évaluateurs d'impact** : Études rigoureuses avant-après ou longitudinales nécessitant des limites historiques précises
-- **Gestionnaires de données** : Cherchant à répliquer cette méthodologie pour d'autres pays ou régions
+- **Gestionnaires de données** : souhaitant appliquer le modèle temporel à d’autres pays ou régions
 - **Décideurs politiques** : Compréhension de l'évolution légale et spatiale du système de conservation de Madagascar
 
 ## Produit final et applications

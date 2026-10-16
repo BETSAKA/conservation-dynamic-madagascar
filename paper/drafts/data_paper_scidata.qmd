@@ -61,7 +61,7 @@ Madagascar offers a particularly instructive demonstration case. The island is o
 
 The problem, however, is not specific to Madagascar. In most countries, the WDPA contains protected areas whose histories of boundary and status changes are lost. The historical evidence needed to reconstruct these trajectories is inherently country-specific: legal systems, spatial archives, protected-area identifiers and institutional records differ widely across jurisdictions. The transferable component of our approach is therefore not a standardized reconstruction procedure, but a common data model for encoding reconstructed changes as dated amendments to a WDPCA baseline and consolidating them into temporal states. 
 
-This paper presents three contributions. First, a reusable temporal data model that represents protected-area histories as time-bounded amendments to a current WDPCA baseline, including changes in external boundaries, legal status and internal zoning. Second, an application of this model to the 123 protected-area identities represented in Madagascar’s SAPM dataset over 2000–2025, reconstructed from country-specific spatial, legal and expert sources. Third, an open infrastructure consisting of a version-controlled YAML amendment registry and a deterministic consolidation engine, allowing curated histories to be audited, corrected and regenerated reproducibly.
+This paper presents three contributions. First, a reusable temporal data model that represents protected-area histories as time-bounded amendments to a current WDPCA baseline, including changes in external boundaries, legal status and internal zoning. Second, an application of this model to the 123 protected areas that constituted Madagascar’s national protected-area system through late 2025, reconstructed over 2000–2025 from country-specific spatial, legal and expert sources. Third, an open infrastructure consisting of a version-controlled YAML amendment registry and a deterministic consolidation engine, allowing curated histories to be audited, corrected and regenerated reproducibly.
 
 
 # Methods
@@ -95,7 +95,7 @@ Records from all four sources were matched to WDPA identifiers through a combina
 
 A Shiny web application was developed and deployed for domain expert review. domain expert review. The validation involved protected area managers, GIS specialists from MEDD and Madagascar National Parks, and researchers with long-term experience on Madagascar’s protected area system. The application overlays geometries from different sources and time periods on interactive Leaflet maps, with filtering by IUCN category, dataset of origin, and associated legal texts. This tool enabled systematic visual comparison of boundaries reported by different sources for each protected area. The companion website provides ongoing access to this verification interface.
 
-Core zone shapefiles from five organizations (MEDD, MNP, MBG, GERP, WWF) were collected and validated against WDPA external boundaries through spatial containment checks, yielding 73 validated core zone geometries that were integrated as secondary zones in the temporal dataset.
+Core zone shapefiles from five organizations (MEDD, MNP, MBG, GERP, WWF) were collected and compared with protected-area boundaries. Of the 73 protected areas for which exploitable zoning information was available, 70 fall within the temporal scope of the dataset and were integrated as secondary zones; three sites created in 2026 were excluded.
 
 For approximately 25 protected areas with complex histories, a detailed case-by-case review was conducted, cross-referencing legal decisions, historical boundaries from Goodman et al. [-@Goodman2018], and successive SAPM datasets. @fig-examples illustrates three such cases. Amendments were documented in Spatial Amendment Tables (SAT) for geometries and Feature Attribute Tables (FAT) for attributes, then exported to the canonical YAML format.
 
@@ -103,9 +103,9 @@ For approximately 25 protected areas with complex histories, a detailed case-by-
 
 ## YAML amendment registry
 
-All corrections and temporal information are stored in a registry of YAML files, one per protected area, accompanied by GeoJSON geometry files where boundaries differ from the WDPA baseline. YAML was chosen because it is human-readable without specialized software, auditable in that each amendment includes the legal source, effective date, and amendment type, and Git-friendly in that text-based diffs enable collaborative editing with full change history tracking. Automated validation checks detect duplicate entries, temporal overlaps, and missing geometries.
+All corrections and temporal information are stored in a version-controlled registry of YAML files, with one file for each amendment. GeoJSON files are associated with amendments that introduce a new geometry. YAML was chosen because it is human-readable without specialized software, auditable in that each amendment includes the legal source, effective date, and amendment type, and Git-friendly in that text-based diffs enable collaborative editing with full change history tracking. Automated validation checks detect duplicate entries, temporal overlaps, and missing geometries.
 
-The registry documents four types of amendments: boundary modifications (legally documented changes to external limits), status changes (reclassifications such as from Strict Nature Reserve to National Park), corrections (errors in the WDPA regarding dates, statuses, or geometries), and secondary zoning (internal zones including core zones and buffer zones).
+The registry documents five types of amendments: boundary modifications, status changes, temporary protections, corrections to the WDPCA baseline, and secondary zoning.
 
 ## Consolidation and Auditing Rules
 
@@ -141,7 +141,7 @@ Each row in the output dataset represents one zone in one temporal state. A prot
 | `geometry_source_dataset_id` | Character | Identifier of the spatial dataset from which the geometry originates |
 : Schema of the temporal states dataset. {#tbl-schema}
 
-The national temporal reconstruction targets the 123 protected-area identities represented in SAPM until beginning of 2026. The consolidated files additionally preserve the complete  Madagascar WDPCA baseline, including proposed and international-designation records, together with one historical dissolved protected-area record. The current release therefore contains 168 distinct WDPAIDs, represented by 367 temporal states and 437 zone-state rows. Secondary zoning is included for 70 protected-area identities.
+The national temporal reconstruction targets the 123 protected-area that constituted Madagascar's national protected area system until the end of 2025. The consolidated files additionally preserve the complete  Madagascar WDPCA baseline, including proposed and international-designation records, together with one historical dissolved protected-area record. The current release therefore contains 168 distinct WDPAIDs, represented by 367 temporal states and 437 zone-state rows. Secondary zoning is included for 70 protected-area identities.
 
 ![Map of Madagascar's 123 terrestrial protected areas from SAPM, up to early 2026](figures/fig_map.png){#fig-map width=70%}
 
@@ -152,9 +152,9 @@ The amendment schema and consolidation engine are independent of the particular 
 
 Spatial overlap between the WDPA, successive SAPM versions, and the Vahatra dataset was quantified using mutual inclusion ratios. For each protected area present in multiple sources, the proportion of area shared between paired geometries was computed, flagging cases with less than 80% overlap for manual review. Date and status discrepancies between sources were systematically catalogued and resolved through legal text verification.
 
-Every amendment in the YAML registry is linked to a specific legal decision identified by its decree or order number, date, and URL in the CNLEGIS database. Domain experts reviewed all amendments through the interactive Shiny dashboard, verifying that recorded boundary changes and status modifications match the corresponding legal texts.
+Every amendment in the YAML registry is linked to a specific legal Each amendment records its provenance and, where relevant, the legal instrument on which it is based. Legal amendments are linked to the corresponding decree or ministerial order and its effective date, while spatial amendments retain information on the source dataset from which their geometry was obtained.
 
-Automated checks enforce three invariants across the dataset: no overlapping validity periods exist for the same zone of the same protected area; no temporal gaps exist in the coverage of external boundaries from the creation date to the reference date; and `valid_from` is strictly earlier than `valid_to` for every state.
+Automated checks are applied during consolidation to detect duplicate temporal states, invalid or overlapping validity periods, empty geometries, missing geometry provenance and inconsistent protected-area identifiers. Additional checks ensure that national historical information is not inadvertently assigned to distinct international WDPCA designations. The three distributed formats are also checked for consistency after generation.
 
 Curated amendment geometries were checked during processing and spatial review. Baseline WDPCA geometries are retained without silently modifying their topology, in order to preserve source fidelity.
 

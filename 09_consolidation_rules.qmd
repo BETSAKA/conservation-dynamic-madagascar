@@ -38,7 +38,7 @@ Attention : ces sorties dérivées de la WDPA, correspondent a un instantané hi
 Source de base a citer pour les sorties dérivées de la WDPA : **UNEP-WCMC and IUCN (2025). Protected Planet: The World Database on Protected Areas (WDPA), version de novembre 2025. Cambridge, UK et Gland, Suisse. Disponible sur [Protected Planet](https://www.protectedplanet.net).**
 
 - [Télécharger le GeoPackage](https://github.com/BETSAKA/conservation-dynamic-madagascar/blob/main/data/dynamic_wdpa.gpkg?raw=1)
-- [Télécharger le GeoParquet](https://github.com/BETSAKA/conservation-dynamic-madagascar/blob/main/data/dynamic_wdpa.parquet?raw=1)
+- [Télécharger le Parquet](https://github.com/BETSAKA/conservation-dynamic-madagascar/blob/main/data/dynamic_wdpa.parquet?raw=1)
 - [Télécharger l'objet RDS](https://github.com/BETSAKA/conservation-dynamic-madagascar/blob/main/data/dynamic_wdpa.rds?raw=1)
 - [Consulter le registre YAML des amendements](https://github.com/BETSAKA/conservation-dynamic-madagascar/tree/main/data/amendments)
 
@@ -55,7 +55,18 @@ library(wdpar)
 library(lubridate)
 
 # Load WDPA reference
-wdpa_mdg <- wdpa_read("data/WDPA_WDOECM_Nov2025_Public_MDG.zip")
+wdpa_reference_path <- "data/WDPA_WDOECM_Nov2025_Public_MDG.zip"
+
+if (!file.exists(wdpa_reference_path)) {
+  stop(
+    "Missing WDPA baseline: ",
+    wdpa_reference_path,
+    ". Download the November 2025 Madagascar WDPA extract from Protected Planet ",
+    "and place it at this exact path to reproduce the published dataset."
+  )
+}
+
+wdpa_mdg <- wdpa_read(wdpa_reference_path)
 ```
 
 ## Lecture du registre d'amendements
@@ -929,17 +940,20 @@ wdpaids_with_amendments <- unique(amendments$all$wdpaid)
 
 cat("Processing", length(wdpaids_with_amendments), "PAs with amendments...\n")
 
-# Consolidate all
+# Consolidate all. Fail fast: any error for any WDPAID stops the build.
 dynamic_wdpa <- map_dfr(
   wdpaids_with_amendments,
   function(wdpaid) {
     tryCatch(
-      {
-        consolidate_pa_states(wdpaid, wdpa_mdg, amendments)
-      },
+      consolidate_pa_states(wdpaid, wdpa_mdg, amendments),
       error = function(e) {
-        warning("Error processing WDPAID ", wdpaid, ": ", e$message)
-        NULL
+        stop(
+          "Consolidation failed for WDPAID ",
+          wdpaid,
+          ": ",
+          conditionMessage(e),
+          call. = FALSE
+        )
       }
     )
   },
@@ -994,6 +1008,61 @@ if (n_state_ids != n_states) {
   )
 }
 
+# Fail-fast baseline-coverage checks: every WDPAID of the November 2025
+# baseline must be present in the consolidated output (character comparison
+# to avoid numeric/character coercion issues)
+baseline_wdpaids <- sort(unique(as.character(wdpa_mdg$WDPAID)))
+if (length(baseline_wdpaids) != 167L) {
+  stop(
+    "Baseline coverage check failed: the November 2025 baseline contains ",
+    length(baseline_wdpaids),
+    " distinct WDPAIDs, expected 167",
+    call. = FALSE
+  )
+}
+
+output_wdpaids <- unique(as.character(dynamic_wdpa_full$WDPAID))
+missing_baseline_ids <- setdiff(baseline_wdpaids, output_wdpaids)
+if (length(missing_baseline_ids) > 0L) {
+  stop(
+    "Baseline coverage check failed: ",
+    length(missing_baseline_ids),
+    " baseline WDPAIDs are missing from the consolidated dataset: ",
+    paste(missing_baseline_ids, collapse = ", "),
+    call. = FALSE
+  )
+}
+
+# Fail-fast published-snapshot integrity checks for the deposited
+# November 2025 reconstruction
+snapshot_expected <- c(
+  rows = 437L,
+  state_ids = 367L,
+  wdpaids = 168L,
+  baseline_represented = 167L
+)
+snapshot_observed <- c(
+  rows = nrow(dynamic_wdpa_full),
+  state_ids = n_distinct(dynamic_wdpa_full$state_id),
+  wdpaids = length(output_wdpaids),
+  baseline_represented = sum(baseline_wdpaids %in% output_wdpaids)
+)
+if (!identical(as.integer(snapshot_expected), as.integer(snapshot_observed))) {
+  stop(
+    "Published-snapshot integrity check failed (expected vs observed):\n",
+    paste0(
+      sprintf(
+        "  %s: expected %d, observed %d",
+        names(snapshot_expected),
+        snapshot_expected,
+        snapshot_observed
+      ),
+      collapse = "\n"
+    ),
+    call. = FALSE
+  )
+}
+
 # Summary
 cat("\nDynamic WDPA generated:\n")
 cat("  Total states:", n_distinct(dynamic_wdpa_full$state_id), "\n")
@@ -1029,6 +1098,87 @@ cat("Exported to:\n")
 cat("  - data/dynamic_wdpa.rds\n")
 cat("  - data/dynamic_wdpa.gpkg\n")
 cat("  - data/dynamic_wdpa.parquet (with WKT geometry)\n")
+```
+
+```{r export-validation}
+# Read back the three exported formats and verify row and state identity
+
+check_format_counts <- function(df, label) {
+  n_rows <- nrow(df)
+  n_states <- n_distinct(df$state_id)
+  n_wdpaids <- n_distinct(as.character(df$WDPAID))
+  if (n_rows != 437L || n_states != 367L || n_wdpaids != 168L) {
+    stop(
+      "Export validation failed for ", label, ": ",
+      n_rows, " rows, ", n_states, " distinct state_id, ",
+      n_wdpaids, " distinct WDPAID (expected 437 / 367 / 168)",
+      call. = FALSE
+    )
+  }
+  cat(
+    label, ": OK (", n_rows, " rows, ", n_states,
+    " states, ", n_wdpaids, " WDPAIDs)\n"
+  )
+}
+
+rds_back <- readRDS("data/dynamic_wdpa.rds")
+gpkg_back <- st_read("data/dynamic_wdpa.gpkg", quiet = TRUE)
+parquet_back <- arrow::read_parquet("data/dynamic_wdpa.parquet")
+
+check_format_counts(rds_back, "RDS")
+check_format_counts(gpkg_back, "GeoPackage")
+check_format_counts(parquet_back, "Parquet")
+
+# Deterministic row key compared across formats (state identity only;
+# geometry byte representations are not compared)
+key_fields <- c(
+  "state_id", "WDPAID", "valid_from", "valid_to", "zone_type", "zone_name"
+)
+
+key_string <- function(x) {
+  if (inherits(x, "POSIXt")) x <- as.Date(x)
+  x <- as.character(x)
+  x[is.na(x)] <- "<NA>"
+  x
+}
+
+format_keys <- function(df) {
+  if (inherits(df, "sf")) df <- st_drop_geometry(df)
+  cols <- lapply(key_fields, function(f) key_string(df[[f]]))
+  sort(do.call(paste, c(cols, sep = "\u001f")))
+}
+
+keys_by_format <- list(
+  RDS = format_keys(rds_back),
+  GeoPackage = format_keys(gpkg_back),
+  Parquet = format_keys(parquet_back)
+)
+
+if (!identical(keys_by_format$RDS, keys_by_format$GeoPackage) ||
+    !identical(keys_by_format$RDS, keys_by_format$Parquet)) {
+  stop(
+    "Cross-format key comparison failed:\n",
+    sprintf(
+      "  %d row keys in RDS, %d in GeoPackage, %d in Parquet\n",
+      length(keys_by_format$RDS),
+      length(keys_by_format$GeoPackage),
+      length(keys_by_format$Parquet)
+    ),
+    "  Only in RDS: ",
+    paste(head(setdiff(keys_by_format$RDS, keys_by_format$GeoPackage)), collapse = " ; "),
+    "\n  Only in GeoPackage: ",
+    paste(head(setdiff(keys_by_format$GeoPackage, keys_by_format$RDS)), collapse = " ; "),
+    "\n  Only in Parquet: ",
+    paste(head(setdiff(keys_by_format$Parquet, keys_by_format$RDS)), collapse = " ; "),
+    call. = FALSE
+  )
+}
+
+cat(
+  "Cross-format key comparison: OK (",
+  length(keys_by_format$RDS),
+  " identical row keys across RDS, GeoPackage and Parquet)\n"
+)
 ```
 
 ## Exemples de chronologies

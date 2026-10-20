@@ -4,11 +4,11 @@
 
 ## Overview
 
-This repository documents the construction of a temporal protected-area dataset for Madagascar over 2000–2025 and provides a reusable data model for adding historical states to a country subset of the World Database on Protected and Conserved Areas (WDPCA). The reconstruction of Madagascar’s protected-area histories relies on country-specific spatial, legal and institutional sources, while the resulting amendment model and consolidation rules are designed to be applicable independently of the sources used to reconstruct those histories.
+This repository documents the construction of a temporal protected-area dataset for Madagascar over 2000–2025 and provides a reusable data model for adding historical states to a country subset of the World Database on Protected and Conserved Areas (WDPA). The reconstruction of Madagascar’s protected-area histories relies on country-specific spatial, legal and institutional sources, while the resulting amendment model and consolidation rules are designed to be applicable independently of the sources used to reconstruct those histories.
 
-The repository now includes the main derived outputs together with the code, documentation, amendment registry, and validation tools used to produce them. The consolidated outputs incorporate material derived from the World Database on Protected and Conserved Areas (WDPCA, formerly WDPA). UNEP-WCMC has provided written authorization to redistribute the Madagascar-specific derived outputs for this non-commercial research use case. Commercial use of WDPCA material or works derived from it requires prior written permission from UNEP-WCMC.
+The repository now includes the main derived outputs together with the code, documentation, amendment registry, and validation tools used to produce them. The consolidated outputs incorporate material derived from the World Database on Protected and Conserved Areas (WDPA, formerly WDPA). UNEP-WCMC has provided written authorization to redistribute the Madagascar-specific derived outputs for this non-commercial research use case. Commercial use of WDPA material or works derived from it requires prior written permission from UNEP-WCMC.
 
-**Warning:** the downloadable WDPCA-derived files in this repository are a Madagascar-only historical snapshot based on the November 2025 release and may therefore become outdated. For the latest official protected and conserved area data, consult Protected Planet: https://www.protectedplanet.net. It is also possible to produce an updated version of this dataset by downloading a more recent WDPCA release and applying the published amendment registry and consolidation workflow.
+**Warning:** the downloadable WDPA-derived files in this repository are a Madagascar-only historical snapshot based on the November 2025 release and may therefore become outdated. For the latest official protected and conserved area data, consult Protected Planet: https://www.protectedplanet.net. It is also possible to produce an updated version of this dataset by downloading a more recent WDPA release and applying the published amendment registry and consolidation workflow.
 
 Baseline source citation for the WDPA-derived outputs: UNEP-WCMC and IUCN (2025). Protected Planet: The World Database on Protected Areas (WDPA), November 2025 release. Cambridge, UK and Gland, Switzerland. Available at https://www.protectedplanet.net.
 
@@ -16,7 +16,7 @@ Baseline source citation for the WDPA-derived outputs: UNEP-WCMC and IUCN (2025)
 
 - **Produce a temporal extension of WDPA**: Create time-explicit protected area data that preserves historical configurations, enabling robust longitudinal and impact analyses
 - **Document legal and spatial amendments**: Systematically identify and record changes to protected areas using legal texts (CNLEGIS), historical spatial datasets (SAPM versions), and expert literature
-- **Provide a reusable temporal data model:** Represent historical protected-area configurations as dated amendments to a current WDPCA baseline, using a structure that can be applied to other country subsets.
+- **Provide a reusable temporal data model:** Represent historical protected-area configurations as dated amendments to a current WDPA baseline, using a structure that can be applied to other country subsets.
 - **Ensure computational reproducibility:** Store curated amendments in a version-controlled registry and transform them into temporal states through deterministic consolidation rules.
 - **Promote open science**: Enable the conservation research community to verify, critique, and build upon this methodology
 
@@ -38,12 +38,12 @@ Baseline source citation for the WDPA-derived outputs: UNEP-WCMC and IUCN (2025)
 The final dataset provides:
 - **Temporal states**: Each protected area represented as a sequence of time-bounded states (valid_from - valid_to)
 - **Zone model**: Multiple zones per state (external boundary, core zones, buffer zones)
-- **WDPCA baseline preservation:** the complete November 2025 Madagascar WDPCA baseline is retained. Historical national states may override selected attributes for dated intervals, while parallel international-designation records remain present as separate baseline entities where they exist.
+- **WDPA baseline preservation:** the complete November 2025 Madagascar WDPA baseline is retained. Historical national states may override selected attributes for dated intervals, while parallel international-designation records remain present as separate baseline entities where they exist.
 - **Multiple formats**: RDS (R native), GeoPackage (GIS standard), and Parquet (WKT geometry)
 
 ### Download Outputs
 - [GeoPackage](https://github.com/BETSAKA/conservation-dynamic-madagascar/blob/main/data/dynamic_wdpa.gpkg?raw=1)
-- [GeoParquet](https://github.com/BETSAKA/conservation-dynamic-madagascar/blob/main/data/dynamic_wdpa.parquet?raw=1)
+- [Parquet](https://github.com/BETSAKA/conservation-dynamic-madagascar/blob/main/data/dynamic_wdpa.parquet?raw=1)
 - [RDS](https://github.com/BETSAKA/conservation-dynamic-madagascar/blob/main/data/dynamic_wdpa.rds?raw=1)
 - [YAML amendment registry](https://github.com/BETSAKA/conservation-dynamic-madagascar/tree/main/data/amendments)
 
@@ -73,14 +73,14 @@ The repository is organized as a Quarto book with the following chapters:
 ## Usage
 
 ### Prerequisites
-- R 4.0+ with packages: tidyverse, sf, arrow, wdpar, yaml, tmap, gt
+- R 4.0+ with packages: tidyverse, sf, arrow, wdpar, yaml, lubridate, tmap, gt
 - Quarto for rendering documentation
 
 ### Reproducing the consolidated dataset
-The released temporal dataset can be reconstructed from the November 2025 Madagascar WDPCA baseline and the version-controlled amendment registry without repeating the complete source-curation process.
-1. Clone this repository.
-2. Obtain the Madagascar WDPA dataset extract (November 2025 or more recent) from Protected Planet, subject to the WDPCA reuse conditions, and place it in the *data/* folder (eg. `data/WDPA_WDOECM_Nov2025_Public_MDG.zip`).
-3. Render `09_consolidation_rules.qmd`. The consolidation engine reads the WDPCA baseline, the tracked YAML/GeoJSON amendment registry and the explicit international-proxy table, validates them, and regenerates the RDS, GeoPackage and Parquet outputs.
+The released temporal dataset can be reconstructed from the November 2025 Madagascar WDPA baseline and the version-controlled amendment registry without repeating the complete source-curation process.
+To reproduce the published dataset exactly, use the November 2025 Madagascar WDPA extract and place it at `data/WDPA_WDOECM_Nov2025_Public_MDG.zip`. Then render `09_consolidation_rules.qmd`. The chapter reads the WDPA baseline and the version-controlled amendment registry, validates them, and regenerates the RDS, GeoPackage and Parquet outputs.
+
+A more recent WDPA release can be used to update the dataset, but this produces an updated reconstruction rather than an exact reproduction of the deposited version and may require checking identifier correspondences.
 
 Reproducing the curation of the amendment registry itself requires additional institutional and historical source datasets described in Chapters 1–7. Some of these sources are not redistributed in this repository; their provenance and access routes are documented in the complementary documentation.
 
@@ -88,7 +88,7 @@ Reproducing the curation of the amendment registry itself requires additional in
 
 - **Conservation researchers**: Analyzing temporal dynamics, degazettement, and protected area effectiveness
 - **Impact evaluators**: Conducting rigorous before-after or longitudinal studies requiring accurate historical boundaries
-- **Data managers**: Seeking to replicate this methodology for other countries or regions
+- **Data managers**: Applying the temporal data model to other countries or regions
 - **Policymakers**: Understanding the legal and spatial evolution of Madagascar's conservation system
 
 ## Output and Applications
@@ -98,7 +98,7 @@ The dynamic dataset enables:
 - **Correcting WDPA errors**: Identifying and documenting incorrect STATUS_YR, designations, or boundaries
 - **Temporal impact analyses**: Matching conservation interventions to accurate historical boundaries
 - **Degazettement studies**: Tracking boundary reductions and their drivers
-- **Legal history reconstruction**: Understanding status changes, temporary protections, and governance transitions
+- **Legal history reconstruction**: Understanding status changes and temporary protections
 - **Zone-specific analyses**: Evaluating effectiveness of core zones vs. buffer zones over time
 
 ## Citation
@@ -118,7 +118,7 @@ We welcome contributions to improve the methodology, documentation, or code qual
 - Identifying additional legal texts or spatial sources
 - Suggesting amendments to protected area histories
 - Improving consolidation rules or validation procedures
-- Extending the methodology to other countries
+- Extending the data model to other countries
 
 Please open an issue or submit a pull request following standard GitHub workflows.
 
@@ -135,8 +135,8 @@ Special thanks to the UNEP-WCMC for maintaining the WDPA, to Madagascar National
 **Software:** The source code in this repository is distributed under the MIT License.
 
 **Data:** The consolidated dataset combines information from several institutional sources and is subject to source-specific reuse conditions. Geometry provenance is recorded in the `geometry_source_dataset_id` field and amendment-level provenance is documented in the YAML registry.
-The consolidated outputs incorporate material derived from the World Database on Protected and Conserved Areas (WDPCA, formerly WDPA). UNEP-WCMC has provided written authorization to redistribute the Madagascar-specific derived outputs for this non-commercial research use case. Commercial use of WDPCA material or derivative works requires prior written permission from UNEP-WCMC.
-The downloadable consolidated files correspond to a historical research snapshot based on the November 2025 WDPCA release. Users requiring the latest official protected and conserved area information should consult [Protected Planet](https://www.protectedplanet.net/).
+The consolidated outputs incorporate material derived from the World Database on Protected and Conserved Areas (WDPA, formerly WDPA). UNEP-WCMC has provided written authorization to redistribute the Madagascar-specific derived outputs for this non-commercial research use case. Commercial use of WDPA material or derivative works requires prior written permission from UNEP-WCMC.
+The downloadable consolidated files correspond to a historical research snapshot based on the November 2025 WDPA release. Users requiring the latest official protected and conserved area information should consult [Protected Planet](https://www.protectedplanet.net/).
 Detailed reuse conditions for the deposited dataset are provided in the DataSuds record: https://doi.org/10.23708/VN2TWC.
 
 ---
@@ -147,11 +147,11 @@ Detailed reuse conditions for the deposited dataset are provided in the DataSuds
 
 ## Vue d'ensemble
 
-Ce dépôt documente la construction d’un jeu de données temporel sur les aires protégées de Madagascar pour la période 2000-2025 et propose un modèle de données réutilisable permettant d’ajouter une dimension historique à un sous-ensemble national de la World Database on Protected and Conserved Areas (WDPCA). La reconstruction de l’histoire des aires protégées malgaches repose sur des sources spatiales, juridiques et institutionnelles propres au pays, tandis que le modèle d’amendements et les règles de consolidation peuvent être réutilisés indépendamment des sources mobilisées pour cette reconstruction.
+Ce dépôt documente la construction d’un jeu de données temporel sur les aires protégées de Madagascar pour la période 2000-2025 et propose un modèle de données réutilisable permettant d’ajouter une dimension historique à un sous-ensemble national de la World Database on Protected and Conserved Areas (WDPA). La reconstruction de l’histoire des aires protégées malgaches repose sur des sources spatiales, juridiques et institutionnelles propres au pays, tandis que le modèle d’amendements et les règles de consolidation peuvent être réutilisés indépendamment des sources mobilisées pour cette reconstruction.
 
-Le dépôt inclut les principales sorties dérivées ainsi que le code, la documentation, le registre d’amendements et les outils de validation utilisés pour les produire. Les sorties consolidées incorporent des éléments dérivés de la World Database on Protected and Conserved Areas (WDPCA, anciennement WDPA). L’UNEP-WCMC a fourni une autorisation écrite pour redistribuer les sorties dérivées concernant Madagascar dans le cadre de cet usage scientifique non commercial. L’utilisation commerciale des données WDPCA ou des œuvres qui en dérivent nécessite une autorisation écrite préalable de l’UNEP-WCMC.
+Le dépôt inclut les principales sorties dérivées ainsi que le code, la documentation, le registre d’amendements et les outils de validation utilisés pour les produire. Les sorties consolidées incorporent des éléments dérivés de la World Database on Protected and Conserved Areas (WDPA, anciennement WDPA). L’UNEP-WCMC a fourni une autorisation écrite pour redistribuer les sorties dérivées concernant Madagascar dans le cadre de cet usage scientifique non commercial. L’utilisation commerciale des données WDPA ou des œuvres qui en dérivent nécessite une autorisation écrite préalable de l’UNEP-WCMC.
 
-**Attention :** les fichiers dérivés de la WDPCA téléchargeables dans ce dépôt correspondent à un état arrêté à une date déterminée et limité à Madagascar, fondé sur la version de novembre 2025, et peuvent donc devenir obsolètes. Pour accéder aux données officielles les plus récentes sur les aires protégées et conservées, consulter Protected Planet : https://www.protectedplanet.net. Il est également possible de produire une version mise à jour de ce jeu de données en téléchargeant une version plus récente de la WDPCA et en appliquant le registre d’amendements et le protocole de consolidation publiés.
+**Attention :** les fichiers dérivés de la WDPA téléchargeables dans ce dépôt correspondent à un état arrêté à une date déterminée et limité à Madagascar, fondé sur la version de novembre 2025, et peuvent donc devenir obsolètes. Pour accéder aux données officielles les plus récentes sur les aires protégées et conservées, consulter Protected Planet : https://www.protectedplanet.net. Il est également possible de produire une version mise à jour de ce jeu de données en téléchargeant une version plus récente de la WDPA et en appliquant le registre d’amendements et le protocole de consolidation publiés.
 
 Citation de la source de base des sorties dérivées de la WDPA : UNEP-WCMC and IUCN (2025). Protected Planet: The World Database on Protected Areas (WDPA), version de novembre 2025. Cambridge, UK et Gland, Suisse. Disponible sur https://www.protectedplanet.net.
 
@@ -159,7 +159,7 @@ Citation de la source de base des sorties dérivées de la WDPA : UNEP-WCMC and 
 
 - **Produire une extension temporelle de WDPA** : Créer des données temporellement explicites qui préservent les configurations historiques, permettant des analyses longitudinales et d'impact robustes
 - **Documenter les amendements légaux et spatiaux** : Identifier et enregistrer systématiquement les changements aux aires protégées via les textes légaux (CNLEGIS), les jeux de données spatiaux historiques (versions SAPM) et la littérature experte
-- **Proposer un modèle de données temporel réutilisable** : représenter les configurations historiques sous forme d’amendements datés appliqués à une version courante de la WDPCA, selon une structure pouvant être utilisée pour d’autres pays  
+- **Proposer un modèle de données temporel réutilisable** : représenter les configurations historiques sous forme d’amendements datés appliqués à une version courante de la WDPA, selon une structure pouvant être utilisée pour d’autres pays  
 - **Assurer la reproductibilité du traitement** : conserver les amendements sous contrôle de version et les transformer en états temporels au moyen de règles de consolidation déterministes  
 - **Promouvoir la science ouverte** : permettre à la communauté de vérifier, discuter et enrichir le jeu de données et son modèle
 
@@ -181,12 +181,12 @@ Citation de la source de base des sorties dérivées de la WDPA : UNEP-WCMC and 
 Le jeu de données final fournit :
 - **États temporels** : Chaque aire protégée représentée comme une séquence d'états délimités dans le temps (valid_from - valid_to)
 - **Modèle de zones** : Multiples zones par état (limite externe, zones noyaux, zones tampons)
-- **Conservation de la WDPCA de référence** : l’ensemble des données WDPCA de novembre 2025 pour Madagascar est conservé dans le jeu consolidé, y compris les désignations internationales distinctes.
+- **Conservation de la WDPA de référence** : l’ensemble des données WDPA de novembre 2025 pour Madagascar est conservé dans le jeu consolidé, y compris les désignations internationales distinctes.
 - **Formats multiples** : RDS (natif R), GeoPackage (standard SIG), et Parquet avec géométrie WKT (analytique)
 
 ### Télécharger les sorties
 - [GeoPackage](https://github.com/BETSAKA/conservation-dynamic-madagascar/blob/main/data/dynamic_wdpa.gpkg?raw=1)
-- [GeoParquet](https://github.com/BETSAKA/conservation-dynamic-madagascar/blob/main/data/dynamic_wdpa.parquet?raw=1)
+- [Parquet](https://github.com/BETSAKA/conservation-dynamic-madagascar/blob/main/data/dynamic_wdpa.parquet?raw=1)
 - [RDS](https://github.com/BETSAKA/conservation-dynamic-madagascar/blob/main/data/dynamic_wdpa.rds?raw=1)
 - [Registre YAML des amendements](https://github.com/BETSAKA/conservation-dynamic-madagascar/tree/main/data/amendments)
 
@@ -216,16 +216,16 @@ Le dépôt est organisé comme un livre Quarto avec les chapitres suivants :
 ## Utilisation
 
 ### Prérequis
-- R 4.0+ avec les packages : tidyverse, sf, arrow, wdpar, yaml, tmap, gt
+- R 4.0+ avec les packages : tidyverse, sf, arrow, wdpar, yaml, lubridate, tmap, gt
 - Quarto pour générer la documentation
 
 ### Reproduire le jeu de données
 
-Le jeu de données temporel publié peut être reconstruit à partir de la version de novembre 2025 de la WDPCA pour Madagascar et du registre d’amendements placé sous contrôle de version, sans reproduire l’ensemble du travail de curation des sources.
+Le jeu de données temporel publié peut être reconstruit à partir de la version de novembre 2025 de la WDPA pour Madagascar et du registre d’amendements placé sous contrôle de version, sans reproduire l’ensemble du travail de curation des sources.
 
-1. Cloner ce dépôt.
-2. Télécharger depuis Protected Planet l’extrait WDPCA de Madagascar (novembre 2025 ou version plus récente), dans le respect des conditions de réutilisation de la WDPCA, et le placer dans le dossier `data/`.
-3. Exécuter `09_consolidation_rules.qmd`, qui applique le registre d’amendements au fichier WDPCA et génère les sorties RDS, GeoPackage et Parquet.
+Pour reproduire exactement le jeu de données publié, utiliser l'extrait WDPA de Madagascar de novembre 2025 et le placer à l'emplacement `data/WDPA_WDOECM_Nov2025_Public_MDG.zip`. Exécuter ensuite `09_consolidation_rules.qmd`. Ce chapitre lit la base WDPA et le registre d'amendements placé sous contrôle de version, effectue les validations et régénère les sorties RDS, GeoPackage et Parquet.
+
+Une version plus récente de la WDPA peut être utilisée pour mettre à jour le jeu de données, mais il s'agit alors d'une nouvelle reconstruction et non d'une reproduction exacte de la version déposée ; les correspondances d'identifiants peuvent devoir être vérifiées.
 
 Reproduire la constitution du registre d’amendements nécessite en revanche les sources institutionnelles et historiques décrites dans les chapitres 1 à 7. Certaines ne sont pas redistribuées dans ce dépôt ; leur provenance et leurs modalités d’accès sont documentées dans la documentation associée.
 
@@ -243,7 +243,7 @@ Le jeu de données dynamique permet de :
 - **Corriger les erreurs WDPA** : Identifier et documenter les STATUS_YR, désignations ou limites incorrects
 - **Analyses d'impact temporelles** : Faire correspondre les interventions de conservation avec des limites historiques précises
 - **Études de déclassement** : Suivre les réductions de limites et leurs facteurs
-- **Reconstruction de l'histoire légale** : Comprendre les changements de statut, protections temporaires et transitions de gouvernance
+- **Reconstruction de l'histoire légale** : Comprendre les changements de statut et protections temporaires
 - **Analyses spécifiques aux zones** : Évaluer l'efficacité des zones noyaux vs zones tampons dans le temps
 
 ## Citation
@@ -263,7 +263,7 @@ Nous accueillons les contributions pour améliorer la méthodologie, la document
 - Identification de textes légaux ou sources spatiales additionnels
 - Suggestion d'amendements aux historiques d'aires protégées
 - Amélioration des règles de consolidation ou procédures de validation
-- Extension de la méthodologie à d'autres pays
+- Extension du modèle de données à d'autres pays
 
 Veuillez ouvrir une issue ou soumettre une pull request en suivant les workflows standards de GitHub.
 
@@ -281,7 +281,7 @@ Remerciements particuliers à l'UNEP-WCMC pour la maintenance de WDPA, à Madaga
 
 **Données :** Le jeu de données consolidé combine des informations provenant de plusieurs sources institutionnelles et reste soumis aux conditions de réutilisation propres à ces sources. La provenance des géométries est indiquée dans le champ geometry_source_dataset_id et la provenance des amendements est documentée dans le registre YAML. 
 
-Les sorties consolidées incorporent des éléments dérivés de la World Database on Protected and Conserved Areas (WDPCA, anciennement WDPA). L’UNEP-WCMC a fourni une autorisation écrite pour redistribuer les sorties dérivées concernant Madagascar dans le cadre de cet usage scientifique non commercial. L’utilisation commerciale des données WDPCA ou des œuvres dérivées nécessite une autorisation écrite préalable de l’UNEP-WCMC.
+Les sorties consolidées incorporent des éléments dérivés de la World Database on Protected and Conserved Areas (WDPA, anciennement WDPA). L’UNEP-WCMC a fourni une autorisation écrite pour redistribuer les sorties dérivées concernant Madagascar dans le cadre de cet usage scientifique non commercial. L’utilisation commerciale des données WDPA ou des œuvres dérivées nécessite une autorisation écrite préalable de l’UNEP-WCMC.
 
-Les fichiers consolidés téléchargeables correspondent à un instantané historique fondé sur la version de novembre 2025 de la WDPCA. Les utilisateurs ayant besoin des informations officielles les plus récentes doivent consulter [Protected Planet](https://www.protectedplanet.net/).
+Les fichiers consolidés téléchargeables correspondent à un instantané historique fondé sur la version de novembre 2025 de la WDPA. Les utilisateurs ayant besoin des informations officielles les plus récentes doivent consulter [Protected Planet](https://www.protectedplanet.net/).
 Les conditions détaillées de réutilisation du jeu de données déposé sont indiquées dans la notice DataSuds : https://doi.org/10.23708/VN2TWC.

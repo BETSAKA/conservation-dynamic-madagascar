@@ -486,6 +486,44 @@ export_amendments_to_yaml <- function(
     sprintf("%s-%d-%s-%s-%03d", iso3, wdpaid, year, amendment_type, seq)
   }
 
+  # Helper: resolve amendment_id collisions deterministically.
+  # The id scheme (iso3, wdpaid, year, amendment_type, seq) numbers seq
+  # within (WDPAID, valid_to, amendment_type) groups, so two chained
+  # temporary protections that share the same valid_from year but end in
+  # different states can receive the same id (for example the blanket
+  # arrêté 18633/2008 and the site-specific arrêté 21482/2008 for Ranobe
+  # PK 32). A previous version of this exporter silently overwrote the
+  # first file with the second, dropping a record from the registry.
+  # Collisions are now disambiguated deterministically: within a
+  # colliding group, the latest-starting amendment keeps seq 001
+  # (preserving amendment ids already published in the canonical
+  # registry) and earlier ones take the following numbers. The check
+  # below fails loudly if any duplicate remains.
+  resolve_amendment_ids <- function(ids, valid_from, valid_to) {
+    dup <- duplicated(ids) | duplicated(ids, fromLast = TRUE)
+    if (!any(dup)) {
+      return(ids)
+    }
+    warning(
+      "amendment_id collision detected: ",
+      paste(unique(ids[dup]), collapse = ", "),
+      " ; disambiguating by descending valid_from."
+    )
+    for (g in unique(ids[dup])) {
+      idx <- which(ids == g)
+      ord <- order(desc(valid_from[idx]), desc(valid_to[idx]), idx)
+      prefix <- sub("-[0-9]{3}$", "", ids[idx[1]])
+      ids[idx[ord]] <- paste0(prefix, sprintf("-%03d", seq_along(idx)))
+    }
+    if (anyDuplicated(ids)) {
+      stop(
+        "Duplicate amendment_id after disambiguation: ",
+        paste(unique(ids[duplicated(ids)]), collapse = ", ")
+      )
+    }
+    ids
+  }
+
   # Helper: create legal_instrument object
   create_legal_instrument <- function(row) {
     # Check if we have legal instrument data (check column existence first)
@@ -600,17 +638,25 @@ export_amendments_to_yaml <- function(
       mutate(seq = row_number()) |>
       ungroup()
 
+    spatial_grouped$amendment_id <- resolve_amendment_ids(
+      mapply(
+        generate_amendment_id,
+        iso3,
+        spatial_grouped$WDPAID,
+        spatial_grouped$valid_from,
+        spatial_grouped$valid_to,
+        spatial_grouped$amendment_type,
+        spatial_grouped$seq,
+        USE.NAMES = FALSE
+      ),
+      spatial_grouped$valid_from,
+      spatial_grouped$valid_to
+    )
+
     for (i in seq_len(nrow(spatial_grouped))) {
       row <- spatial_grouped[i, ]
 
-      amendment_id <- generate_amendment_id(
-        iso3,
-        row$WDPAID,
-        row$valid_from,
-        row$valid_to,
-        row$amendment_type,
-        row$seq
-      )
+      amendment_id <- row$amendment_id
 
       # Save geometry to GeoJSON
       geom_filename <- paste0(amendment_id, ".geojson")
@@ -677,17 +723,25 @@ export_amendments_to_yaml <- function(
       mutate(seq = row_number()) |>
       ungroup()
 
+    attribute_grouped$amendment_id <- resolve_amendment_ids(
+      mapply(
+        generate_amendment_id,
+        iso3,
+        attribute_grouped$WDPAID,
+        attribute_grouped$valid_from,
+        attribute_grouped$valid_to,
+        attribute_grouped$amendment_type,
+        attribute_grouped$seq,
+        USE.NAMES = FALSE
+      ),
+      attribute_grouped$valid_from,
+      attribute_grouped$valid_to
+    )
+
     for (i in seq_len(nrow(attribute_grouped))) {
       row <- attribute_grouped[i, ]
 
-      amendment_id <- generate_amendment_id(
-        iso3,
-        row$WDPAID,
-        row$valid_from,
-        row$valid_to,
-        row$amendment_type,
-        row$seq
-      )
+      amendment_id <- row$amendment_id
 
       # Extract non-NA WDPA attributes
       wdpa_attributes <- c(
@@ -3322,6 +3376,18 @@ temporary_protections <- pa_decisions |>
   filter(
     str_detect(type_decision, "mise_protection_temporaire")
   )
+
+# Note on sites covered by both the blanket arrêté 18633/2008 and a
+# site-specific arrêté (e.g. Ranobe PK 32, 555549460: blanket 18633/2008
+# of 2008-10-17, then site-specific 21482/2008 of 2008-12-02). Both
+# instruments are retained as successive temporary protections: the SAPM
+# 2010 proxy list used for the blanket decrees in 03_legal_docs.qmd
+# includes Ranobe PK 32, the site-specific arrêté followed the blanket
+# one within weeks, and the definitive decree 2015-808 (2015-05-05)
+# names Ranobe PK 32 among its ten sites, closing the 18633/2008,
+# 52005/2010, 9874/2013 sequence. Both records share the same
+# valid_from year, so the exporter disambiguates their amendment_ids
+# instead of silently overwriting one file with the other.
 
 # Get permanent designations for the same PAs
 temp_wdpaids <- unique(temporary_protections$WDPAID)

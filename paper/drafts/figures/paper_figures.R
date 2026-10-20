@@ -127,6 +127,12 @@ fig_map <- tm_shape(mdg_border) +
     col = "grey40",
     lwd = 0.3
   ) +
+  tm_graticules(
+    n.x = 4,
+    n.y = 5,
+    col = "grey70",
+    lwd = 0.4
+  ) +
   tm_layout(
     frame = FALSE,
     legend.position = c("right", "bottom")

@@ -512,6 +512,17 @@ conversion_table_verif <- conversion_table_verif %>%
     # Tsarasaotra (902692, Antananarivo) is spurious.
     WDPA_NAME = ifelse(original_pa == "antetezana", NA_character_, WDPA_NAME),
     WDPAID    = ifelse(original_pa == "antetezana", NA_real_,      WDPAID),
+    # "complexe andreba" comes from Arrêté n°382/2007-MINENVEF, whose objet
+    # names the "Complexe Andreba" (District de Mananara-Nord), a distinct
+    # aire protégée en création. The manual verification had mapped it to
+    # Complexe Anjozorobe Angavo (352242), an erroneous match that made
+    # Chapter 7 generate a spurious temporary protection for Anjozorobe
+    # Angavo (the same-day Arrêté 380/2007 prorogues 20023/2005 for
+    # Anjozorobe-Angavo, and is the correct instrument for that site).
+    # The Andreba SAPM site (implemented 2006) is not curated here; the
+    # decision is left unlinked pending dedicated verification.
+    WDPA_NAME = ifelse(original_pa == "complexe andreba", NA_character_, WDPA_NAME),
+    WDPAID    = ifelse(original_pa == "complexe andreba", NA_real_,      WDPAID),
     # "nosivolo marolambo" is the SAPM site later designated "Rivière
     # Nosivolo" (permanent PHP 555697874, décret 2015-757) ; the association
     # with the distinct PA Marolambo (555697917) is spurious. Audit

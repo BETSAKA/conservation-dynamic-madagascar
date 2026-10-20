@@ -24,7 +24,7 @@ Baseline source citation for the WDPA-derived outputs: UNEP-WCMC and IUCN (2025)
 
 ### Data Sources Integration
 - **SAPM**: National protected area system datasets (2002-2024)
-- **WDPA**: World Database on Protected Areas historical archive (2010-2054)
+- **WDPA**: World Database on Protected Areas historical archive (2010-2024)
 - **CNLEGIS**: Madagascar's legislative database with legal texts governing protected areas
 - **Expert literature**: Primarily Goodman et al. (2018) for validation
 
@@ -66,7 +66,7 @@ The repository is organized as a Quarto book with the following chapters:
 ### Key Components
 
 - **SAT (Spatial Amendment Table)**: Dated historical boundaries and internal zoning geometries
-- **FAT (Feature Attribute Table)**: Dated legal and administrative modifications (status changes, governance, designations)
+- **FAT (Feature Attribute Table)**: Dated attribute amendments (status and designation changes, temporary protections, and corrections)
 - **CAR (Consolidation and Auditing Rules)**: Code that transforms WDPA + SAT + FAT into temporal states
 - **YAML Amendment Registry**: `data/amendments/*.yml` containing metadata for all documented changes
 
@@ -78,7 +78,13 @@ The repository is organized as a Quarto book with the following chapters:
 
 ### Reproducing the consolidated dataset
 The released temporal dataset can be reconstructed from the November 2025 Madagascar WDPA baseline and the version-controlled amendment registry without repeating the complete source-curation process.
-To reproduce the published dataset exactly, use the November 2025 Madagascar WDPA extract and place it at `data/WDPA_WDOECM_Nov2025_Public_MDG.zip`. Then run `rebuild_dataset.R`, which reads the WDPA baseline and the version-controlled amendment registry, validates them, and regenerates the RDS, GeoPackage and Parquet outputs.
+To reproduce the published dataset exactly, use the November 2025 Madagascar WDPA extract and place it at `data/WDPA_WDOECM_Nov2025_Public_MDG.zip`. Then run:
+
+```bash
+Rscript rebuild_dataset.R
+```
+
+which reads the WDPA baseline and the version-controlled amendment registry, validates them, and regenerates the RDS, GeoPackage and Parquet outputs.
 
 A more recent WDPA release can be used to update the dataset, but this produces an updated reconstruction rather than an exact reproduction of the deposited version and may require checking identifier correspondences.
 
@@ -128,7 +134,7 @@ This work is part of the **BETSAKA project**, which aims to provide transparent 
 
 The project is coordinated by IRD/UMI-SOURCE and the University of Antananarivo/CERED, in collaboration with colleagues from Madagascar's Ministry of Environment and Sustainable Development (MEDD) and national conservation organizations.
 
-Special thanks to the UNEP-WCMC for maintaining the WDPA, to Madagascar National Parks and MEDD for providing SAPM data, and to CNLEGIS for making legal texts publicly accessible.
+Special thanks to the UNEP-WCMC for maintaining the WDPA, to Madagascar National Parks and MEDD for providing and documenting protected-area spatial information, and to CNLEGIS for making legal texts publicly accessible.
 
 ## License and reuse conditions
 
@@ -209,7 +215,7 @@ Le dépôt est organisé comme un livre Quarto avec les chapitres suivants :
 ### Composantes clés
 
 - **SAT (Spatial Amendment Table)** : Limites historiques datées et géométries de zonage interne
-- **FAT (Feature Attribute Table)** : Modifications légales et administratives datées (changements de statut, désignations)
+- **FAT (Feature Attribute Table)** : Amendements d'attributs datés (changements de statut et de désignation, protections temporaires et corrections)
 - **CAR (Consolidation and Auditing Rules)** : Code transformant WDPA + SAT + FAT en états temporels
 - **Registre d'amendements YAML** : `data/amendments/*.yml` contenant les métadonnées de tous les changements documentés
 
@@ -223,7 +229,13 @@ Le dépôt est organisé comme un livre Quarto avec les chapitres suivants :
 
 Le jeu de données temporel publié peut être reconstruit à partir de la version de novembre 2025 de la WDPA pour Madagascar et du registre d’amendements placé sous contrôle de version, sans reproduire l’ensemble du travail de curation des sources.
 
-Pour reproduire exactement le jeu de données publié, utiliser l'extrait WDPA de Madagascar de novembre 2025 et le placer à l'emplacement `data/WDPA_WDOECM_Nov2025_Public_MDG.zip`. Exécuter ensuite `rebuild_dataset.R`, qui lit la base WDPA et le registre d'amendements placé sous contrôle de version, effectue les validations et régénère les sorties RDS, GeoPackage et Parquet.
+Pour reproduire exactement le jeu de données publié, utiliser l'extrait WDPA de Madagascar de novembre 2025 et le placer à l'emplacement `data/WDPA_WDOECM_Nov2025_Public_MDG.zip`. Exécuter ensuite :
+
+```bash
+Rscript rebuild_dataset.R
+```
+
+qui lit la base WDPA et le registre d'amendements placé sous contrôle de version, effectue les validations et régénère les sorties RDS, GeoPackage et Parquet.
 
 Une version plus récente de la WDPA peut être utilisée pour mettre à jour le jeu de données, mais il s'agit alors d'une nouvelle reconstruction et non d'une reproduction exacte de la version déposée ; les correspondances d'identifiants peuvent devoir être vérifiées.
 
@@ -273,7 +285,7 @@ Ce travail fait partie du **projet BETSAKA**, qui vise à fournir des évaluatio
 
 Le projet est coordonné par l'IRD/UMI-SOURCE et l'Université d'Antananarivo/CERED, en collaboration avec des collègues du Ministère de l'Environnement et du Développement Durable (MEDD) de Madagascar et des organisations nationales de conservation.
 
-Remerciements particuliers à l'UNEP-WCMC pour la maintenance de WDPA, à Madagascar National Parks (MNP) pour la fourniture des données SAPM, et à CNLEGIS pour avoir rendu les textes légaux publiquement accessibles.
+Remerciements particuliers à l'UNEP-WCMC pour la maintenance de WDPA, à Madagascar National Parks et le MEDD pour la mise à disposition et la documentation d'informations spatiales sur les aires protégées, et à CNLEGIS pour avoir rendu les textes légaux publiquement accessibles.
 
 ## Licence et conditions de réutilisation
 

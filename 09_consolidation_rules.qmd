@@ -1034,10 +1034,15 @@ if (length(missing_baseline_ids) > 0L) {
 }
 
 # Fail-fast published-snapshot integrity checks for the deposited
-# November 2025 reconstruction
+# November 2025 reconstruction. Values updated after the recovery of the
+# blanket temporary protection of Ranobe PK 32 (arrêté 18633/2008,
+# 2008-10-17 to 2008-12-02), which had been silently dropped from the
+# registry by an amendment_id collision at export (see 07_curation.qmd);
+# the recovered amendment adds one temporal state to an already
+# represented WDPAID.
 snapshot_expected <- c(
-  rows = 437L,
-  state_ids = 367L,
+  rows = 438L,
+  state_ids = 368L,
   wdpaids = 168L,
   baseline_represented = 167L
 )
@@ -1107,11 +1112,11 @@ check_format_counts <- function(df, label) {
   n_rows <- nrow(df)
   n_states <- n_distinct(df$state_id)
   n_wdpaids <- n_distinct(as.character(df$WDPAID))
-  if (n_rows != 437L || n_states != 367L || n_wdpaids != 168L) {
+  if (n_rows != 438L || n_states != 368L || n_wdpaids != 168L) {
     stop(
       "Export validation failed for ", label, ": ",
       n_rows, " rows, ", n_states, " distinct state_id, ",
-      n_wdpaids, " distinct WDPAID (expected 437 / 367 / 168)",
+      n_wdpaids, " distinct WDPAID (expected 438 / 368 / 168)",
       call. = FALSE
     )
   }

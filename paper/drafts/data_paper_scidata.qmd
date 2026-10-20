@@ -70,7 +70,7 @@ The dataset was constructed through a multi-step pipeline integrating four compl
 
 The complete workflow, source documentation, curation notebooks, amendment registry and consolidation code are publicly available in the associated GitHub repository and its rendered Quarto documentation. We summarize the key steps below and illustrate the overall workflow in @fig-workflow.
 
-![Workflow diagram of the data processing pipeline](figures/Data_preparation_workflow.drawio.png){#fig-workflow width=100%}
+![Workflow for reconstructing and consolidating protected-area histories. Input data provide geometries or dated attributes used to construct the amendment registry, whereas validation and contextual sources are used for comparison, interpretation and verification. The curated amendment registry is then applied to a WDPA baseline using the Consolidation and Auditing Rules. The deposited release uses the November 2025 WDPA baseline; later WDPA releases can be used to generate subsequent updates](figures/Data_preparation_workflow.drawio.png){#fig-workflow width=100%}
 
 The source-discovery and historical-reconstruction steps described below are specific to Madagascar and are not proposed as a standardized workflow for other countries. Generalizability instead lies in the downstream representation: once locally reconstructed changes are expressed through the amendment schema, the same consolidation model can transform any country-level WDPA baseline into a temporal dataset.
 
@@ -145,7 +145,7 @@ Each row in the output dataset represents one zone in one temporal state. A prot
 
 The national temporal reconstruction targets the 123 protected areas that constituted Madagascar's national protected area system until the end of 2025. The consolidated files additionally preserve the complete  Madagascar WDPA baseline, including proposed and international-designation records, together with one historical dissolved protected-area record. The current release therefore contains 168 distinct WDPAIDs, represented by 367 temporal states and 437 zone-state rows. Secondary zoning is included for 70 protected-area identities.
 
-![Map of the 123 protected areas that constitute Madagascar’s national protected-area system through the end of 2025](figures/fig_map.png){#fig-map width=70%}
+![Map of the 123 protected areas that constituted Madagascar’s national protected-area system through the end of 2025, coloured according to the number of documented external-boundary temporal states. A value of 1 indicates that no boundary change is documented over the study period.](figures/fig_map.png){#fig-map width=70%}
 
 The temporal reconstruction changes the inferred evolution of protected-area extent. @fig-area-comparison compares the annual national protected-area extent obtained by back-projecting the November 2025 WDPA through "STATUS_YR" with that obtained from the reconstructed historical states. The WDPA-based series shows a sharp increase in 2015, whereas the temporal reconstruction distributes this expansion across earlier years and accounts for historical boundary changes.
 

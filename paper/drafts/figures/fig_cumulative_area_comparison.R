@@ -1,27 +1,8 @@
-# fig_cumulative_area_comparison.R
-#
-# Cumulative national protected-area area in Madagascar, 2000-2025:
-#   1. WDPA November 2025 baseline projected backward through STATUS_YR
-#   2. temporally extended dataset (data/dynamic_wdpa.rds)
-#
-# Implements the rules in add-cumsum-fig.md with two agreed adjustments:
-#   - Series 2 counts each PA once per year, using the state in force on
-#     Dec 31. The literal overlap rule (valid_to > Jan 1) double-counts
-#     handoff years because every handoff is exact
-#     (valid_to == next valid_from), e.g. +41,660 km2 in 2015 alone.
-#   - Records with unreported STATUS_YR (= 0) are excluded from Series 1,
-#     matching the status_yr_to_date convention of the pipeline and the
-#     dynamic series, which can never activate them.
-#
-# Run from the project root. Generates the figure and the yearly table only:
-# no manuscript edits, no commits, no changes to the underlying dataset.
-
 library(tidyverse)
 library(sf)
 library(lubridate)
 
 years <- 2000:2025
-
 stopifnot(
   "WDPA baseline missing: data/WDPA_WDOECM_Nov2025_Public_MDG.zip" = file.exists(
     "data/WDPA_WDOECM_Nov2025_Public_MDG.zip"
@@ -31,7 +12,7 @@ stopifnot(
   )
 )
 
-# ---- Series 1: WDPA baseline comparator -------------------------------------
+# Series 1: WDPA baseline comparator
 
 wdpa_mdg <- wdpar::wdpa_read("data/WDPA_WDOECM_Nov2025_Public_MDG.zip")
 
@@ -42,7 +23,7 @@ wdpa_records <- wdpa_mdg |>
   st_make_valid() |>
   mutate(area_km2 = as.numeric(st_area(geometry)) / 1e6) |>
   st_drop_geometry() |>
-  # STATUS_YR = 0 flags an unreported designation year, not the year 0
+  # STATUS_YR = 0 flags an unreported designation year
   filter(STATUS_YR > 0)
 
 n_wdpa_used <- nrow(wdpa_records)
@@ -58,7 +39,7 @@ series_wdpa <- tibble(
   )
 )
 
-# ---- Series 2: temporally extended dataset ----------------------------------
+# Series 2: temporally extended dataset-
 
 dyn <- readRDS("data/dynamic_wdpa.rds")
 
@@ -90,9 +71,9 @@ series_dyn <- tibble(
 
 yearly <- left_join(series_wdpa, series_dyn, by = "year")
 
-# ---- Validation -------------------------------------------------------------
+# Validation
 
-cat("=== Validation ===\n")
+cat("Validation")
 cat("WDPA national records in Nov 2025 baseline: ", n_wdpa_national, "\n")
 cat(
   "WDPA records used in the comparator:        ",
@@ -170,7 +151,7 @@ cat(
   sep = ""
 )
 
-# ---- Yearly table -----------------------------------------------------------
+# Yearly table
 
 cat("\n=== Yearly values (head) ===\n")
 print(head(yearly))
@@ -182,7 +163,7 @@ write_csv(
   "paper/drafts/figures/fig_cumulative_area_comparison_yearly.csv"
 )
 
-# ---- Figure -----------------------------------------------------------------
+# Figure
 
 plot_df <- yearly |>
   pivot_longer(
@@ -202,12 +183,15 @@ p <- ggplot(plot_df, aes(x = year, y = area_km2, colour = series)) +
   geom_line(linewidth = 0.9) +
   scale_x_continuous(breaks = seq(2000, 2025, by = 5)) +
   labs(
-    title = "Cumulative national protected area in Madagascar, 2000-2025",
+    title = "National protected-area extent in Madagascar, 2000-2025",
     x = "Year",
-    y = expression("Cumulative area" ~ (km^2)),
+    y = expression("Protected-area extent" ~ (km^2)),
     colour = NULL
   ) +
-  theme_minimal(base_size = 12)
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "bottom"
+  )
 
 ggsave(
   "paper/drafts/figures/fig_cumulative_area_comparison.png",

@@ -145,8 +145,13 @@ The national temporal reconstruction targets the 123 protected areas that consti
 
 ![Map of the 123 protected areas that constitute Madagascar’s national protected-area system through the end of 2025](figures/fig_map.png){#fig-map width=70%}
 
-The amendment schema and consolidation engine are independent of the particular sources used in Madagascar. They can therefore be applied to another country or region once locally reconstructed historical information has been expressed as dated amendments to the corresponding WDPA baseline.
+The temporal reconstruction changes the inferred evolution of protected-area extent. Figure @fig-area-comparison compares the annual national protected-area extent obtained by back-projecting the November 2025 WDPA through `STATUS_YR` with that obtained from the reconstructed historical states. The WDPA-based series shows a sharp increase in 2015, whereas the temporal reconstruction distributes this expansion across earlier years and accounts for historical boundary changes.
 
+![National protected-area extent in Madagascar according to the November 2025 WDPA baseline and the temporally extended dataset, 2000-2025. The WDPA series projects current national protected-area geometries backward from their recorded `STATUS_YR`; records with an unreported status year are excluded. The temporally extended series uses the external-boundary state in force at the end of each year.](figures/fig_cumulative_area_comparison.png){#fig-area-comparison width=80%}
+
+By 2025 the two series nearly converge; the remaining difference of 878 km² corresponds to Tsimembo Manambolomaty, Mandrozo and Torotorofotsy, which have documented national legal histories in the reconstructed dataset but are represented only by international Ramsar records in the November 2025 WDPA.
+
+The amendment schema and consolidation engine are independent of the particular sources used in Madagascar. They can therefore be applied to another country or region once locally reconstructed historical information has been expressed as dated amendments to the corresponding WDPA baseline.
 
 # Technical Validation
 

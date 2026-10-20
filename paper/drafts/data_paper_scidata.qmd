@@ -45,7 +45,7 @@ abstract: |
 
 *Corresponding author: Florent Bédécarrats (florent.bedecarrats@ird.fr)*
 
-# Background & Summary
+# Background and Summary
 
 Geospatial data on protected areas occupy a central place in research assessing conservation outcomes on the environment and human wellbeing. Whether studies assess the effect of protection on deforestation, measure the economic returns of ecotourism, or monitor progress toward international conservation targets, they depend on accurate spatial boundaries and status information. The World Database on Protected Areas (WDPA), maintained by the UN Environment Programme World Conservation Monitoring Centre, serves this role as the most comprehensive global inventory, documenting over 270,000 sites across more than 240 countries and territories [@bingham2019b]. Over the past two decades, the WDPA has become the default spatial reference for conservation planning, effectiveness assessments, and reporting against targets such as Aichi Biodiversity Target 11 and, more recently, the Kunming-Montreal Global Biodiversity Framework goal to protect 30% of the planet by 2030 [@Maxwell2020].
 

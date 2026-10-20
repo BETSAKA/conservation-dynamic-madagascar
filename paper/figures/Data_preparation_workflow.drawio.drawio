@@ -10,7 +10,7 @@
         <mxCell id="swD6DeWIQdFqMDn-KdO4-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;div align=&quot;center&quot;&gt;WDPA archives&lt;br&gt;15 snapshots 2010-2024&lt;/div&gt;" vertex="1">
           <mxGeometry height="60" width="120" x="226" y="302" as="geometry" />
         </mxCell>
-        <mxCell id="swD6DeWIQdFqMDn-KdO4-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="SAPM archives&lt;br&gt;8 national datasets" vertex="1">
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="SAPM archives for historical datasets" vertex="1">
           <mxGeometry height="60" width="120" x="226" y="234" as="geometry" />
         </mxCell>
         <mxCell id="swD6DeWIQdFqMDn-KdO4-7" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Expert literature&lt;br&gt;Goodman et al. 2018" vertex="1">
@@ -46,10 +46,10 @@
         <mxCell id="swD6DeWIQdFqMDn-KdO4-36" connectable="0" parent="swD6DeWIQdFqMDn-KdO4-28" style="group" value="" vertex="1">
           <mxGeometry height="80" width="241" x="50" y="164" as="geometry" />
         </mxCell>
-        <mxCell id="swD6DeWIQdFqMDn-KdO4-34" parent="swD6DeWIQdFqMDn-KdO4-36" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=default;align=center;verticalAlign=top;fontFamily=Helvetica;fontSize=12;fontColor=default;fillColor=default;" value="&lt;div&gt;&lt;b&gt;Consolidation&lt;/b&gt;&lt;/div&gt;" vertex="1">
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-34" parent="swD6DeWIQdFqMDn-KdO4-36" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=default;align=center;verticalAlign=top;fontFamily=Helvetica;fontSize=12;fontColor=default;fillColor=default;" value="&lt;div&gt;&lt;b&gt;Consolidation and Auditing Rules&lt;/b&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="80" width="241" as="geometry" />
         </mxCell>
-        <mxCell id="swD6DeWIQdFqMDn-KdO4-35" parent="swD6DeWIQdFqMDn-KdO4-36" style="rounded=0;whiteSpace=wrap;html=1;" value="Collection of R functions for combination and audit" vertex="1">
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-35" parent="swD6DeWIQdFqMDn-KdO4-36" style="rounded=0;whiteSpace=wrap;html=1;" value="Deterministic R functions" vertex="1">
           <mxGeometry height="40" width="221" x="9" y="34" as="geometry" />
         </mxCell>
         <mxCell id="swD6DeWIQdFqMDn-KdO4-37" edge="1" parent="swD6DeWIQdFqMDn-KdO4-28" source="swD6DeWIQdFqMDn-KdO4-25" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;strokeWidth=3;entryX=0.414;entryY=0.022;entryDx=0;entryDy=0;entryPerimeter=0;" target="swD6DeWIQdFqMDn-KdO4-34" value="">
@@ -67,10 +67,10 @@
         <mxCell id="swD6DeWIQdFqMDn-KdO4-33" connectable="0" parent="1" style="group" value="" vertex="1">
           <mxGeometry height="100" width="140" x="580" y="40" as="geometry" />
         </mxCell>
-        <mxCell id="swD6DeWIQdFqMDn-KdO4-31" parent="swD6DeWIQdFqMDn-KdO4-33" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;" value="&lt;b&gt;Current&amp;nbsp;Data&lt;/b&gt;" vertex="1">
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-31" parent="swD6DeWIQdFqMDn-KdO4-33" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;" value="&lt;b&gt;WDPA baseline&lt;/b&gt;" vertex="1">
           <mxGeometry height="100" width="140" as="geometry" />
         </mxCell>
-        <mxCell id="swD6DeWIQdFqMDn-KdO4-32" parent="swD6DeWIQdFqMDn-KdO4-33" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;div&gt;WDPA&lt;/div&gt;&lt;div&gt;Up-to-date version&lt;br&gt;at generation time&lt;/div&gt;" vertex="1">
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-32" parent="swD6DeWIQdFqMDn-KdO4-33" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;span&gt;November 2025 for deposited release&lt;/span&gt;&lt;br&gt;&lt;span&gt;Later versions for updates&lt;/span&gt;" vertex="1">
           <mxGeometry height="60" width="120" x="9" y="30" as="geometry" />
         </mxCell>
         <mxCell id="swD6DeWIQdFqMDn-KdO4-38" edge="1" parent="1" source="swD6DeWIQdFqMDn-KdO4-31" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;strokeWidth=3;entryX=0.55;entryY=0.002;entryDx=0;entryDy=0;entryPerimeter=0;" target="swD6DeWIQdFqMDn-KdO4-34" value="">
@@ -82,7 +82,7 @@
         <mxCell id="swD6DeWIQdFqMDn-KdO4-40" parent="1" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=default;align=center;verticalAlign=top;fontFamily=Helvetica;fontSize=12;fontColor=default;fillColor=default;" value="&lt;b&gt;Output dataset&lt;/b&gt;" vertex="1">
           <mxGeometry height="80" width="241" x="451" y="323" as="geometry" />
         </mxCell>
-        <mxCell id="swD6DeWIQdFqMDn-KdO4-41" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Spatiotemporal states of PAs&lt;br&gt;Geopackage and GeoParquet" vertex="1">
+        <mxCell id="swD6DeWIQdFqMDn-KdO4-41" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Spatiotemporal states of PAs&lt;br&gt;Geopackage, RDS and GeoParquet" vertex="1">
           <mxGeometry height="40" width="221" x="461" y="356" as="geometry" />
         </mxCell>
         <mxCell id="swD6DeWIQdFqMDn-KdO4-42" edge="1" parent="1" source="swD6DeWIQdFqMDn-KdO4-34" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;strokeWidth=3;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="swD6DeWIQdFqMDn-KdO4-40" value="">

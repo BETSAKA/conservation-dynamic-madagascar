@@ -72,7 +72,7 @@ fig_examples <- tmap_arrange(
 # Save as ../figures/fig_examples.png
 tmap_save(
   fig_examples,
-  "paper/figures/fig_examples.png",
+  "paper/drafts/figures/fig_examples.png",
   width = 8,
   height = 7,
   dpi = 300
@@ -139,7 +139,7 @@ fig_map <- tm_shape(mdg_border) +
   )
 
 # save in paper/figures/map_temporal_states.png
-tmap_save(fig_map, "paper/figures/fig_map.png")
+tmap_save(fig_map, "paper/drafts/figures/fig_map.png")
 
 
 # Figure 4 ---------------------------------------------------------------
@@ -184,7 +184,7 @@ fig_amendments <- ggplot(
 
 # Save in paper/figures/fig_amendments.png
 ggsave(
-  "paper/figures/fig_amendments.png",
+  "paper/drafts/figures/fig_amendments.png",
   fig_amendments,
   width = 7,
   height = 4,

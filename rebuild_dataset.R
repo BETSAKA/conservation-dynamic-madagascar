@@ -71,6 +71,29 @@ make_keys <- function(x) {
 
 reference_keys <- make_keys(reference)
 
+outputs <- c(
+  "data/dynamic_wdpa.rds",
+  "data/dynamic_wdpa.gpkg",
+  "data/dynamic_wdpa.parquet"
+)
+
+# The published RDS has already been loaded into memory as the
+# reference dataset. Remove all outputs so successful reproduction
+# requires the consolidation workflow to recreate every format.
+existing_outputs <- outputs[file.exists(outputs)]
+
+if (length(existing_outputs) > 0) {
+  ok <- file.remove(existing_outputs)
+
+  if (!all(ok)) {
+    stop(
+      "Could not remove existing output file(s): ",
+      paste(existing_outputs[!ok], collapse = ", ")
+    )
+  }
+}
+
+
 status <- system2(
   quarto,
   c("render", qmd_path)

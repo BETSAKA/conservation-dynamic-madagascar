@@ -24,7 +24,7 @@ Baseline source citation for the WDPA-derived outputs: UNEP-WCMC and IUCN (2025)
 
 ### Data Sources Integration
 - **SAPM**: National protected area system datasets (2002-2024)
-- **WDPA**: World Database on Protected Areas historical archive (2010-2024)
+- **WDPA**: World Database on Protected Areas historical archive (2010-2054)
 - **CNLEGIS**: Madagascar's legislative database with legal texts governing protected areas
 - **Expert literature**: Primarily Goodman et al. (2018) for validation
 
@@ -78,7 +78,7 @@ The repository is organized as a Quarto book with the following chapters:
 
 ### Reproducing the consolidated dataset
 The released temporal dataset can be reconstructed from the November 2025 Madagascar WDPA baseline and the version-controlled amendment registry without repeating the complete source-curation process.
-To reproduce the published dataset exactly, use the November 2025 Madagascar WDPA extract and place it at `data/WDPA_WDOECM_Nov2025_Public_MDG.zip`. Then render `09_consolidation_rules.qmd`. The chapter reads the WDPA baseline and the version-controlled amendment registry, validates them, and regenerates the RDS, GeoPackage and Parquet outputs.
+To reproduce the published dataset exactly, use the November 2025 Madagascar WDPA extract and place it at `data/WDPA_WDOECM_Nov2025_Public_MDG.zip`. Then run `rebuild_dataset.R`, which reads the WDPA baseline and the version-controlled amendment registry, validates them, and regenerates the RDS, GeoPackage and Parquet outputs.
 
 A more recent WDPA release can be used to update the dataset, but this produces an updated reconstruction rather than an exact reproduction of the deposited version and may require checking identifier correspondences.
 
@@ -105,11 +105,11 @@ The dynamic dataset enables:
 
 If you use the methodology, code, or resulting dataset, please cite:
 
-> Bedecarrats, Florent, Ramanantsoa, Seheno, Andrianambinina, Ollier D., 2026, "Dynamic spatial conservation boundaries and internal zoning of Madagascar from 2000 to 2025", https://doi.org/10.23708/VN2TWC, DataSuds, VERSION PROVISOIRE
+> Bedecarrats, Florent, Ramanantsoa, Seheno, Andrianambinina, Ollier D., 2026, "Dynamic spatial conservation boundaries and internal zoning of Madagascar from 2000 to 2025", https://doi.org/10.23708/VN2TWC, DataSuds.
 
 And the codebase via:
 
-> Bédécarrats F., Ramanantsoa S., Andrianambinina O. D. (2026). *Conserving the History of Conservation: A Dynamic Temporal Dataset of Madagascar's Protected Areas (2000-2024)*. GitHub repository: https://github.com/BETSAKA/conservation-dynamic-madagascar
+> Bédécarrats F., Ramanantsoa S., Andrianambinina O. D. (2026). *Conserving the History of Conservation: A Dynamic Temporal Dataset of Madagascar's Protected Areas (2000-2025)*. GitHub repository: https://github.com/BETSAKA/conservation-dynamic-madagascar
 
 ## Contributing
 
@@ -128,13 +128,13 @@ This work is part of the **BETSAKA project**, which aims to provide transparent 
 
 The project is coordinated by IRD/UMI-SOURCE and the University of Antananarivo/CERED, in collaboration with colleagues from Madagascar's Ministry of Environment and Sustainable Development (MEDD) and national conservation organizations.
 
-Special thanks to the UNEP-WCMC for maintaining the WDPA, to Madagascar National Parks (MNP) for providing SAPM data, and to CNLEGIS for making legal texts publicly accessible.
+Special thanks to the UNEP-WCMC for maintaining the WDPA, to Madagascar National Parks and MEDD for providing SAPM data, and to CNLEGIS for making legal texts publicly accessible.
 
 ## License and reuse conditions
 
 **Software:** The source code in this repository is distributed under the MIT License.
 
-**Data:** The consolidated dataset combines information from several institutional sources and remains subject to source-specific reuse conditions. UNEP-WCMC has provided written authorization for redistribution of the Madagascar-specific WDPA-derived outputs for this non-commercial research use case; commercial use of WDPA material or derivative works requires prior written permission from UNEP-WCMC. Madagascar National Parks has authorized the use, adaptation, publication and redistribution under CC BY 4.0 of the ANGAP/MNP-derived geometries incorporated into this dataset. For SAPM/MEDD-derived information, institutional provenance and the legal basis for dissemination have been formally attested by MEDD; this does not place the underlying historical SAPM/MEDD archives under a general open licence. The CC BY 4.0 licence attached to the scientific dataset applies to the authors’ compilation, curation, temporal structuring and documentation subject to these source-specific conditions. Geometry provenance is recorded in the `geometry_source_dataset_id` field and amendment-level provenance is documented in the YAML registry.
+**Data:** The consolidated dataset combines information from several institutional sources and remains subject to source-specific reuse conditions. UNEP-WCMC has provided written authorization for redistribution of the Madagascar-specific WDPA-derived outputs for this non-commercial research use case; commercial use of WDPA material or derivative works requires prior written permission from UNEP-WCMC. Madagascar National Parks has authorized the use, adaptation, publication and redistribution under CC BY 4.0 of the ANGAP/MNP-derived geometries incorporated into this dataset. For SAPM/MEDD-derived information, institutional provenance and the legal basis for dissemination have been documented in a signed attestation by co-author Seheno Ramanantsoa, Head of the Protected Areas Governance Service within MEDD; this does not place the underlying historical SAPM/MEDD archives under a general open licence. The CC BY 4.0 licence attached to the scientific dataset applies to the authors’ compilation, curation, temporal structuring and documentation subject to these source-specific conditions. Geometry provenance is recorded in the `geometry_source_dataset_id` field and amendment-level provenance is documented in the YAML registry.
 The consolidated outputs incorporate material derived from the WDPA. UNEP-WCMC has provided written authorization to redistribute the Madagascar-specific derived outputs for this non-commercial research use case. Commercial use of WDPA material or derivative works requires prior written permission from UNEP-WCMC.
 The downloadable consolidated files correspond to a historical research snapshot based on the November 2025 WDPA release. Users requiring the latest official protected and conserved area information should consult [Protected Planet](https://www.protectedplanet.net/).
 Detailed reuse conditions for the deposited dataset are provided in the DataSuds record: https://doi.org/10.23708/VN2TWC.
@@ -209,7 +209,7 @@ Le dépôt est organisé comme un livre Quarto avec les chapitres suivants :
 ### Composantes clés
 
 - **SAT (Spatial Amendment Table)** : Limites historiques datées et géométries de zonage interne
-- **FAT (Feature Attribute Table)** : Modifications légales et administratives datées (changements de statut, gouvernance, désignations)
+- **FAT (Feature Attribute Table)** : Modifications légales et administratives datées (changements de statut, désignations)
 - **CAR (Consolidation and Auditing Rules)** : Code transformant WDPA + SAT + FAT en états temporels
 - **Registre d'amendements YAML** : `data/amendments/*.yml` contenant les métadonnées de tous les changements documentés
 
@@ -223,7 +223,7 @@ Le dépôt est organisé comme un livre Quarto avec les chapitres suivants :
 
 Le jeu de données temporel publié peut être reconstruit à partir de la version de novembre 2025 de la WDPA pour Madagascar et du registre d’amendements placé sous contrôle de version, sans reproduire l’ensemble du travail de curation des sources.
 
-Pour reproduire exactement le jeu de données publié, utiliser l'extrait WDPA de Madagascar de novembre 2025 et le placer à l'emplacement `data/WDPA_WDOECM_Nov2025_Public_MDG.zip`. Exécuter ensuite `09_consolidation_rules.qmd`. Ce chapitre lit la base WDPA et le registre d'amendements placé sous contrôle de version, effectue les validations et régénère les sorties RDS, GeoPackage et Parquet.
+Pour reproduire exactement le jeu de données publié, utiliser l'extrait WDPA de Madagascar de novembre 2025 et le placer à l'emplacement `data/WDPA_WDOECM_Nov2025_Public_MDG.zip`. Exécuter ensuite `rebuild_dataset.R`, qui lit la base WDPA et le registre d'amendements placé sous contrôle de version, effectue les validations et régénère les sorties RDS, GeoPackage et Parquet.
 
 Une version plus récente de la WDPA peut être utilisée pour mettre à jour le jeu de données, mais il s'agit alors d'une nouvelle reconstruction et non d'une reproduction exacte de la version déposée ; les correspondances d'identifiants peuvent devoir être vérifiées.
 
@@ -250,11 +250,11 @@ Le jeu de données dynamique permet de :
 
 Si vous utilisez la méthodologie, le code ou le jeu de données résultant, veuillez citer :
 
-> Bedecarrats, Florent, Ramanantsoa, Seheno, Andrianambinina, Ollier D., 2026, "Dynamic spatial conservation boundaries and internal zoning of Madagascar from 2000 to 2025", https://doi.org/10.23708/VN2TWC, DataSuds, VERSION PROVISOIRE
+> Bedecarrats, Florent, Ramanantsoa, Seheno, Andrianambinina, Ollier D., 2026, "Dynamic spatial conservation boundaries and internal zoning of Madagascar from 2000 to 2025", https://doi.org/10.23708/VN2TWC, DataSuds.
 
 Et le code via :
 
-> Bédécarrats F., Ramanantsoa S., Andrianambinina O. D. (2026). *Conserving the History of Conservation: A Dynamic Temporal Dataset of Madagascar's Protected Areas (2000-2024)*. Dépôt GitHub : https://github.com/BETSAKA/conservation-dynamic-madagascar
+> Bédécarrats F., Ramanantsoa S., Andrianambinina O. D. (2026). *Conserving the History of Conservation: A Dynamic Temporal Dataset of Madagascar's Protected Areas (2000-2025)*. Dépôt GitHub : https://github.com/BETSAKA/conservation-dynamic-madagascar
 
 ## Contributions
 
@@ -279,7 +279,7 @@ Remerciements particuliers à l'UNEP-WCMC pour la maintenance de WDPA, à Madaga
 
 **Logiciel :** Le code source de ce dépôt est diffusé sous licence MIT.
 
-**Données :** Le jeu de données consolidé combine des informations provenant de plusieurs sources institutionnelles et reste soumis aux conditions de réutilisation propres à chacune d’elles. L’UNEP-WCMC a accordé une autorisation écrite pour la redistribution des produits dérivés de la WDPA concernant Madagascar dans le cadre de cet usage scientifique non commercial ; toute utilisation commerciale de données de la WDPA ou de produits qui en sont dérivés nécessite l’autorisation écrite préalable de l’UNEP-WCMC. Madagascar National Parks a autorisé, sous licence CC BY 4.0, l’utilisation, l’adaptation, la publication et la redistribution des géométries issues de l’ANGAP/MNP incorporées dans ce jeu de données. Pour les informations issues du SAPM/MEDD, leur provenance institutionnelle et le fondement juridique de leur diffusion ont fait l’objet d’une attestation formelle ; cette attestation ne place pas pour autant les archives historiques sous-jacentes du SAPM/MEDD sous une licence ouverte générale. La licence CC BY 4.0 associée au jeu de données scientifique s’applique au travail de compilation, de curation, de structuration temporelle et de documentation réalisé par les auteurs, sous réserve des conditions propres aux différentes sources. La provenance des géométries est indiquée dans le champ `geometry_source_dataset_id` et la provenance des amendements est documentée dans le registre YAML. 
+**Données :** Le jeu de données consolidé combine des informations provenant de plusieurs sources institutionnelles et reste soumis aux conditions de réutilisation propres à chacune d’elles. L’UNEP-WCMC a accordé une autorisation écrite pour la redistribution des produits dérivés de la WDPA concernant Madagascar dans le cadre de cet usage scientifique non commercial ; toute utilisation commerciale de données de la WDPA ou de produits qui en sont dérivés nécessite l’autorisation écrite préalable de l’UNEP-WCMC. Madagascar National Parks a autorisé, sous licence CC BY 4.0, l’utilisation, l’adaptation, la publication et la redistribution des géométries issues de l’ANGAP/MNP incorporées dans ce jeu de données. Pour les informations issues du SAPM/MEDD, leur provenance institutionnelle et le fondement juridique de leur diffusion sont documentés dans une attestation signée par la coauteure Seheno Ramanantsoa, cheffe du Service de la Gouvernance des Aires Protégées au sein du MEDD ; cette attestation ne place pas pour autant les archives historiques sous-jacentes du SAPM/MEDD sous une licence ouverte. La licence CC BY 4.0 associée au jeu de données scientifique s’applique au travail de compilation, de curation, de structuration temporelle et de documentation réalisé par les auteurs, sous réserve des conditions propres aux différentes sources. La provenance des géométries est indiquée dans le champ `geometry_source_dataset_id` et la provenance des amendements est documentée dans le registre YAML. 
 
 Les sorties consolidées incorporent des éléments dérivés de la WDPA. L’UNEP-WCMC a fourni une autorisation écrite pour redistribuer les sorties dérivées concernant Madagascar dans le cadre de cet usage scientifique non commercial. L’utilisation commerciale des données WDPA ou des œuvres dérivées nécessite une autorisation écrite préalable de l’UNEP-WCMC.
 
